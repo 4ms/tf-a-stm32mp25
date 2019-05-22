@@ -32,7 +32,6 @@
 #define BSEC_RETRY			0xFFFFFFF8U
 #define BSEC_NOT_SUPPORTED		0xFFFFFFF7U
 #define BSEC_WRITE_LOCKED		0xFFFFFFF6U
-#define BSEC_ERROR_INVALID_FVR		0xFFFFFFF5U
 
 /*
  * OTP MODE
@@ -88,6 +87,16 @@ struct bsec_config {
 				 * 1 shadowing of upper OTP is locked
 				 * until next reset
 				 */
+
+	/* BSEC3 only */
+	uint8_t global_wr_lock;	/*
+				 * BSEC register write lock
+				 * 1 write register is locked until next reset
+				 */
+	uint8_t key_value_lock;	/*
+				 * HWKEY to SAES peripheral lock
+				 * 0 device unique, 1 fixed to 0x0 or invalid
+				 */
 };
 
 uint32_t bsec_probe(void);
@@ -121,7 +130,7 @@ uint32_t bsec_set_sp_lock(uint32_t otp);
 uint32_t bsec_read_sp_lock(uint32_t otp, bool *value);
 uint32_t bsec_read_permanent_lock(uint32_t otp, bool *value);
 uint32_t bsec_otp_lock(uint32_t service);
-
+bool bsec_mode_is_closed_device(void);
 uint32_t bsec_shadow_read_otp(uint32_t *otp_value, uint32_t word);
 uint32_t bsec_check_nsec_access_rights(uint32_t otp);
 
