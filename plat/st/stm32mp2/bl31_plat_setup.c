@@ -30,8 +30,11 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 			BL_CODE_END - BL_CODE_BASE,
 			MT_CODE | MT_SECURE);
 
-	/* Map non-secure device tree */
-	mmap_add_region(arg2, arg2, NS_DT_MAX_SIZE, MT_RO_DATA | MT_NS);
+	/*
+	 * Map non-secure device tree with secure property, i.e. default region.
+	 * DDR region definitions will be finalized at BL32 level.
+	 */
+	mmap_add_region(arg2, arg2, NS_DT_MAX_SIZE, MT_RO_DATA | MT_SECURE);
 
 	configure_mmu();
 
