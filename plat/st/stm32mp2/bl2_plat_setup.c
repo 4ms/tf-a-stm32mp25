@@ -20,6 +20,7 @@
 #include <drivers/st/regulator_fixed.h>
 #include <drivers/st/stm32_console.h>
 #include <drivers/st/stm32mp_reset.h>
+#include <drivers/st/stm32mp2_risaf.h>
 #include <lib/fconf/fconf.h>
 #include <lib/fconf/fconf_dyn_cfg_getter.h>
 #include <lib/mmio.h>
@@ -236,6 +237,17 @@ skip_console_init:
 	stm32mp_io_setup();
 }
 
+static void prepare_encryption(void)
+{
+	/* TODO use random generator to create key */
+	uint8_t mkey[RISAF_KEY_SIZE_IN_BYTES] = { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+						  0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF };
+
+	if (stm32mp2_risaf_write_master_key(RISAF4_INST, mkey) != 0) {
+		panic();
+	}
+}
+
 /*******************************************************************************
  * This function can be used by the platforms to update/use image
  * information for given `image_id`.
@@ -260,6 +272,10 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 
 	switch (image_id) {
 	case FW_CONFIG_ID:
+		if (stm32mp_is_closed_device() || stm32mp_is_auth_supported()) {
+			prepare_encryption();
+		}
+
 		/* Set global DTB info for fixed fw_config information */
 		set_config_info(STM32MP_FW_CONFIG_BASE, ~0UL, STM32MP_FW_CONFIG_MAX_SIZE,
 				FW_CONFIG_ID);
