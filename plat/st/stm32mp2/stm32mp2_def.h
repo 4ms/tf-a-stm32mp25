@@ -244,7 +244,8 @@ enum ddr_type {
 /*******************************************************************************
  * STM32MP2 OSPI
  ******************************************************************************/
-/* OSPI 1 & 2 memory map area size */
+/* OSPI 1 & 2 memory map area */
+#define STM32MP_OSPI_MM_BASE		U(0x60000000)
 #define STM32MP_OSPI_MM_SIZE		U(0x10000000)
 
 /*******************************************************************************
@@ -372,8 +373,40 @@ static inline uintptr_t tamp_bkpr(uint32_t idx)
 #define RISAB2_BASE			U(0x42100000)
 #define RISAB5_BASE			U(0x42130000)
 
+#define RISAF1_INST			0
+#define RISAF2_INST			1
+#define RISAF4_INST			3
+#define RISAF5_INST			4
+#define RISAF_MAX_INSTANCE		5
+
 #define RISAF2_BASE			U(0x420B0000)
 #define RISAF4_BASE			U(0x420D0000)
+
+#ifdef RISAF1_BASE
+#define RISAF1_MAX_REGION		4
+#else
+#define RISAF1_MAX_REGION		0
+#endif
+#ifdef RISAF2_BASE
+#define RISAF2_MAX_REGION		4
+#else
+#define RISAF2_MAX_REGION		0
+#endif
+#ifdef RISAF4_BASE
+/* Consider only encrypted region maximum number, to save memory consumption */
+#define RISAF4_MAX_REGION		4
+#else
+#define RISAF4_MAX_REGION		0
+#endif
+#ifdef RISAF5_BASE
+#define RISAF5_MAX_REGION		2
+#else
+#define RISAF5_MAX_REGION		0
+#endif
+#define RISAF_MAX_REGION		(RISAF1_MAX_REGION + RISAF2_MAX_REGION + \
+					RISAF4_MAX_REGION + RISAF5_MAX_REGION)
+
+#define RISAF_KEY_SIZE_IN_BYTES		U(16)
 
 /*******************************************************************************
  * STM32MP CA35SSC

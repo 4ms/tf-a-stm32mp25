@@ -5,6 +5,7 @@
  */
 
 #include <assert.h>
+#include <errno.h>
 
 #include <arch_helpers.h>
 #include <drivers/arm/gicv2.h>
@@ -277,6 +278,66 @@ bool stm32mp_is_auth_supported(void)
 bool stm32mp_skip_boot_device_after_standby(void)
 {
 	return false;
+}
+
+int stm32_risaf_get_instance(uintptr_t base)
+{
+	switch (base) {
+	case RISAF2_BASE:
+		return (int)RISAF2_INST;
+	case RISAF4_BASE:
+		return (int)RISAF4_INST;
+	default:
+		return -ENODEV;
+	}
+}
+
+uintptr_t stm32_risaf_get_base(int instance)
+{
+	switch (instance) {
+	case RISAF2_INST:
+		return (uintptr_t)RISAF2_BASE;
+	case RISAF4_INST:
+		return (uintptr_t)RISAF4_BASE;
+	default:
+		return 0U;
+	}
+}
+
+int stm32_risaf_get_max_region(int instance)
+{
+	switch (instance) {
+	case RISAF2_INST:
+		return (int)RISAF2_MAX_REGION;
+	case RISAF4_INST:
+		return (int)RISAF4_MAX_REGION;
+	default:
+		return 0;
+	}
+}
+
+uintptr_t stm32_risaf_get_memory_base(int instance)
+{
+	switch (instance) {
+	case RISAF2_INST:
+		return (uintptr_t)STM32MP_OSPI_MM_BASE;
+	case RISAF4_INST:
+		return (uintptr_t)STM32MP_DDR_BASE;
+	default:
+		return 0U;
+	}
+}
+
+size_t stm32_risaf_get_memory_size(int instance)
+{
+	switch (instance) {
+	case RISAF2_INST:
+		return STM32MP_OSPI_MM_SIZE;
+	case RISAF4_INST:
+		return dt_get_ddr_size();
+	default:
+		return 0U;
+	}
 }
 
 uintptr_t stm32_get_bkpr_boot_mode_addr(void)

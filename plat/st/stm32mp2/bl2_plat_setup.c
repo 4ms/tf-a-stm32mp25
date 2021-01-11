@@ -138,6 +138,10 @@ void bl2_platform_setup(void)
 {
 	int ret;
 
+	if (stm32mp2_risaf_init() < 0) {
+		panic();
+	}
+
 	/* Map DDR for binary load, now with cacheable attribute */
 	ret = mmap_add_dynamic_region(STM32MP_DDR_BASE, STM32MP_DDR_BASE,
 				      STM32MP_DDR_MAX_SIZE, MT_MEMORY | MT_RW | MT_SECURE);
