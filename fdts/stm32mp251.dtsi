@@ -91,6 +91,20 @@
 			status = "disabled";
 		};
 
+		risaf2: risaf@420b0000 {
+			compatible = "st,stm32-risaf";
+			reg = <0x420b0000 0x1000>;
+			clocks = <&rcc CK_KER_OSPI1>;
+			status = "disabled";
+		};
+
+		risaf4: risaf@420d0000 {
+			compatible = "st,stm32-risaf";
+			reg = <0x420d0000 0x1000>;
+			clocks = <&rcc CK_BUS_RISAF4>;
+			status = "disabled";
+		};
+
 		rcc: rcc@44200000 {
 			compatible = "st,stm32mp25-rcc";
 			reg = <0x44200000 0x10000>;
