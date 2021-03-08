@@ -10,17 +10,6 @@
 #include <common/debug.h>
 #include <drivers/usb_device.h>
 
-/* Define for EP address */
-#define EP_DIR_MASK		BIT(7)
-#define EP_DIR_IN		BIT(7)
-#define EP_NUM_MASK		GENMASK(3, 0)
-
-#define EP0_IN			(0U | EP_DIR_IN)
-#define EP0_OUT			0U
-
-/* USB address between 1 through 127 = 0x7F mask */
-#define ADDRESS_MASK		GENMASK(6, 0)
-
 /*
  * Set a STALL condition over an endpoint
  * pdev: USB handle
