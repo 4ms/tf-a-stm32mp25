@@ -129,7 +129,12 @@
 #define DT_SDMMC2_COMPAT		"st,stm32-sdmmc2"
 #endif
 
+#if STM32MP13 || STM32MP15
 #define SDMMC_FIFO_SIZE			64U
+#endif
+#if STM32MP25
+#define SDMMC_FIFO_SIZE			1024U
+#endif
 
 static void stm32_sdmmc2_init(void);
 static int stm32_sdmmc2_send_cmd_req(struct mmc_cmd *cmd);
