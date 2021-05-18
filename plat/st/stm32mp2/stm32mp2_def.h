@@ -78,8 +78,8 @@
 #ifndef __ASSEMBLER__
 enum ddr_type {
 	STM32MP_DDR3,
-	STM32MP_LPDDR2,
-	STM32MP_LPDDR3
+	STM32MP_DDR4,
+	STM32MP_LPDDR4
 };
 #endif
 
