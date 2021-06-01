@@ -104,6 +104,14 @@ ifneq ($(filter 1,${STM32MP_EMMC} ${STM32MP_SDMMC}),)
 BL2_SOURCES		+=	drivers/st/mmc/stm32_sdmmc2.c
 endif
 
+ifeq (${STM32MP_RAW_NAND},1)
+BL2_SOURCES		+=	drivers/st/fmc/stm32_fmc2_nand.c
+endif
+
+ifneq ($(filter 1,${STM32MP_RAW_NAND} ${STM32MP_SPI_NAND} ${STM32MP_SPI_NOR}),)
+BL2_SOURCES		+=	plat/st/stm32mp2/stm32mp2_boot_device.c
+endif
+
 BL2_SOURCES		+=	plat/st/stm32mp2/plat_image_load.c
 
 # BL31 sources
