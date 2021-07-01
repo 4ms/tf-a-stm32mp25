@@ -43,6 +43,9 @@ STM32_RNG_VER		:=	4
 # Download load address for serial boot devices
 DWL_BUFFER_BASE 	?=	0x87000000
 
+# DDR features
+STM32MP_DDR_DUAL_AXI_PORT	:=	1
+
 # Device tree
 BL2_DTSI		:=	stm32mp25-bl2.dtsi
 FDT_SOURCES		:=	$(addprefix ${BUILD_PLAT}/fdts/, $(patsubst %.dtb,%-bl2.dts,$(DTB_FILE_NAME)))
@@ -61,6 +64,7 @@ $(eval $(call TOOL_ADD_PAYLOAD,${STM32MP_FW_CONFIG},--fw-config))
 # Enable flags for C files
 $(eval $(call assert_booleans,\
 	$(sort \
+		STM32MP_DDR_DUAL_AXI_PORT \
 		STM32MP25 \
 )))
 
@@ -79,6 +83,7 @@ $(eval $(call add_defines,\
 		STM32_HASH_VER \
 		STM32_RNG_VER \
 		STM32_TF_A_COPIES \
+		STM32MP_DDR_DUAL_AXI_PORT \
 		STM32MP25 \
 )))
 
@@ -124,6 +129,10 @@ endif
 ifneq ($(filter 1,${STM32MP_RAW_NAND} ${STM32MP_SPI_NAND} ${STM32MP_SPI_NOR}),)
 BL2_SOURCES		+=	plat/st/stm32mp2/stm32mp2_boot_device.c
 endif
+
+BL2_SOURCES		+=	drivers/st/ddr/stm32mp2_ddr.c				\
+				drivers/st/ddr/stm32mp2_ddr_helpers.c			\
+				drivers/st/ddr/stm32mp2_ram.c
 
 BL2_SOURCES		+=	plat/st/stm32mp2/plat_image_load.c
 
