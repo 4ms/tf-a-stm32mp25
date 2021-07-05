@@ -43,6 +43,20 @@ STM32_RNG_VER		:=	4
 # Download load address for serial boot devices
 DWL_BUFFER_BASE 	?=	0x87000000
 
+# DDR types
+STM32MP_DDR3_TYPE	?=	0
+STM32MP_DDR4_TYPE	?=	0
+STM32MP_LPDDR4_TYPE	?=	0
+ifeq (${STM32MP_DDR3_TYPE},1)
+DDR_TYPE		:=	ddr3
+endif
+ifeq (${STM32MP_DDR4_TYPE},1)
+DDR_TYPE		:=	ddr4
+endif
+ifeq (${STM32MP_LPDDR4_TYPE},1)
+DDR_TYPE		:=	lpddr4
+endif
+
 # DDR features
 STM32MP_DDR_DUAL_AXI_PORT	:=	1
 
@@ -65,6 +79,9 @@ $(eval $(call TOOL_ADD_PAYLOAD,${STM32MP_FW_CONFIG},--fw-config))
 $(eval $(call assert_booleans,\
 	$(sort \
 		STM32MP_DDR_DUAL_AXI_PORT \
+		STM32MP_DDR3_TYPE \
+		STM32MP_DDR4_TYPE \
+		STM32MP_LPDDR4_TYPE \
 		STM32MP25 \
 )))
 
@@ -84,6 +101,9 @@ $(eval $(call add_defines,\
 		STM32_RNG_VER \
 		STM32_TF_A_COPIES \
 		STM32MP_DDR_DUAL_AXI_PORT \
+		STM32MP_DDR3_TYPE \
+		STM32MP_DDR4_TYPE \
+		STM32MP_LPDDR4_TYPE \
 		STM32MP25 \
 )))
 
@@ -153,4 +173,18 @@ BL31_SOURCES		+=	${GICV2_SOURCES}					\
 BL31_SOURCES		+=	plat/common/plat_psci_common.c
 
 # Compilation rules
+.PHONY: check_ddr_type
+.SUFFIXES:
+
+bl2: check_ddr_type
+
+check_ddr_type:
+	$(eval DDR_TYPE = $(shell echo $$(($(STM32MP_DDR3_TYPE) + \
+					   $(STM32MP_DDR4_TYPE) + \
+					   $(STM32MP_LPDDR4_TYPE)))))
+	@if [ ${DDR_TYPE} != 1 ]; then \
+		echo "One and only one DDR type must be defined"; \
+		false; \
+	fi
+
 include plat/st/common/common_rules.mk
