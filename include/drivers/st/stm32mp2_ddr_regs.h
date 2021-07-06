@@ -20,5 +20,10 @@ struct stm32mp_ddrphy {
 
 /* DDRDBG registers offsets */
 #define DDRDBG_LP_DISABLE			U(0x0)
+#define DDRDBG_BYPASS_PCLKEN			U(0x4)
+
+/* DDRDBG registers fields */
+#define DDRDBG_LP_DISABLE_LPI_XPI_DISABLE	BIT(0)
+#define DDRDBG_LP_DISABLE_LPI_DDRC_DISABLE	BIT(8)
 
 #endif /* STM32MP2_DDR_REGS_H */
