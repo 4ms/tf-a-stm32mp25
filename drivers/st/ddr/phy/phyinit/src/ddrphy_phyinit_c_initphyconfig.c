@@ -619,6 +619,10 @@ static void dfimode_program(void)
 		dfimode = 0x1U; /* DFI1 does not physically exists */
 	}
 
+#if STM32MP_LPDDR4_TYPE
+	dfimode = 0x5U;
+#endif
+
 	mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (TMASTER | CSR_DFIMODE_ADDR)), dfimode);
 }
 
