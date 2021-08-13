@@ -42,10 +42,13 @@ endfunc plat_get_my_entrypoint
 	/* ---------------------------------------------
 	 * void plat_secondary_cold_boot_setup (void);
 	 *
-	 * Cold-booting secondary CPUs is not supported.
+	 * Set secondary core in WFI waiting for core reset.
 	 * ---------------------------------------------
 	 */
 func plat_secondary_cold_boot_setup
+	dsb	sy
+	wfi
+	/* This shouldn't be reached */
 	b	.
 endfunc plat_secondary_cold_boot_setup
 

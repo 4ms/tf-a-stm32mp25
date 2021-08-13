@@ -18,16 +18,43 @@
 
 #include <platform_def.h>
 
+#define CA35SS_SYSCFG_VBAR_CR	0x2084U
+
 static uintptr_t stm32_sec_entrypoint;
+static u_register_t cntfrq_core0;
 static uintptr_t saved_entrypoint;
 
 static void stm32_cpu_standby(plat_local_state_t cpu_state)
 {
 }
 
+/*******************************************************************************
+ * STM32MP2 handler called when a power domain is about to be turned on. The
+ * mpidr determines the CPU to be turned on.
+ * Called by core 0 to activate core 1.
+ ******************************************************************************/
 static int stm32_pwr_domain_on(u_register_t mpidr)
 {
-	return PSCI_E_INTERN_FAIL;
+	unsigned long current_cpu_mpidr = read_mpidr();
+
+	if (stm32mp_is_single_core()) {
+		return PSCI_E_INTERN_FAIL;
+	}
+
+	if (mpidr == current_cpu_mpidr) {
+		return PSCI_E_INVALID_PARAMS;
+	}
+
+	cntfrq_core0 = read_cntfrq_el0();
+	flush_dcache_range((uintptr_t)&cntfrq_core0, sizeof(u_register_t));
+
+	/* Set CA35SS_SYSCFG VBAR address to secure entrypoint */
+	mmio_write_32(A35SSC_BASE + CA35SS_SYSCFG_VBAR_CR, stm32_sec_entrypoint);
+
+	/* Reset CPU1 */
+	mmio_write_32(RCC_BASE + RCC_C1P1RSTCSETR, RCC_C1P1RSTCSETR_C1P1PORRST);
+
+	return PSCI_E_SUCCESS;
 }
 
 static void stm32_pwr_domain_off(const psci_power_state_t *target_state)
@@ -40,8 +67,17 @@ static void stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 	/* Nothing to do, power domain is not disabled */
 }
 
+/*******************************************************************************
+ * STM32MP2 handler called when a power domain has just been powered on after
+ * being turned off earlier. The target_state encodes the low power state that
+ * each level has woken up from.
+ * Called by core 1 just after wake up.
+ ******************************************************************************/
 static void stm32_pwr_domain_on_finish(const psci_power_state_t *target_state)
 {
+	stm32mp_gic_pcpu_init();
+
+	write_cntfrq_el0(cntfrq_core0);
 }
 
 /*******************************************************************************
