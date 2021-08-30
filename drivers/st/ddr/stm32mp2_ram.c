@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: GPL-2.0+ OR BSD-3-Clause
  */
@@ -19,16 +19,75 @@
 #include <lib/mmio.h>
 #include <libfdt.h>
 
+#include <ddrphy_phyinit.h>
+
 #include <platform_def.h>
+
+struct stm32mp2_ddr_ui_config {
+	void *basic;		/* Pointer to user_input basic structure */
+	void *advanced;		/* Pointer to user_input advanced structure */
+	void *mode_register;	/* Pointer to user_input mode register structure */
+	void *swizzle;		/* Pointer to user_input swizzle structure */
+};
 
 static struct stm32mp_ddr_priv ddr_priv_data;
 static bool ddr_self_refresh;
+
+static int ddr_dt_get_ui_param(void *fdt, int node, struct stm32mp2_ddr_ui_config *ui_config)
+{
+	int ret;
+	uint32_t size;
+
+	size = sizeof(struct user_input_basic) / sizeof(int);
+	ret = fdt_read_uint32_array(fdt, node, "st,phy-basic", size, ui_config->basic);
+
+	VERBOSE("%s: %s[0x%x] = %d\n", __func__, "st,phy-basic", size, ret);
+	if (ret != 0) {
+		ERROR("%s: Cannot read %s, error=%d\n", __func__, "st,phy-basic", ret);
+		return -EINVAL;
+	}
+
+	size = sizeof(struct user_input_advanced) / sizeof(int);
+	ret = fdt_read_uint32_array(fdt, node, "st,phy-advanced", size, ui_config->advanced);
+
+	VERBOSE("%s: %s[0x%x] = %d\n", __func__, "st,phy-advanced", size, ret);
+	if (ret != 0) {
+		ERROR("%s: Cannot read %s, error=%d\n", __func__, "st,phy-advanced", ret);
+		return -EINVAL;
+	}
+
+	size = sizeof(struct user_input_mode_register) / sizeof(int);
+	ret = fdt_read_uint32_array(fdt, node, "st,phy-mr", size, ui_config->mode_register);
+
+	VERBOSE("%s: %s[0x%x] = %d\n", __func__, "st,phy-mr", size, ret);
+	if (ret != 0) {
+		ERROR("%s: Cannot read %s, error=%d\n", __func__, "st,phy-mr", ret);
+		return -EINVAL;
+	}
+
+	size = sizeof(struct user_input_swizzle) / sizeof(int);
+	ret = fdt_read_uint32_array(fdt, node, "st,phy-swizzle", size, ui_config->swizzle);
+
+	VERBOSE("%s: %s[0x%x] = %d\n", __func__, "st,phy-swizzle", size, ret);
+	if (ret != 0) {
+		ERROR("%s: Cannot read %s, error=%d\n", __func__, "st,phy-swizzle", ret);
+		return -EINVAL;
+	}
+
+	return 0;
+}
 
 static int stm32mp2_ddr_setup(void)
 {
 	struct stm32mp_ddr_priv *priv = &ddr_priv_data;
 	int ret;
 	struct stm32mp_ddr_config config;
+	struct stm32mp2_ddr_ui_config ui_config = {
+		ddrphy_phyinit_get_user_input_basic_base(),
+		ddrphy_phyinit_get_user_input_advanced_base(),
+		ddrphy_phyinit_get_user_input_mode_register_base(),
+		ddrphy_phyinit_get_user_input_swizzle_base(),
+	};
 	int node;
 	uint32_t uret;
 	void *fdt;
@@ -56,6 +115,11 @@ static int stm32mp2_ddr_setup(void)
 	}
 
 	ret = stm32mp_ddr_dt_get_param(fdt, node, param, ARRAY_SIZE(param), (uintptr_t)&config);
+	if (ret < 0) {
+		return ret;
+	}
+
+	ret = ddr_dt_get_ui_param(fdt, node, &ui_config);
 	if (ret < 0) {
 		return ret;
 	}
