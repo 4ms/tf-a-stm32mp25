@@ -19,53 +19,6 @@
  */
 
 /*
- * Possible value of boot context field 'boot_action'
- */
-/* Boot action is Process Secure Boot */
-#define BOOT_API_CTX_BOOT_ACTION_SECURE_BOOT_PROCESS		0x04U
-/* Boot action is Process Wakeup from D1STANDBY or STANDBY */
-#define BOOT_API_CTX_BOOT_ACTION_WAKEUP_D1STANDBY_OR_STANDBY	0x05U
-/* Boot action is Process DEV_BOOT */
-#define BOOT_API_CTX_BOOT_ACTION_DEV_BOOT			0x06U
-
-#define BOOT_API_CTX_BOOT_ACTION_LOCAL_C1_RESET_PROCESS		0x0AU
-
-/*
- * Possible value of boot context field 'wakeup_status'
- */
-
-/* The boot reason is not a D1Standby Exit reason */
-#define BOOT_API_CTX_NO_D1STANDBY_NO_STANDBY_EXIT		0x00
-
-/*
- * The boot reason is a D1Standby without previous Standby
- * (VDDCORE was kept and SYSRAM content preserved)
- * and the CPU1 is TDCID
- */
-#define BOOT_API_CTX_D1STANDBY_EXIT_NO_STANDBY_CPU1_TDCID	0x01
-
-/*
- * The boot reason is a D1Standby without previous Standby
- * (VDDCORE was kept and SYSRAM content preserved)
- * and the CPU1 is Not TDCID (ie CPU2 is TDCID)
- */
-#define BOOT_API_CTX_D1STANDBY_EXIT_NO_STANDBY_CPU1_NOT_TDCID	0x02
-
-/*
- * The boot reason is a D1Standby with previous Standby
- * (VDDCORE was Off and SYSRAM content lost)
- * and the CPU1 is TDCID
- */
-#define BOOT_API_CTX_D1STANDBY_EXIT_STANDBY_CPU1_TDCID		0x03
-
-/*
- * The boot reason is a D1Standby with previous Standby
- * (VDDCORE was Off and SYSRAM content was lost)
- * and the CPU1 is Not TDCID (ie CPU2 is TDCID)
- */
-#define BOOT_API_CTX_D1STANDBY_EXIT_STANDBY_CPU1_NOT_TDCID	0x04
-
-/*
  * Possible value of boot context field 'auth_status'
  */
 /* No authentication done */
@@ -102,6 +55,9 @@
 
 /* Boot occurred on OSPI NAND */
 #define BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_NAND_SPI		0x7U
+
+/* Boot occurred on HyperFlash QSPI  */
+#define BOOT_API_CTX_BOOT_INTERFACE_SEL_HYPERFLASH_OSPI		0x8U
 
 /*
  * Possible value of boot context field 'emmc_xfer_status'
@@ -211,26 +167,29 @@
 #define BOOT_API_A35_CORE1_MAGIC_NUMBER				0xCA7FACE1U
 
 /*
- * TAMP_BCK4R register index
+ * TAMP_BCK9R register index
  * This register is used to write a Magic Number in order to restart
- * Cortex A7 Core 1 and make it execute @ branch address from TAMP_BCK5R
+ * Cortex A35 Core 1 and make it execute @ branch address from TAMP_BCK5R
  */
-#define BOOT_API_CORE1_MAGIC_NUMBER_TAMP_BCK_REG_IDX		4U
+#define BOOT_API_CORE1_MAGIC_NUMBER_TAMP_BCK_REG_IDX		9U
 
 /*
- * TAMP_BCK5R register index
+ * TAMP_BCK10R register index
  * This register is used to contain the branch address of
- * Cortex A7 Core 1 when restarted by a TAMP_BCK4R magic number writing
+ * Cortex A35 Core 1 when restarted by a TAMP_BCK4R magic number writing
  */
-#define BOOT_API_CORE1_BRANCH_ADDRESS_TAMP_BCK_REG_IDX		5U
+#define BOOT_API_CORE1_BRANCH_ADDRESS_TAMP_BCK_REG_IDX		10U
 
 /*
  * Possible value of boot context field 'hse_clock_value_in_hz'
  */
 #define BOOT_API_CTX_HSE_CLOCK_VALUE_UNDEFINED			0U
+#define BOOT_API_CTX_HSE_CLOCK_VALUE_19_2_MHZ			19200000U
 #define BOOT_API_CTX_HSE_CLOCK_VALUE_24_MHZ			24000000U
 #define BOOT_API_CTX_HSE_CLOCK_VALUE_25_MHZ			25000000U
 #define BOOT_API_CTX_HSE_CLOCK_VALUE_26_MHZ			26000000U
+#define BOOT_API_CTX_HSE_CLOCK_VALUE_40_MHZ			40000000U
+#define BOOT_API_CTX_HSE_CLOCK_VALUE_48_MHZ			48000000U
 
 /*
  * Possible value of boot context field 'boot_partition_used_toboot'
@@ -255,13 +214,6 @@
 /*
  * Exported types
  */
-
-/* SSP Configuration structure */
-typedef struct {
-	/* SSP Command*/
-	uint32_t ssp_cmd;
-	uint8_t	reserved[36];
-} boot_api_ssp_config_t;
 
 /*
  * bootROM version information structure definition
@@ -297,41 +249,10 @@ typedef struct {
  * Memory and peripheral part.
  */
 typedef struct {
-	/*
-	 * Boot interface used to boot : take values from defines
-	 * BOOT_API_CTX_BOOT_INTERFACE_SEL_XXX above
-	 */
-	uint16_t boot_interface_selected;
-	uint16_t boot_interface_instance;
-	uint32_t reserved1;
-	uint32_t nand_data_width;
-	uint32_t nand_block_size;
-	uint32_t nand_page_size;
-	uint32_t reserved2;
-	uint32_t nand_ecc_bits;
-	uint32_t nand_block_nb;
-	uint32_t nand_fsbl_first_block;
-	uint32_t reserved3[3];
-	uint32_t nor_isdual;
-	uint32_t usb_context;
-	uint32_t otp_afmux_values[3];
-	uint32_t reserved[2];
-	/*
-	 * Log to boot context, what was the kind of boot action
-	 * takes values from defines BOOT_API_BOOT_ACTION_XXX above
-	 */
-	uint32_t boot_action;
-	/*
-	 * Returned Wakeup status : take value from defines
-	 * BOOT_API_CTX_D1STANDBY_EXIT_XXX
-	 */
-	uint32_t wakeup_status;
+	/* Boot partition: ie FSBL partition on which the boot was successful */
+	uint32_t boot_partition_used_toboot;
 
-	/*
-	 * Returned authentication status : take values from defines
-	 * BOOT_API_CTX_AUTH_XXX above
-	 */
-	uint32_t auth_status;
+	uint32_t	reserved1[3];
 
 	/*
 	 * Information specific to an SD boot
@@ -356,30 +277,27 @@ typedef struct {
 	uint32_t emmc_xfer_status;
 	uint32_t emmc_error_status;
 	uint32_t emmc_nbbytes_rxcopied_tosysram_download_area;
+
+	uint32_t reserved[4];
+	/*
+	 * Boot interface used to boot : take values from defines
+	 * BOOT_API_CTX_BOOT_INTERFACE_SEL_XXX above
+	 */
+	uint16_t boot_interface_selected;
+	uint16_t boot_interface_instance;
+
 	uint32_t hse_clock_value_in_hz;
-	/*
-	 * Boot partition :
-	 * ie FSBL partition on which the boot was successful
-	 */
-	uint32_t boot_partition_used_toboot;
-	/*
-	 * Address of SSP configuration structure :
-	 * given and defined by bootROM
-	 * and used by FSBL. The structure is of type
-	 * 'boot_api_ssp_config_t'
-	 */
-	boot_api_ssp_config_t *p_ssp_config;
+
+	uint32_t nand_fsbl_first_block;
 
 	/*
-	 * boot context field containing bootROM updated SSP Status
-	 * Values can be of type BOOT_API_CTX_SSP_STATUS_XXX
+	 * Returned authentication status : take values from defines
+	 * BOOT_API_CTX_AUTH_XXX above
 	 */
-	uint32_t	ssp_status;
+	uint32_t auth_status;
+
 	/* Pointer on ROM constant containing ROM information */
 	const boot_api_rom_version_info_t *p_rom_version_info;
-
-	/* Added padding to be on a 8 bytes (ie 64 bits) boundary */
-	uint32_t padding_to_8bytes_multiple;
 } __packed boot_api_context_t;
 
 /*
@@ -421,8 +339,8 @@ typedef struct {
 	uint32_t load_address;
 	/* Reserved */
 	uint32_t reserved2;
-	/* Image version to be compared by bootROM with monotonic
-	 * counter value in OTP_CFG4 prior executing the downloaded image
+	/* Image version to be compared by bootROM with FSBL_A or FSBL_M version
+	 * counter value in OTP prior executing the downloaded image
 	 */
 	uint32_t image_version;
 	/*

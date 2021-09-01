@@ -18,7 +18,9 @@
 void stm32mp_save_boot_ctx_address(uintptr_t address);
 uintptr_t stm32mp_get_boot_ctx_address(void);
 uint16_t stm32mp_get_boot_itf_selected(void);
+#if STM32MP13 || STM32MP15
 uint32_t stm32mp_get_boot_action(void);
+#endif
 
 bool stm32mp_is_single_core(void);
 bool stm32mp_is_closed_device(void);
