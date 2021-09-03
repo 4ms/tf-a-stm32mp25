@@ -140,7 +140,17 @@ uint32_t stm32mp_get_chip_dev_id(void)
 
 static uint32_t get_part_number(void)
 {
-	return 0U;
+	static uint32_t part_number;
+
+	if (part_number != 0U) {
+		return part_number;
+	}
+
+	if (stm32_get_otp_value(PART_NUMBER_OTP, &part_number) != 0) {
+		panic();
+	}
+
+	return part_number;
 }
 
 void stm32mp_get_soc_name(char name[STM32_SOC_NAME_SIZE])
