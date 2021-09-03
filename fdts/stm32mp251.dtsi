@@ -135,6 +135,23 @@
 			status = "disabled";
 		};
 
+		bsec: efuse@44000000 {
+			compatible = "st,stm32mp25-bsec";
+			reg = <0x44000000 0x400>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			part_number_otp: otp9@24 {
+				reg = <0x24 0x4>;
+			};
+			nand_otp: otp16@40 {
+				reg = <0x40 0x4>;
+			};
+			nand2_otp: otp20@50 {
+				reg = <0x50 0x4>;
+			};
+		};
+
 		rcc: rcc@44200000 {
 			compatible = "st,stm32mp25-rcc";
 			reg = <0x44200000 0x10000>;
