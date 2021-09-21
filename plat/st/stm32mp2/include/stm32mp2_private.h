@@ -30,4 +30,7 @@ uintptr_t stm32_risaf_get_memory_base(int instance);
 /* Get RISAF memory size in bytes from platform instance ID */
 size_t stm32_risaf_get_memory_size(int instance);
 
+/* Get DDRDBG peripheral IO memory base address */
+uintptr_t stm32_ddrdbg_get_base(void);
+
 #endif /* STM32MP2_PRIVATE_H */
