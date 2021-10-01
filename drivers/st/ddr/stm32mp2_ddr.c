@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,7 +13,11 @@
 #include <drivers/st/stm32mp2_ddr_regs.h>
 #include <lib/mmio.h>
 
+#include <ddrphy_phyinit.h>
+
 #include <platform_def.h>
+
+#define SKIP_TRAINING_PARAM	false
 
 #define DDRDBG_FRAC_PLL_LOCK	U(0x10)
 
@@ -386,7 +390,11 @@ void stm32mp2_ddr_init(struct stm32mp_ddr_priv *priv,
 
 	disable_refresh(priv->ctl);
 
-	/* TODO execute DDR PHY init sequence */
+	ret = ddrphy_phyinit_sequence(SKIP_TRAINING_PARAM);
+	if (ret != 0) {
+		ERROR("DDR PHY init: Error %d\n", ret);
+		panic();
+	}
 
 	activate_controller(priv->ctl);
 

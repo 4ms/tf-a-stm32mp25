@@ -109,6 +109,8 @@ $(eval $(call add_defines,\
 
 # Include paths and source files
 PLAT_INCLUDES		+=	-Iplat/st/stm32mp2/include/
+PLAT_INCLUDES		+=	-Idrivers/st/ddr/phy/phyinit/include/
+PLAT_INCLUDES		+=	-Idrivers/st/ddr/phy/firmware/include/
 
 PLAT_BL_COMMON_SOURCES	+=	plat/st/stm32mp2/stm32mp2_private.c
 
@@ -153,6 +155,29 @@ endif
 BL2_SOURCES		+=	drivers/st/ddr/stm32mp2_ddr.c				\
 				drivers/st/ddr/stm32mp2_ddr_helpers.c			\
 				drivers/st/ddr/stm32mp2_ram.c
+
+BL2_SOURCES		+=	drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_c_initphyconfig.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_calcmb.c					\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_globals.c					\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_i_loadpieimage.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_initstruct.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_isdbytedisabled.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_loadpieprodcode.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_mapdrvstren.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_reginterface.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_sequence.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_softsetmb.c				\
+				drivers/st/ddr/phy/phyinit/usercustom/ddrphy_phyinit_usercustom_customposttrain.c	\
+				drivers/st/ddr/phy/phyinit/usercustom/ddrphy_phyinit_usercustom_custompretrain.c
+
+BL2_SOURCES		+=	drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_d_loadimem.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_f_loaddmem.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_g_execfw.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_h_readmsgblock.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_storemsgblk.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_writeoutmem.c				\
+				drivers/st/ddr/phy/phyinit/usercustom/ddrphy_phyinit_usercustom_h_readmsgblock.c 	\
+				drivers/st/ddr/phy/phyinit/usercustom/ddrphy_phyinit_usercustom_g_waitfwdone.c
 
 BL2_SOURCES		+=	plat/st/stm32mp2/plat_image_load.c
 
