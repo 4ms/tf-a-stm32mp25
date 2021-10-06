@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <errno.h>
+
 #include <arch_helpers.h>
 #include <common/debug.h>
 #include <drivers/delay_timer.h>
@@ -15,7 +17,131 @@
 
 #include <platform_def.h>
 
+/* HW idle period (unit: Multiples of 32 DFI clock cycles) */
+#define HW_IDLE_PERIOD			0x3
+
 static enum stm32mp2_ddr_sr_mode saved_ddr_sr_mode;
+
+#pragma weak stm32_ddrdbg_get_base
+uintptr_t stm32_ddrdbg_get_base(void)
+{
+	return 0U;
+}
+
+static int sr_loop(bool is_entry)
+{
+	uint32_t read_data;
+	uint64_t timeout = timeout_init_us(DDR_TIMEOUT_US_1S);
+	bool repeat_loop = false;
+
+	/* Wait for DDRCTRL to be out of or back to "normal/mission mode" */
+	do {
+		read_data = mmio_read_32(stm32mp_ddrctrl_base() + DDRCTRL_STAT) &
+			    DDRCTRL_STAT_SELFREF_TYPE_MASK;
+
+		if (timeout_elapsed(timeout)) {
+			return -ETIMEDOUT;
+		}
+
+		if (is_entry) {
+			repeat_loop = (read_data == 0x0);
+		} else {
+			repeat_loop = (read_data != 0x0);
+		}
+	} while (repeat_loop);
+
+	return 0;
+}
+
+static int sr_entry_loop(void)
+{
+	return sr_loop(true);
+}
+
+static int sr_exit_loop(void)
+{
+	return sr_loop(false);
+}
+
+static int sr_ssr_set(void)
+{
+	return 0;
+}
+
+static int sr_ssr_entry(void)
+{
+	/* Enable APB access to internal CSR registers */
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_APBONLY0_MICROCONTMUXSEL, 0);
+
+	/* SW self refresh entry prequested */
+	mmio_write_32(stm32mp_ddrctrl_base() + DDRCTRL_PWRCTL, DDRCTRL_PWRCTL_SELFREF_SW);
+
+	return sr_entry_loop();
+}
+
+static int sr_ssr_exit(void)
+{
+	/* Enable APB access to internal CSR registers */
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_APBONLY0_MICROCONTMUXSEL, 0);
+
+	/* SW self refresh entry prequested */
+	mmio_write_32(stm32mp_ddrctrl_base() + DDRCTRL_PWRCTL, 0);
+
+	return sr_exit_loop();
+}
+
+static int sr_hsr_set(void)
+{
+	mmio_write_32(stm32mp_rcc_base() + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRCKMOD_HSR);
+
+	/* sw_done set to 0 to enable quasi-dynamic parameters programmation */
+	mmio_write_32(stm32mp_ddrctrl_base() + DDRCTRL_SWCTL, 0);
+
+	mmio_write_32(stm32mp_ddrctrl_base() + DDRCTRL_HWLPCTL,
+		      DDRCTRL_HWLPCTL_HW_LP_EN | DDRCTRL_HWLPCTL_HW_LP_EXIT_IDLE_EN |
+		      (HW_IDLE_PERIOD << DDRCTRL_HWLPCTL_HW_LP_IDLE_X32_SHIFT));
+
+	return 0;
+}
+
+static int sr_hsr_entry(void)
+{
+	mmio_write_32(stm32mp_rcc_base() + RCC_DDRCPCFGR, RCC_DDRCPCFGR_DDRCPLPEN);
+
+	return sr_entry_loop(); /* read_data should be equal to 0x223 */
+}
+
+static int sr_hsr_exit(void)
+{
+	mmio_write_32(stm32mp_rcc_base() + RCC_DDRCPCFGR,
+		      RCC_DDRCPCFGR_DDRCPLPEN | RCC_DDRCPCFGR_DDRCPEN);
+
+	/* TODO: check if sr_exit_loop() is needed here */
+
+	return 0;
+}
+
+static int sr_asr_set(void)
+{
+	mmio_write_32(stm32_ddrdbg_get_base() + DDRDBG_LP_DISABLE, 0);
+
+	return 0;
+}
+
+static int sr_asr_entry(void)
+{
+	/*
+	 * Automatically enter into self refresh when there is no ddr traffic
+	 * for the delay programmed into SYSCONF_DDRC_AUTO_SR_DELAY register.
+	 * Default value is 0x20 (unit: Multiples of 32 DFI clock cycles).
+	 */
+	return sr_entry_loop();
+}
+
+static int sr_asr_exit(void)
+{
+	return sr_exit_loop();
+}
 
 int ddr_sw_self_refresh_exit(void)
 {
@@ -23,16 +149,13 @@ int ddr_sw_self_refresh_exit(void)
 
 	switch (saved_ddr_sr_mode) {
 	case DDR_SSR_MODE:
-		/* TODO create related service */
-		ret = 0;
+		ret = sr_ssr_exit();
 		break;
 	case DDR_HSR_MODE:
-		/* TODO create related service */
-		ret = 0;
+		ret = sr_hsr_exit();
 		break;
 	case DDR_ASR_MODE:
-		/* TODO create related service */
-		ret = 0;
+		ret = sr_asr_exit();
 		break;
 	default:
 		break;
@@ -54,16 +177,13 @@ int ddr_standby_sr_entry(void)
 
 	switch (saved_ddr_sr_mode) {
 	case DDR_SSR_MODE:
-		/* TODO create related service */
-		ret = 0;
+		ret = sr_ssr_entry();
 		break;
 	case DDR_HSR_MODE:
-		/* TODO create related service */
-		ret = 0;
+		ret = sr_hsr_entry();
 		break;
 	case DDR_ASR_MODE:
-		/* TODO create related service */
-		ret = 0;
+		ret = sr_asr_entry();
 		break;
 	default:
 		break;
@@ -105,16 +225,13 @@ void ddr_set_sr_mode(enum stm32mp2_ddr_sr_mode mode)
 
 	switch (mode) {
 	case DDR_SSR_MODE:
-		/* TODO create related service */
-		ret = 0;
+		ret = sr_ssr_set();
 		break;
 	case DDR_HSR_MODE:
-		/* TODO create related service */
-		ret = 0;
+		ret = sr_hsr_set();
 		break;
 	case DDR_ASR_MODE:
-		/* TODO create related service */
-		ret = 0;
+		ret = sr_asr_set();
 		break;
 	default:
 		break;
