@@ -113,6 +113,14 @@
 			status = "disabled";
 		};
 
+		rng: rng@42020000 {
+			compatible = "st,stm32mp13-rng";
+			reg = <0x42020000 0x400>;
+			clocks = <&rcc CK_BUS_RNG>;
+			resets = <&rcc RNG_R>;
+			status = "disabled";
+		};
+
 		risaf2: risaf@420b0000 {
 			compatible = "st,stm32-risaf";
 			reg = <0x420b0000 0x1000>;
