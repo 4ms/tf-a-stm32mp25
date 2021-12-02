@@ -55,6 +55,8 @@
  ******************************************************************************/
 #define STM32MP_SYSRAM_BASE		U(0x0E000000)
 #define STM32MP_SYSRAM_SIZE		U(0x00040000)
+#define SRAM1_BASE			U(0x0E040000)
+#define SRAM1_SIZE			U(0x00020000)
 
 #define STM32MP_NS_SYSRAM_SIZE		PAGE_SIZE
 #define STM32MP_NS_SYSRAM_BASE		(STM32MP_SYSRAM_BASE + \
@@ -129,6 +131,11 @@ enum ddr_type {
 #if defined(IMAGE_BL2)
 #define STM32MP_DTB_SIZE		STM32MP_BL2_DTB_SIZE
 #define STM32MP_DTB_BASE		STM32MP_BL2_DTB_BASE
+#endif
+
+#if STM32MP_DDR_FIP_IO_STORAGE
+#define STM32MP_DDR_FW_BASE		SRAM1_BASE
+#define STM32MP_DDR_FW_MAX_SIZE		U(0x8800)
 #endif
 
 #define STM32MP_FW_CONFIG_BASE		(STM32MP_SYSRAM_BASE + \
@@ -385,6 +392,7 @@ static inline uintptr_t tamp_bkpr(uint32_t idx)
  ******************************************************************************/
 #define RISAB1_BASE			U(0x420F0000)
 #define RISAB2_BASE			U(0x42100000)
+#define RISAB3_BASE			U(0x42110000)
 #define RISAB5_BASE			U(0x42130000)
 
 #define RISAF1_INST			0

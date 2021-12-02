@@ -20,6 +20,7 @@
 #include <drivers/st/regulator_fixed.h>
 #include <drivers/st/stm32_console.h>
 #include <drivers/st/stm32mp_reset.h>
+#include <drivers/st/stm32mp_risab_regs.h>
 #include <drivers/st/stm32mp2_risaf.h>
 #include <lib/fconf/fconf.h>
 #include <lib/fconf/fconf_dyn_cfg_getter.h>
@@ -233,6 +234,17 @@ skip_console_init:
 	stm32mp2_arch_security_setup();
 
 	fconf_populate("TB_FW", STM32MP_DTB_BASE);
+
+#if STM32MP_DDR_FIP_IO_STORAGE
+	/*
+	 * RISAB3 setup (dedicated for SRAM1)
+	 *
+	 * Allow secure read/writes data accesses to non-secure
+	 * blocks or pages, all RISAB registers are writable.
+	 * DDR firmwares are saved there before being loaded in DDRPHY memory.
+	 */
+	mmio_write_32(RISAB3_BASE + RISAB_CR, RISAB_CR_SRWIAD);
+#endif
 
 	stm32mp_io_setup();
 }
