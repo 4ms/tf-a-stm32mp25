@@ -700,7 +700,11 @@ enum usb_status usb_core_receive_ep0(struct usb_handle *pdev, uint8_t *buf,
 	}
 
 	pdev->ep_out[0].total_length = len;
+#ifdef USB_CORE_AVOID_PACKET_SPLIT_MPS
+	pdev->ep_out[0].rem_length = 0;
+#else
 	pdev->ep_out[0].rem_length = len;
+#endif
 
 	/* Start the transfer */
 	return usb_core_receive(pdev, 0U, buf, len);
@@ -725,7 +729,11 @@ enum usb_status usb_core_transmit_ep0(struct usb_handle *pdev, uint8_t *buf,
 	}
 
 	pdev->ep_in[0].total_length = len;
+#ifdef USB_CORE_AVOID_PACKET_SPLIT_MPS
+	pdev->ep_in[0].rem_length = 0;
+#else
 	pdev->ep_in[0].rem_length = len;
+#endif
 
 	/* Start the transfer */
 	return usb_core_transmit(pdev, 0U, buf, len);
