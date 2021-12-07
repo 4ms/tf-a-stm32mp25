@@ -36,7 +36,7 @@ static enum usb_status usb_core_set_stall(struct usb_handle *pdev, uint8_t ep_ad
 	ep->num = num;
 
 	pdev->driver->ep_set_stall(hpcd->instance, ep);
-	if (num == 0U) {
+	if (ep_addr == EP0_OUT) {
 		pdev->driver->ep0_out_start(hpcd->instance);
 	}
 
