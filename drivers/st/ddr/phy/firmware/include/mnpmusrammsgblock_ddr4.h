@@ -2269,6 +2269,6 @@ typedef struct _pmu_smb_ddr_1d_t {
 					 *   0x1 = Do not reset DRAM during devinit
 					 *   0x0 = Reset DRAM during devinit
 					 */
-} __attribute__ ((packed)) pmu_smb_ddr_1d_t;
+} __attribute__ ((packed)) __attribute__ ((aligned(2))) pmu_smb_ddr_1d_t;
 
 #endif /* MNPMUSRAMMSGBLOCK_DDR4_H */

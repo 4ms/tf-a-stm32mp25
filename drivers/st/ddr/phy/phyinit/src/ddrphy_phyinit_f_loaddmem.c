@@ -11,6 +11,8 @@
 
 #include <ddrphy_phyinit.h>
 
+#include <platform_def.h>
+
 /*
  * This function loads the training firmware DMEM image and write the
  * Message Block parameters for the training firmware into the SRAM.
@@ -26,11 +28,9 @@
 void ddrphy_phyinit_f_loaddmem(int pstate)
 {
 	pmu_smb_ddr_1d_t *msgblkptr;
-	int addr;
-	int mem_offset = 0;
 	int sizeofmsgblk;
-	int mem[DMEM_SIZE];
-	/* return_offset_lastaddr_t return_type = return_lastaddr; */
+	uint16_t *ptr16;
+	uint32_t *ptr32;
 
 	VERBOSE("%s Start (pstate=%d)\n", __func__, pstate);
 
@@ -56,22 +56,14 @@ void ddrphy_phyinit_f_loaddmem(int pstate)
 	}
 #endif /* STM32MP_LPDDR4_TYPE */
 
-	/* initialize the dmem structure */
-	for (addr = 0; addr < DMEM_SIZE; addr++) {
-		mem[addr] = 0;
-	}
-
-	/* mem_offset = ddrphy_phyinit_storeincvfile(DMEM_INCV_FILENAME, mem, return_type); */
 	sizeofmsgblk = sizeof(mb_ddr_1d[pstate]);
-	ddrphy_phyinit_storemsgblk(&(mb_ddr_1d[pstate]), sizeofmsgblk, mem);
 
-	/* Write local dmem array */
-	if (0 == (mem_offset % 1)) {
-		/*Always write an even number of words so no 32bit quantity is uninitialized */
-		mem_offset++;
-	}
+	ptr16 = (uint16_t *)msgblkptr;
+	ddrphy_phyinit_writeoutmsgblk(ptr16, DMEM_ST_ADDR, sizeofmsgblk);
 
-	ddrphy_phyinit_writeoutmem(mem, DMEM_ST_ADDR, (mem_offset - DMEM_ST_ADDR));
+	ptr32 = (uint32_t *)(STM32MP_DDR_FW_BASE + STM32MP_DDR_FW_DMEM_OFFSET);
+	ddrphy_phyinit_writeoutmem(ptr32, DMEM_ST_ADDR + DMEM_BIN_OFFSET,
+				   DMEM_SIZE - STM32MP_DDR_FW_DMEM_OFFSET);
 
 	VERBOSE("%s End\n", __func__);
 }

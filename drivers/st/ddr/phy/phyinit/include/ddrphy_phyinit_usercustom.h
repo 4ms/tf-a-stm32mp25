@@ -48,9 +48,19 @@
 #define DMEM_INCV_FILENAME	FW_FILES_LOC "/lpddr4/lpddr4_pmu_train_dmem.incv"
 #endif /* STM32MP_LPDDR4_TYPE */
 
-#define IMEM_SIZE		16384
-#define DMEM_SIZE		8192
-#define DMEM_ST_ADDR		0x54000
+#if STM32MP_DDR3_TYPE
+#define IMEM_SIZE			0x4b94
+#define DMEM_SIZE			0x6c8
+#elif STM32MP_DDR4_TYPE
+#define IMEM_SIZE			0x6ac8
+#define DMEM_SIZE			0x6cc
+#elif STM32MP_LPDDR4_TYPE
+#define IMEM_SIZE			0x7ec6
+#define DMEM_SIZE			0x67c
+#endif
+#define IMEM_ST_ADDR			0x50000
+#define DMEM_ST_ADDR			0x54000
+#define DMEM_BIN_OFFSET			0x200
 
 /*
  * -------------------------------------------------------------
@@ -153,7 +163,8 @@ void ddrphy_phyinit_storemsgblk(void *msgblkptr, int sizeofmsgblk, int mem[]);
 void ddrphy_phyinit_calcmb(void);
 int ddrphy_phyinit_storeincvfile(char *incv_file_name, int mem[],
 				 return_offset_lastaddr_t return_type);
-void ddrphy_phyinit_writeoutmem(int mem[], int mem_offset, int mem_size);
+void ddrphy_phyinit_writeoutmem(uint32_t *mem, int mem_offset, int mem_size);
+void ddrphy_phyinit_writeoutmsgblk(uint16_t *mem, int mem_offset, int mem_size);
 int ddrphy_phyinit_isdbytedisabled(int dbytenumber);
 int ddrphy_phyinit_trackreg(uint32_t adr);
 int ddrphy_phyinit_reginterface(reginstr myreginstr, uint32_t adr, uint16_t dat);

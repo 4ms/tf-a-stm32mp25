@@ -32,31 +32,18 @@
 void ddrphy_phyinit_d_loadimem(void)
 {
 	uint16_t memresetl;
-	int addr, mem_offset = 0;
-	int mem[IMEM_SIZE];
-	/* return_offset_lastaddr_t return_type = return_offset; */
+	uint32_t *ptr32;
 
 	VERBOSE("%s Start\n", __func__);
 
 	/*
 	 * Set memresetl to avoid glitch on BP_MemReset_L during training
 	 */
-
 	memresetl = CSR_PROTECTMEMRESET_MASK;
 	mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (TMASTER | CSR_MEMRESETL_ADDR)), memresetl);
 
-	/* initialize the dmem structure */
-	for (addr = 0; addr < IMEM_SIZE; addr++) {
-		mem[addr] = 0;
-	}
-
-	/* Read the IMEM INCV file into the array */
-	/* mem_offset = ddrphy_phyinit_storeincvfile(IMEM_INCV_FILENAME, mem, return_type); */
-
-	/* Write local imem array */
-	ddrphy_phyinit_writeoutmem(mem, mem_offset, IMEM_SIZE);
-
-	/*VERBOSE("%s WriteImem: COMPLETED\n", __func__); */
+	ptr32 = (uint32_t *)(STM32MP_DDR_FW_BASE + STM32MP_DDR_FW_IMEM_OFFSET);
+	ddrphy_phyinit_writeoutmem(ptr32, IMEM_ST_ADDR, IMEM_SIZE);
 
 	VERBOSE("%s End\n", __func__);
 }

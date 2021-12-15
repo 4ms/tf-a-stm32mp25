@@ -962,6 +962,6 @@ typedef struct _pmu_smb_ddr_1d_t {
 	uint8_t reserved87;		/* Byte offset 0x87, CSR Addr 0x54043, Direction=N/A */
 	uint8_t reserved88;		/* Byte offset 0x88, CSR Addr 0x54044, Direction=N/A */
 	uint8_t reserved89;		/* Byte offset 0x89, CSR Addr 0x54044, Direction=N/A */
-} __attribute__ ((packed)) pmu_smb_ddr_1d_t;
+} __attribute__ ((packed)) __attribute__ ((aligned(2))) pmu_smb_ddr_1d_t;
 
 #endif /* MNPMUSRAMMSGBLOCK_LPDDR4_H */
