@@ -982,5 +982,54 @@ typedef struct user_input_advanced {
 	 */
 } user_input_advanced_t;
 
+/*
+ * Structure for mode register (mandatory) user inputs
+ *
+ * The following basic data structure must be set and completed correctly so
+ * that the PhyInit software package can accurate fill message block structure.
+ * Only some mrx are used per DDR type, on related width:
+ * - DDR3: mr0..2 are used (16-bits values)
+ * - DDR4: mr0..6 are used (16-bits values)
+ * - LPDDR4: mr1..4 and mr11..22 are used (8-bits values)
+ */
+typedef struct user_input_mode_register {
+	int mr0[NB_PS];
+	int mr1[NB_PS];
+	int mr2[NB_PS];
+	int mr3[NB_PS];
+	int mr4[NB_PS];
+	int mr5[NB_PS];
+	int mr6[NB_PS];
+	int mr11[NB_PS];
+	int mr12[NB_PS];
+	int mr13[NB_PS];
+	int mr14[NB_PS];
+	int mr22[NB_PS];
+} user_input_mode_register_t;
+
+/*
+ * Structure for swizzle (mandatory) user inputs
+ *
+ * The following basic data structure must be set and completed correctly so
+ * that the PhyInit software package can accurate set swizzle (IO muxing) config.
+ * Only some swizzles are used per DDR type:
+ * - DDR3/DDR3: swizzle 0..32 are used
+ *   - 26 for hwtswizzle
+ *   - 7 for acswizzle
+ * - LPDDR4:  swizzle 0..43 are used
+ *   - 8 per byte for dqlnsel (total 32)
+ *   - 6 for mapcaatodfi
+ *   - 6 for mapcabtodfi
+ */
+#define NB_HWT_SWIZZLE			26
+#define NB_AC_SWIZZLE			7
+#define NB_DQLNSEL_SWIZZLE_PER_BYTE	8
+#define NB_MAPCAATODFI_SWIZZLE		6
+#define NB_MAPCABTODFI_SWIZZLE		6
+#define NB_SWIZZLE	44
+typedef struct user_input_swizzle {
+	int swizzle[NB_SWIZZLE];
+} user_input_swizzle_t;
+
 #endif /* DDRPHY_PHYINIT_STRUCT_H */
 

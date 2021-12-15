@@ -11,8 +11,12 @@
 #include <lib/mmio.h>
 
 #include <ddrphy_phyinit_usercustom.h>
+#include <ddrphy_phyinit.h>
 
 #include <platform_def.h>
+
+/* DDRDBG registers */
+#define DDRDBG_DDR34_AC_SWIZZLE_ADD3_0		U(0x100)
 
 /*
  * This function is called before training firmware is executed. Any
@@ -40,7 +44,50 @@
  */
 void ddrphy_phyinit_usercustom_custompretrain(void)
 {
+	int byte __unused;
+	int i = 0;
+	int j;
+	uintptr_t base;
+
 	VERBOSE("%s Start\n", __func__);
+
+#if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
+	base = (uintptr_t)(DDRPHYC_BASE + 4 * (TMASTER | CSR_HWTSWIZZLEHWTADDRESS0_ADDR));
+
+	for (i = 0; i < NB_HWT_SWIZZLE; i++) {
+		mmio_write_16(base + i * sizeof(uint32_t),
+			      (uint16_t)userinputswizzle.swizzle[i]);
+	}
+
+	base = (uintptr_t)(stm32_ddrdbg_get_base() + DDRDBG_DDR34_AC_SWIZZLE_ADD3_0);
+
+	for (j = 0; j < NB_AC_SWIZZLE; j++, i++) {
+		mmio_write_32(base + j * sizeof(uint32_t), userinputswizzle.swizzle[i]);
+	}
+#else
+	for (byte = 0; byte < userinputbasic.numdbyte; byte++) {
+		base = (uintptr_t)(DDRPHYC_BASE + 4 * ((byte << 12) | TDBYTE | CSR_DQ0LNSEL_ADDR));
+
+		for (j = 0; j < NB_DQLNSEL_SWIZZLE_PER_BYTE; j++, i++) {
+			mmio_write_16(base + j * sizeof(uint32_t),
+				      (uint16_t)userinputswizzle.swizzle[i]);
+		}
+	}
+
+	base = (uintptr_t)(DDRPHYC_BASE + 4 * (TMASTER | CSR_MAPCAA0TODFI_ADDR));
+
+	for (j = 0; j < NB_MAPCAATODFI_SWIZZLE; j++, i++) {
+		mmio_write_16(base + j * sizeof(uint32_t),
+			      (uint16_t)userinputswizzle.swizzle[i]);
+	}
+
+	base = (uintptr_t)(DDRPHYC_BASE + 4 * (TMASTER | CSR_MAPCAB0TODFI_ADDR));
+
+	for (j = 0; j < NB_MAPCABTODFI_SWIZZLE; j++, i++) {
+		mmio_write_16(base + j * sizeof(uint32_t),
+			      (uint16_t)userinputswizzle.swizzle[i]);
+	}
+#endif /* STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE */
 
 	VERBOSE("%s End\n", __func__);
 }

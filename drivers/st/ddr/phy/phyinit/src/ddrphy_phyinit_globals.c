@@ -12,6 +12,8 @@
 runtime_config_t runtimeconfig;
 user_input_basic_t userinputbasic;
 user_input_advanced_t userinputadvanced;
+user_input_mode_register_t userinputmoderegister;
+user_input_swizzle_t userinputswizzle;
 
 /* Firmware 1D Message Block structures */
 pmu_smb_ddr_1d_t mb_ddr_1d[NB_PS];
