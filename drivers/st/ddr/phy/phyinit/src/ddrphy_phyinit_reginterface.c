@@ -28,7 +28,11 @@
  * amount of registered that can be saved. The user may increase this variable
  * as desired if a larger number of registers need to be restored.
  */
-#define MAX_NUM_RET_REGS 5000
+#if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
+#define MAX_NUM_RET_REGS	416
+#elif STM32MP_LPDDR4_TYPE
+#define MAX_NUM_RET_REGS	281
+#endif /* STM32MP_LPDDR4_TYPE */
 
 /*
  * Array of Address/value pairs used to store register values for the purpose
@@ -70,7 +74,7 @@ int ddrphy_phyinit_trackreg(uint32_t adr)
 	}
 
 	if (!foundreg && tracken) { /* register not found, so add it. */
-		if (numregsaved == MAX_NUM_RET_REGS) {
+		if (numregsaved > MAX_NUM_RET_REGS) {
 			ERROR("[ddrphy_phyinit_reginterface:ddrphy_phyinit_trackreg]\n");
 			ERROR("Max Number of Restore Registers reached: %d.\n", numregsaved);
 			ERROR("Please recompile PhyInit with larger MAX_NUM_RET_REG value.\n");

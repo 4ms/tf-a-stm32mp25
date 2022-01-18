@@ -181,11 +181,14 @@ BL2_SOURCES		+=	drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_c_initphyconfig.c	
 				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_isdbytedisabled.c				\
 				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_loadpieprodcode.c				\
 				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_mapdrvstren.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_progcsrskiptrain.c			\
 				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_reginterface.c				\
+				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_restore_sequence.c			\
 				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_sequence.c				\
 				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_softsetmb.c				\
 				drivers/st/ddr/phy/phyinit/usercustom/ddrphy_phyinit_usercustom_customposttrain.c	\
-				drivers/st/ddr/phy/phyinit/usercustom/ddrphy_phyinit_usercustom_custompretrain.c
+				drivers/st/ddr/phy/phyinit/usercustom/ddrphy_phyinit_usercustom_custompretrain.c	\
+				drivers/st/ddr/phy/phyinit/usercustom/ddrphy_phyinit_usercustom_saveretregs.c
 
 BL2_SOURCES		+=	drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_d_loadimem.c				\
 				drivers/st/ddr/phy/phyinit/src/ddrphy_phyinit_f_loaddmem.c				\

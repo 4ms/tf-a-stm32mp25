@@ -17,7 +17,7 @@
  *
  * \returns 0 on completion of the sequence, EXIT_FAILURE on error.
  */
-int ddrphy_phyinit_sequence(bool skip_training)
+int ddrphy_phyinit_sequence(bool skip_training, bool reten)
 {
 	/* Check user input pstate number consistency vs. SW capabilities */
 	if (userinputbasic.numpstates > NB_PS) {
@@ -53,13 +53,10 @@ int ddrphy_phyinit_sequence(bool skip_training)
 	/* Stop retention register tracking for training firmware related registers */
 	ddrphy_phyinit_reginterface(stoptrack, 0, 0);
 
-#if STM32MP_DDR_SKIP_TRAINING
-	if (skip_training) {
+	if (runtimeconfig.skip_train) {
 		/* Skip running training firmware entirely */
-		ddrphy_phyinit_progcsrskiptrain(skip_training);
-	}
-#else
-	{
+		ddrphy_phyinit_progcsrskiptrain(runtimeconfig.skip_train);
+	} else {
 		int pstate;
 
 		/* Run all 1D power states, then 2D P0, to reduce total Imem/Dmem loads. */
@@ -89,13 +86,12 @@ int ddrphy_phyinit_sequence(bool skip_training)
 			ddrphy_phyinit_h_readmsgblock();
 		}
 	}
-#endif /* STM32MP_DDR_SKIP_TRAINING */
 
 	/* Start retention register tracking for training firmware related registers */
 	ddrphy_phyinit_reginterface(starttrack, 0, 0);
 
 	/* (I) Load PHY Init Engine Image */
-	ddrphy_phyinit_i_loadpieimage(skip_training);
+	ddrphy_phyinit_i_loadpieimage(runtimeconfig.skip_train);
 
 	/*
 	 * Customize any CSR write desired to override values programmed by firmware or
@@ -103,9 +99,11 @@ int ddrphy_phyinit_sequence(bool skip_training)
 	 */
 	ddrphy_phyinit_usercustom_customposttrain();
 
-	if (runtimeconfig.reten) {
+	if (reten) {
 		/* Save value of tracked registers for retention restore sequence. */
-		/* ddrphy_phyinit_usercustom_saveretregs(); */
+		ddrphy_phyinit_usercustom_saveretregs();
+
+		runtimeconfig.reten = reten;
 	}
 
 	/* (J) Initialize the PHY to Mission Mode through DFI Initialization */

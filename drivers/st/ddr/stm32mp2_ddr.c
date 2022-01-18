@@ -17,8 +17,6 @@
 
 #include <platform_def.h>
 
-#define SKIP_TRAINING_PARAM	false
-
 #define DDRDBG_FRAC_PLL_LOCK	U(0x10)
 
 #define DDRCTL_REG(x, y)					\
@@ -390,7 +388,18 @@ void stm32mp2_ddr_init(struct stm32mp_ddr_priv *priv,
 
 	disable_refresh(priv->ctl);
 
-	ret = ddrphy_phyinit_sequence(SKIP_TRAINING_PARAM);
+	if (false /* TODO stm32mp1_is_wakeup_from_standby() */) {
+		/* Initialize DDR by skipping training and disabling result saving */
+		ret = ddrphy_phyinit_sequence(true, false);
+
+		if (ret == 0) {
+			ret = ddrphy_phyinit_restore_sequence();
+		}
+	} else {
+		/* Initialize DDR including training and result saving */
+		ret = ddrphy_phyinit_sequence(false, true);
+	}
+
 	if (ret != 0) {
 		ERROR("DDR PHY init: Error %d\n", ret);
 		panic();

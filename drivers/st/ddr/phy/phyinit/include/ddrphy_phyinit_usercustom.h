@@ -103,7 +103,7 @@ typedef enum { return_offset, return_lastaddr } return_offset_lastaddr_t;
 /* A structure to store the sequence function runtime input variables. */
 typedef struct runtime_config {
 	bool	skip_train;	/* skip_train input parameter */
-	int	reten;		/*
+	bool	reten;		/*
 				 * Retention Enable input parameter, instructs phyinit to issue
 				 * register reads during initialization to retention registers.
 				 */
@@ -148,7 +148,7 @@ extern int ardptrinitval[NB_PS];
  * Fixed Function prototypes
  * -------------------------------------------------------------
  */
-int ddrphy_phyinit_sequence(bool skip_training);
+int ddrphy_phyinit_sequence(bool skip_training, bool reten);
 int ddrphy_phyinit_restore_sequence(void);
 void ddrphy_phyinit_c_initphyconfig(void);
 void ddrphy_phyinit_d_loadimem(void);

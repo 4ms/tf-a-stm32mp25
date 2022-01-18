@@ -156,7 +156,6 @@ static void seq0bdisableflag_program(bool skip_training)
 }
 
 #if STM32MP_LPDDR4_TYPE
-#if !STM32MP_DDR_SKIP_TRAINING
 /*
  * Registers: ppttrainsetup and ppttrainsetup2
  * - Related to DFI PHY Master Interface (PMI). See Register description in PUB.
@@ -197,7 +196,6 @@ static void ppttrainsetup_program(void)
 		}
 	}
 }
-#endif /* !STM32MP_DDR_SKIP_TRAINING */
 
 /*
  * Registers AcsmPlayback*x*
@@ -392,11 +390,9 @@ void ddrphy_phyinit_i_loadpieimage(bool skip_training)
 	seq0bdisableflag_program(skip_training);
 
 #if STM32MP_LPDDR4_TYPE
-#if !STM32MP_DDR_SKIP_TRAINING
 	if (!skip_training) {
 		ppttrainsetup_program();
 	}
-#endif /* !STM32MP_DDR_SKIP_TRAINING */
 
 	acsmplayback_program();
 
