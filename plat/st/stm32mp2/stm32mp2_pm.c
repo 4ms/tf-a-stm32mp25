@@ -27,8 +27,34 @@ static uintptr_t stm32_sec_entrypoint;
 static u_register_t cntfrq_core0;
 static uintptr_t saved_entrypoint;
 
+/*******************************************************************************
+ * STM32MP2 handler called when a CPU is about to enter standby.
+ * Called by core 1 to enter in wfi.
+ ******************************************************************************/
 static void stm32_cpu_standby(plat_local_state_t cpu_state)
 {
+	uint32_t interrupt = GIC_SPURIOUS_INTERRUPT;
+
+	assert(cpu_state == ARM_LOCAL_STATE_RET);
+
+	/*
+	 * Enter standby state.
+	 * Synchronize on memory accesses and instruction flow before the WFI
+	 * instruction.
+	 */
+	dsb();
+	isb();
+	while (interrupt == GIC_SPURIOUS_INTERRUPT) {
+		wfi();
+
+		/* Acknowledge IT */
+		interrupt = gicv2_acknowledge_interrupt();
+		/* If Interrupt == 1022 it will be acknowledged by non secure */
+		if ((interrupt != PENDING_G1_INTID) &&
+		    (interrupt != GIC_SPURIOUS_INTERRUPT)) {
+			gicv2_end_of_interrupt(interrupt);
+		}
+	}
 }
 
 /*******************************************************************************
