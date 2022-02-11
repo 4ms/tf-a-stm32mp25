@@ -36,6 +36,13 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 	 */
 	mmap_add_region(arg2, arg2, NS_DT_MAX_SIZE, MT_RO_DATA | MT_SECURE);
 
+#if USE_COHERENT_MEM
+	/* Map coherent memory */
+	mmap_add_region(BL_COHERENT_RAM_BASE, BL_COHERENT_RAM_BASE,
+			BL_COHERENT_RAM_END - BL_COHERENT_RAM_BASE,
+			MT_DEVICE | MT_RW | MT_SECURE);
+#endif
+
 	configure_mmu();
 
 	assert(params_from_bl2 != NULL);
