@@ -77,11 +77,9 @@ void ddrphy_phyinit_usercustom_saveretregs(void)
 		for (lane = 0; lane <= R_MAX; lane++) {
 			r_addr = lane << 8;
 			ddrphy_phyinit_trackreg(TDBYTE | c_addr | r_addr | CSR_RXPBDLYTG0_ADDR);
+#if STM32MP_LPDDR4_TYPE
 			ddrphy_phyinit_trackreg(TDBYTE | c_addr | r_addr | CSR_RXPBDLYTG1_ADDR);
-#if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
-			ddrphy_phyinit_trackreg(TDBYTE | c_addr | r_addr | CSR_RXPBDLYTG2_ADDR);
-			ddrphy_phyinit_trackreg(TDBYTE | c_addr | r_addr | CSR_RXPBDLYTG3_ADDR);
-#endif /* STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE */
+#endif /* STM32MP_LPDDR4_TYPE */
 		} /* r_addr */
 
 #if STM32MP_LPDDR4_TYPE
@@ -124,48 +122,32 @@ void ddrphy_phyinit_usercustom_saveretregs(void)
 				u_addr = nibble << 8;
 				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
 							CSR_RXENDLYTG0_ADDR);
+#if STM32MP_LPDDR4_TYPE
 				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
 							CSR_RXENDLYTG1_ADDR);
-#if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_RXENDLYTG2_ADDR);
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_RXENDLYTG3_ADDR);
-#endif /* STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE */
+#endif /* STM32MP_LPDDR4_TYPE */
 				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
 							CSR_TXDQSDLYTG0_ADDR);
+#if STM32MP_LPDDR4_TYPE
 				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
 							CSR_TXDQSDLYTG1_ADDR);
-#if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_TXDQSDLYTG2_ADDR);
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_TXDQSDLYTG3_ADDR);
-#endif /* STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE */
+#endif /* STM32MP_LPDDR4_TYPE */
 				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
 							CSR_RXCLKDLYTG0_ADDR);
+#if STM32MP_LPDDR4_TYPE
 				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
 							CSR_RXCLKDLYTG1_ADDR);
-#if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_RXCLKDLYTG2_ADDR);
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_RXCLKDLYTG3_ADDR);
-#endif /* STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE */
+#endif /* STM32MP_LPDDR4_TYPE */
 			} /* nibble */
 
 			for (lane = R_MIN; lane <= R_MAX; lane++) {
 				r_addr = lane << 8;
 				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | r_addr |
 							CSR_TXDQDLYTG0_ADDR);
+#if STM32MP_LPDDR4_TYPE
 				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | r_addr |
 							CSR_TXDQDLYTG1_ADDR);
-#if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | r_addr |
-							CSR_TXDQDLYTG2_ADDR);
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | r_addr |
-							CSR_TXDQDLYTG3_ADDR);
-#endif /* STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE */
+#endif /* STM32MP_LPDDR4_TYPE */
 			} /* r_addr */
 
 #if STM32MP_LPDDR4_TYPE

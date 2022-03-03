@@ -29,9 +29,9 @@
  * as desired if a larger number of registers need to be restored.
  */
 #if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
-#define MAX_NUM_RET_REGS	416
+#define MAX_NUM_RET_REGS	129
 #elif STM32MP_LPDDR4_TYPE
-#define MAX_NUM_RET_REGS	281
+#define MAX_NUM_RET_REGS	282
 #endif /* STM32MP_LPDDR4_TYPE */
 
 /*

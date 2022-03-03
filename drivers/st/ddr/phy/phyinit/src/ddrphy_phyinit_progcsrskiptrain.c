@@ -106,7 +106,7 @@ static void dfimrl_program(void)
 }
 
 /*
- * Program txdqsdlytg0/1/2/3[9:0] per P-State:
+ * Program txdqsdlytg0/1[9:0] per P-State:
  *
  *         txdqsdlytg*[9:6] = floor( (4*UI + tstaoff) / UI)
  *         txdqsdlytg*[5:0] = ceiling( (tstaoff%UI / UI) * 32)
@@ -187,33 +187,6 @@ static void txdqsdlytg_program(uint16_t *txdqsdly)
 									CSR_TXDQSDLYTG0_ADDR)),
 						      txdqsdly[pstate]);
 				}
-
-				if ((mb_ddr_1d[pstate].cspresent & 0x2) >> 1) {
-					mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (p_addr |
-										      TDBYTE |
-										      c_addr |
-										      u_addr |
-									CSR_TXDQSDLYTG1_ADDR)),
-						      txdqsdly[pstate]);
-				}
-
-				if ((mb_ddr_1d[pstate].cspresent & 0x4) >> 2) {
-					mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (p_addr |
-										      TDBYTE |
-										      c_addr |
-										      u_addr |
-									CSR_TXDQSDLYTG2_ADDR)),
-						      txdqsdly[pstate]);
-				}
-
-				if ((mb_ddr_1d[pstate].cspresent & 0x8) >> 3) {
-					mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (p_addr |
-										      TDBYTE |
-										      c_addr |
-										      u_addr |
-									CSR_TXDQSDLYTG3_ADDR)),
-						      txdqsdly[pstate]);
-				}
 #elif STM32MP_LPDDR4_TYPE
 				if (((mb_ddr_1d[pstate].cspresentcha & 0x1) >> 0) |
 				    ((mb_ddr_1d[pstate].cspresentchb & 0x1) >> 0)) {
@@ -243,7 +216,7 @@ static void txdqsdlytg_program(uint16_t *txdqsdly)
 /*
  * ##############################################################
  *
- * Program txdqdlyTg0/1/2/3[8:0] per P-state:
+ * Program txdqdlyTg0/1[8:0] per P-state:
  *
  *     txdqdlyTg*[8:6] = floor( (txdqsdlytg*[5:0]*UI/32 + tDQS2DQ + 0.5UI) / UI)
  *     txdqdlyTg*[5:0] = ceil( ((txdqsdlytg*[5:0]*UI/32 + tDQS2DQ + 0.5UI)%UI / UI) * 32)
@@ -309,33 +282,6 @@ static void txdqdlytg_program(uint16_t *txdqsdly)
 									CSR_TXDQDLYTG0_ADDR)),
 						      txdqdly);
 				}
-
-				if ((mb_ddr_1d[pstate].cspresent & 0x2) >> 1) {
-					mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (p_addr |
-										      TDBYTE |
-										      c_addr |
-										      r_addr |
-									CSR_TXDQDLYTG1_ADDR)),
-						      txdqdly);
-				}
-
-				if ((mb_ddr_1d[pstate].cspresent & 0x4) >> 2) {
-					mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (p_addr |
-										      TDBYTE |
-										      c_addr |
-										      r_addr |
-									CSR_TXDQDLYTG2_ADDR)),
-						      txdqdly);
-				}
-
-				if ((mb_ddr_1d[pstate].cspresent & 0x8) >> 3) {
-					mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (p_addr |
-										      TDBYTE |
-										      c_addr |
-										      r_addr |
-									CSR_TXDQDLYTG3_ADDR)),
-						      txdqdly);
-				}
 #elif STM32MP_LPDDR4_TYPE
 				if (((mb_ddr_1d[pstate].cspresentcha & 0x1) >> 0) |
 				    ((mb_ddr_1d[pstate].cspresentchb & 0x1) >> 0)) {
@@ -363,7 +309,7 @@ static void txdqdlytg_program(uint16_t *txdqsdly)
 }
 
 /*
- * Program rxendly0/1/2/3[10:0] per P-State:
+ * Program rxendly0/1[10:0] per P-State:
  *
  *         rxendly[10:6] = floor( (4*UI + tDQSCK + tstaoff) / UI)
  *         rxendly[5:0]  = ceil( ((tDQSCK + tstaoff) % UI) * 32)
@@ -453,33 +399,6 @@ static void rxendly_program(bool skip_train)
 										      c_addr |
 										      u_addr |
 									CSR_RXENDLYTG0_ADDR)),
-						      rxendly);
-				}
-
-				if ((mb_ddr_1d[pstate].cspresent & 0x2) >> 1) {
-					mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (p_addr |
-										      TDBYTE |
-										      c_addr |
-										      u_addr |
-									CSR_RXENDLYTG1_ADDR)),
-						      rxendly);
-				}
-
-				if ((mb_ddr_1d[pstate].cspresent & 0x4) >> 2) {
-					mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (p_addr |
-										      TDBYTE |
-										      c_addr |
-										      u_addr |
-									CSR_RXENDLYTG2_ADDR)),
-						      rxendly);
-				}
-
-				if ((mb_ddr_1d[pstate].cspresent & 0x8) >> 3) {
-					mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (p_addr |
-										      TDBYTE |
-										      c_addr |
-										      u_addr |
-									CSR_RXENDLYTG3_ADDR)),
 						      rxendly);
 				}
 #elif STM32MP_LPDDR4_TYPE
