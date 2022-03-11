@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2021-2022, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -92,14 +92,25 @@ static int sr_ssr_exit(void)
 
 static int sr_hsr_set(void)
 {
+	uintptr_t ddrctrl_base = stm32mp_ddrctrl_base();
+
 	mmio_write_32(stm32mp_rcc_base() + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRCKMOD_HSR);
 
-	/* sw_done set to 0 to enable quasi-dynamic parameters programmation */
-	mmio_write_32(stm32mp_ddrctrl_base() + DDRCTRL_SWCTL, 0);
+	/*
+	 * manage quasi-dynamic registers modification
+	 * hwlpctl.hw_lp_en : Group 2
+	 */
+	if (stm32mp_ddr_sw_selfref_entry((struct stm32mp_ddrctl *)ddrctrl_base) != 0) {
+		panic();
+	}
+	stm32mp_ddr_start_sw_done((struct stm32mp_ddrctl *)ddrctrl_base);
 
-	mmio_write_32(stm32mp_ddrctrl_base() + DDRCTRL_HWLPCTL,
+	mmio_write_32(ddrctrl_base + DDRCTRL_HWLPCTL,
 		      DDRCTRL_HWLPCTL_HW_LP_EN | DDRCTRL_HWLPCTL_HW_LP_EXIT_IDLE_EN |
 		      (HW_IDLE_PERIOD << DDRCTRL_HWLPCTL_HW_LP_IDLE_X32_SHIFT));
+
+	stm32mp_ddr_wait_sw_done_ack((struct stm32mp_ddrctl *)ddrctrl_base);
+	stm32mp_ddr_sw_selfref_exit((struct stm32mp_ddrctl *)ddrctrl_base);
 
 	return 0;
 }

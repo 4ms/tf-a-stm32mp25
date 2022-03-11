@@ -271,7 +271,11 @@ static void disable_refresh(struct stm32mp_ddrctl *ctl)
 
 	udelay(DDR_DELAY_1US);
 
-	stm32mp_ddr_start_sw_done(ctl);
+	/*
+	 * manage quasi-dynamic registers modification
+	 * dfimisc.dfi_init_complete_en : Group 3
+	 */
+	stm32mp_ddr_set_qd3_update_conditions(ctl);
 
 	udelay(DDR_DELAY_1US);
 
@@ -279,7 +283,7 @@ static void disable_refresh(struct stm32mp_ddrctl *ctl)
 
 	udelay(DDR_DELAY_1US);
 
-	stm32mp_ddr_wait_sw_done_ack(ctl);
+	stm32mp_ddr_unset_qd3_update_conditions(ctl);
 }
 
 static void enable_refresh(struct stm32mp_ddrctl *ctl)
@@ -312,24 +316,24 @@ static void wait_dfi_init_complete(struct stm32mp_ddrctl *ctl)
 
 static void activate_controller(struct stm32mp_ddrctl *ctl)
 {
-	stm32mp_ddr_start_sw_done(ctl);
+	stm32mp_ddr_set_qd3_update_conditions(ctl);
 
 	mmio_setbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_INIT_START);
 
-	stm32mp_ddr_wait_sw_done_ack(ctl);
+	stm32mp_ddr_unset_qd3_update_conditions(ctl);
 
 	wait_dfi_init_complete(ctl);
 
 	udelay(DDR_DELAY_1US);
 
-	stm32mp_ddr_start_sw_done(ctl);
+	stm32mp_ddr_set_qd3_update_conditions(ctl);
 
 	mmio_clrsetbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_INIT_START,
 			   DDRCTRL_DFIMISC_DFI_INIT_COMPLETE_EN);
 
 	udelay(DDR_DELAY_1US);
 
-	stm32mp_ddr_wait_sw_done_ack(ctl);
+	stm32mp_ddr_unset_qd3_update_conditions(ctl);
 }
 
 void stm32mp2_ddr_init(struct stm32mp_ddr_priv *priv,
