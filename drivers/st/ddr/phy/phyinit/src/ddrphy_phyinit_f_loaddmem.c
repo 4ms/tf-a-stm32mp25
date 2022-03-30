@@ -23,9 +23,9 @@
  * DMEM incv file provided in the training firmware package.
  * -# Write the Firmware Message Block with the required contents detailing the training parameters.
  *
- * \return void
+ * \return 0 on success.
  */
-void ddrphy_phyinit_f_loaddmem(int pstate)
+int ddrphy_phyinit_f_loaddmem(int pstate)
 {
 	pmu_smb_ddr_1d_t *msgblkptr;
 	int sizeofmsgblk;
@@ -42,17 +42,20 @@ void ddrphy_phyinit_f_loaddmem(int pstate)
 	if ((msgblkptr->enableddqs > 8 * (userinputbasic.numactivedbytedfi0)) ||
 	    (msgblkptr->enableddqs <= 0)) {
 		ERROR("%s enableddqs is Zero or greater than NumActiveDbytes for Dfi0\n",__func__);
+		return -1;
 	}
 #elif STM32MP_LPDDR4_TYPE
 	if (msgblkptr->enableddqscha % 16 != 0 || msgblkptr->enableddqschb % 16 != 0) {
 		ERROR("%s Lp3/Lp4 - Number of Dq's Enabled per Channel much be multipe of 16\n",
 		      __func__);
+		return -1;
 	}
 
 	if ((msgblkptr->enableddqscha > 8 * (userinputbasic.numactivedbytedfi0)) ||
 	    (msgblkptr->enableddqschb > 8 * (userinputbasic.numactivedbytedfi1)) ||
 	    (msgblkptr->enableddqscha == 0 && msgblkptr->enableddqschb == 0)) {
 		ERROR("%s EnabledDqsChA/B are not set correctly./1\n", __func__);
+		return -1;
 	}
 #endif /* STM32MP_LPDDR4_TYPE */
 
@@ -66,4 +69,6 @@ void ddrphy_phyinit_f_loaddmem(int pstate)
 				   DMEM_SIZE - STM32MP_DDR_FW_DMEM_OFFSET);
 
 	VERBOSE("%s End\n", __func__);
+
+	return 0;
 }

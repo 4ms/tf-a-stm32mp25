@@ -19,6 +19,8 @@
  */
 int ddrphy_phyinit_sequence(bool skip_training, bool reten)
 {
+	int ret;
+
 	/* Check user input pstate number consistency vs. SW capabilities */
 	if (userinputbasic.numpstates > NB_PS) {
 		return -1;
@@ -33,7 +35,10 @@ int ddrphy_phyinit_sequence(bool skip_training, bool reten)
 	ddrphy_phyinit_initstruct();
 
 	/* Re-calculate Firmware Message Block input based on final user input */
-	ddrphy_phyinit_calcmb();
+	ret = ddrphy_phyinit_calcmb();
+	if (ret != 0) {
+		return ret;
+	}
 
 	/* (A) Bring up VDD, VDDQ, and VAA */
 	/* ddrphy_phyinit_usercustom_a_bringuppower(); */
@@ -42,8 +47,10 @@ int ddrphy_phyinit_sequence(bool skip_training, bool reten)
 	/* ddrphy_phyinit_usercustom_b_startclockresetphy(); */
 
 	/* (C) Initialize PHY Configuration */
-	ddrphy_phyinit_c_initphyconfig();
-
+	ret = ddrphy_phyinit_c_initphyconfig();
+	if (ret != 0) {
+		return ret;
+	}
 	/*
 	 * Customize any register write desired; This can include any CSR not covered by PhyInit
 	 * or user wish to override values calculated in step_C
@@ -51,7 +58,10 @@ int ddrphy_phyinit_sequence(bool skip_training, bool reten)
 	ddrphy_phyinit_usercustom_custompretrain();
 
 	/* Stop retention register tracking for training firmware related registers */
-	ddrphy_phyinit_reginterface(stoptrack, 0, 0);
+	ret = ddrphy_phyinit_reginterface(stoptrack, 0, 0);
+	if (ret != 0) {
+		return ret;
+	}
 
 	if (runtimeconfig.skip_train) {
 		/* Skip running training firmware entirely */
@@ -77,10 +87,16 @@ int ddrphy_phyinit_sequence(bool skip_training, bool reten)
 			 */
 
 			/* (F) Write the Message Block parameters for the training firmware */
-			ddrphy_phyinit_f_loaddmem(pstate);
+			ret = ddrphy_phyinit_f_loaddmem(pstate);
+			if (ret != 0) {
+				return ret;
+			}
 
 			/* (G) Execute the Training Firmware */
-			ddrphy_phyinit_g_execfw();
+			ret = ddrphy_phyinit_g_execfw();
+			if (ret != 0) {
+				return ret;
+			}
 
 			/* (H) Read the Message Block results */
 			ddrphy_phyinit_h_readmsgblock();
@@ -88,7 +104,10 @@ int ddrphy_phyinit_sequence(bool skip_training, bool reten)
 	}
 
 	/* Start retention register tracking for training firmware related registers */
-	ddrphy_phyinit_reginterface(starttrack, 0, 0);
+	ret = ddrphy_phyinit_reginterface(starttrack, 0, 0);
+	if (ret != 0) {
+		return ret;
+	}
 
 	/* (I) Load PHY Init Engine Image */
 	ddrphy_phyinit_i_loadpieimage(runtimeconfig.skip_train);
@@ -101,7 +120,10 @@ int ddrphy_phyinit_sequence(bool skip_training, bool reten)
 
 	if (reten) {
 		/* Save value of tracked registers for retention restore sequence. */
-		ddrphy_phyinit_usercustom_saveretregs();
+		ret = ddrphy_phyinit_usercustom_saveretregs();
+		if (ret != 0) {
+			return ret;
+		}
 
 		runtimeconfig.reten = reten;
 	}

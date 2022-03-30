@@ -53,41 +53,37 @@ static int tracken = 1;        /* Enabled tracking of registers */
  * ddrphy_phyinit_reginterface starttrack, stoptrack instructions. By
  * default tracking is always turned on.
  *
- * \return 0: not tracked 1: tracked
+ * \return 0 on success.
  */
 int ddrphy_phyinit_trackreg(uint32_t adr)
 {
 	int regindx = 0;
-	int foundreg = 0;
 
-	/* return if tracking is disabled */
+	/* Return if tracking is disabled */
 	if (tracken == 0) {
 		return 0;
 	}
 
-	/* search register array the address, */
+	/* Search register address within the array */
 	for (regindx = 0; regindx < numregsaved; regindx++) {
 		if (retreglist[regindx].address == adr) {
-			foundreg = 1;
-			return 1;
-		}
-	}
-
-	if (!foundreg && tracken) { /* register not found, so add it. */
-		if (numregsaved > MAX_NUM_RET_REGS) {
-			ERROR("[ddrphy_phyinit_reginterface:ddrphy_phyinit_trackreg]\n");
-			ERROR("Max Number of Restore Registers reached: %d.\n", numregsaved);
-			ERROR("Please recompile PhyInit with larger MAX_NUM_RET_REG value.\n");
+			/* Register found */
 			return 0;
 		}
-
-		retreglist[regindx].address = adr;
-		numregsaved++;
-		return 1;
-	} else {
-		/* should never get here. */
-		return 0;
 	}
+
+	/* Register not found, so add it. */
+	if (numregsaved > MAX_NUM_RET_REGS) {
+		ERROR("[ddrphy_phyinit_reginterface:ddrphy_phyinit_trackreg]\n");
+		ERROR("Max Number of Restore Registers reached: %d.\n", numregsaved);
+		ERROR("Please recompile PhyInit with larger MAX_NUM_RET_REG value.\n");
+		return -1;
+	}
+
+	retreglist[regindx].address = adr;
+	numregsaved++;
+
+	return 0;
 }
 
 /*
@@ -119,7 +115,7 @@ int ddrphy_phyinit_trackreg(uint32_t adr)
  *   ddrphy_phyinit_reginterface(saveregs,0,0);
  *   ddrphy_phyinit_reginterface(restoreregs,0,0);
  *  \endcode
- * \return 1 on success.
+ * \return 0 on success.
  */
 int ddrphy_phyinit_reginterface(reginstr myreginstr, uint32_t adr, uint16_t dat)
 {
@@ -138,7 +134,7 @@ int ddrphy_phyinit_reginterface(reginstr myreginstr, uint32_t adr, uint16_t dat)
 			retreglist[regindx].value = data;
 		}
 
-		return 1;
+		return 0;
 	} else if (myreginstr == restoreregs) {
 		int regindx;
 
@@ -151,21 +147,21 @@ int ddrphy_phyinit_reginterface(reginstr myreginstr, uint32_t adr, uint16_t dat)
 				      retreglist[regindx].value);
 		}
 
-		return 1;
+		return 0;
 	} else if (myreginstr == starttrack) { /* Enable tracking */
 		tracken = 1;
-		return 1;
+		return 0;
 	} else if (myreginstr == stoptrack) { /* Disable tracking */
 		tracken = 0;
-		return 1;
+		return 0;
 	} else if (myreginstr == dumpregs) { /* Dump restore state to file. */
 		/* TBD */
-		return 1;
+		return 0;
 	} else if (myreginstr == importregs) { /* import register state from file. */
 		/* TBD */
-		return 1;
+		return 0;
 	} else {
 		/* future instructions. */
-		return 0;
+		return -1;
 	}
 }

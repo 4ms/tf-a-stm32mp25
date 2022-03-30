@@ -150,17 +150,17 @@ extern int ardptrinitval[NB_PS];
  */
 int ddrphy_phyinit_sequence(bool skip_training, bool reten);
 int ddrphy_phyinit_restore_sequence(void);
-void ddrphy_phyinit_c_initphyconfig(void);
+int ddrphy_phyinit_c_initphyconfig(void);
 void ddrphy_phyinit_d_loadimem(void);
 void ddrphy_phyinit_progcsrskiptrain(bool skip_training);
-void ddrphy_phyinit_f_loaddmem(int pstate);
-void ddrphy_phyinit_g_execfw(void);
+int ddrphy_phyinit_f_loaddmem(int pstate);
+int ddrphy_phyinit_g_execfw(void);
 void ddrphy_phyinit_h_readmsgblock(void);
 void ddrphy_phyinit_i_loadpieimage(bool skip_training);
 void ddrphy_phyinit_loadpieprodcode(void);
 int ddrphy_phyinit_mapdrvstren(int drvstren_ohm, enum drvtype targetcsr);
 void ddrphy_phyinit_storemsgblk(void *msgblkptr, int sizeofmsgblk, int mem[]);
-void ddrphy_phyinit_calcmb(void);
+int ddrphy_phyinit_calcmb(void);
 int ddrphy_phyinit_storeincvfile(char *incv_file_name, int mem[],
 				 return_offset_lastaddr_t return_type);
 void ddrphy_phyinit_writeoutmem(uint32_t *mem, int mem_offset, int mem_size);
@@ -174,10 +174,10 @@ extern void ddrphy_phyinit_usercustom_b_startclockresetphy(void);
 extern void ddrphy_phyinit_usercustom_custompretrain(void);
 extern void ddrphy_phyinit_usercustom_customposttrain(void);
 extern int ddrphy_phyinit_usercustom_e_setdficlk(int dfi_frequency);
-extern void ddrphy_phyinit_usercustom_g_waitfwdone(void);
+extern int ddrphy_phyinit_usercustom_g_waitfwdone(void);
 extern void ddrphy_phyinit_usercustom_h_readmsgblock(void);
 extern void ddrphy_phyinit_usercustom_j_entermissionmode(void);
-extern void ddrphy_phyinit_usercustom_saveretregs(void);
+extern int ddrphy_phyinit_usercustom_saveretregs(void);
 
 #include <ddrphy_csr_all_cdefines.h>
 

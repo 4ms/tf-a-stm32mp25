@@ -27,10 +27,12 @@
  * ddrphy_phyinit_usercustom_g_waitfwdone() function.
  * -# Halt the microcontroller.
  *
- * \return void
+ * \return 0 on success.
  */
-void ddrphy_phyinit_g_execfw(void)
+int ddrphy_phyinit_g_execfw(void)
 {
+	int ret;
+
 	VERBOSE("%s Start\n", __func__);
 
 	/*
@@ -53,11 +55,16 @@ void ddrphy_phyinit_g_execfw(void)
 	 * 3. Wait for the training firmware to complete by following the procedure in
 	 * "uCtrl Initialization and Mailbox Messaging".
 	 */
-	ddrphy_phyinit_usercustom_g_waitfwdone();
+	ret = ddrphy_phyinit_usercustom_g_waitfwdone();
+	if (ret != 0) {
+		return ret;
+	}
 
 	/* 4. Halt the microcontroller */
 	mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (TAPBONLY | CSR_MICRORESET_ADDR)),
 		      CSR_STALLTOMICRO_MASK);
 
 	VERBOSE("%s End\n", __func__);
+
+	return 0;
 }

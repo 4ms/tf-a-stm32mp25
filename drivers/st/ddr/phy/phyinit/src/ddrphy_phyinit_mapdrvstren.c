@@ -28,10 +28,12 @@
  *   - odtstrenn
  *   - adrvstrenp
  *   - adrvstrenn
+ *
+ * \return >=0 value on success, else negative.
  */
 int ddrphy_phyinit_mapdrvstren(int drvstren_ohm, enum drvtype targetcsr)
 {
-	int stren_setting;
+	int stren_setting = -1;
 
 	if ((targetcsr == drvstrenfsdqp) || (targetcsr == drvstrenfsdqn)) {
 		/* drvstrenfsdqp or drvstrenfsdqn */

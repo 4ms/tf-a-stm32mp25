@@ -37,10 +37,22 @@
  * also saved in addition to registers written by PhyInit during PHY
  * initialization.
  *
- * \returns \c void
+ * \return 0 on success.
  */
-void ddrphy_phyinit_usercustom_saveretregs(void)
+int ddrphy_phyinit_usercustom_saveretregs(void)
 {
+	int pstate = 0;
+	int anib;
+	int byte;
+	int nibble;
+	int lane;
+	int p_addr;
+	int c_addr;
+	int u_addr;
+	int b_addr;
+	int r_addr;
+	int ret;
+
 	VERBOSE("%s Start\n", __func__);
 
 	/* In short the implementation of this function performs tasks: */
@@ -58,133 +70,287 @@ void ddrphy_phyinit_usercustom_saveretregs(void)
 	 */
 
 	/* 95% of users should not require to change the code below */
-	int pstate = 0;
-	int anib;
-	int byte;
-	int nibble;
-	int lane;
-	int p_addr;
-	int c_addr;
-	int u_addr;
-	int b_addr;
-	int r_addr;
 
-	ddrphy_phyinit_trackreg(TMASTER | CSR_PLLCTRL3_ADDR);
+	ret = ddrphy_phyinit_trackreg(TMASTER | CSR_PLLCTRL3_ADDR);
+	if (ret != 0) {
+		return ret;
+	}
 
 	/* Non-PState Dbyte Registers */
 	for (byte = 0; byte < userinputbasic.numdbyte; byte++) {
 		c_addr = byte << 12;
+
 		for (lane = 0; lane <= R_MAX; lane++) {
 			r_addr = lane << 8;
-			ddrphy_phyinit_trackreg(TDBYTE | c_addr | r_addr | CSR_RXPBDLYTG0_ADDR);
+
+			ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | r_addr |
+						      CSR_RXPBDLYTG0_ADDR);
+			if (ret != 0) {
+				return ret;
+			}
 #if STM32MP_LPDDR4_TYPE
-			ddrphy_phyinit_trackreg(TDBYTE | c_addr | r_addr | CSR_RXPBDLYTG1_ADDR);
+			ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | r_addr |
+						      CSR_RXPBDLYTG1_ADDR);
+			if (ret != 0) {
+				return ret;
+			}
 #endif /* STM32MP_LPDDR4_TYPE */
 		} /* r_addr */
 
 #if STM32MP_LPDDR4_TYPE
-		ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_PPTCTLSTATIC_ADDR);
-		ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_TRAININGINCDECDTSMEN_ADDR);
-		ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_TSMBYTE0_ADDR);
-		ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ0LNSEL_ADDR);
-		ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ1LNSEL_ADDR);
-		ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ2LNSEL_ADDR);
-		ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ3LNSEL_ADDR);
-		ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ4LNSEL_ADDR);
-		ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ5LNSEL_ADDR);
-		ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ6LNSEL_ADDR);
-		ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ7LNSEL_ADDR);
+		ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_PPTCTLSTATIC_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_TRAININGINCDECDTSMEN_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_TSMBYTE0_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ0LNSEL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ1LNSEL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ2LNSEL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ3LNSEL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ4LNSEL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ5LNSEL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ6LNSEL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(TDBYTE | c_addr | CSR_DQ7LNSEL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
 #endif /* STM32MP_LPDDR4_TYPE */
 	} /* c_addr */
 
 	/* PState variable registers */
 	for (pstate = 0; pstate < userinputbasic.numpstates; pstate++) {
 		p_addr = pstate << 20;
-		ddrphy_phyinit_trackreg(p_addr | TMASTER | CSR_VREFINGLOBAL_ADDR);
+
+		ret = ddrphy_phyinit_trackreg(p_addr | TMASTER | CSR_VREFINGLOBAL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
 
 		/* Anig Registers */
 		for (anib = 0; anib < userinputbasic.numanib; anib++) {
 			c_addr = anib << 12;
-			ddrphy_phyinit_trackreg(p_addr | TANIB | c_addr | CSR_ATXDLY_ADDR);
+
+			ret = ddrphy_phyinit_trackreg(p_addr | TANIB | c_addr | CSR_ATXDLY_ADDR);
+			if (ret != 0) {
+				return ret;
+			}
 		}
 
 		/* Dbyte Registers */
 		for (byte = 0; byte < userinputbasic.numdbyte; byte++) {
 			c_addr = byte << 12;
-			ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | CSR_DFIMRL_ADDR);
+
+			ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | CSR_DFIMRL_ADDR);
+			if (ret != 0) {
+				return ret;
+			}
+
 			for (nibble = 0; nibble <= B_MAX; nibble++) {
 				b_addr = nibble << 8;
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | b_addr |
-							CSR_DQDQSRCVCNTRL_ADDR);
+
+				ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | b_addr |
+							      CSR_DQDQSRCVCNTRL_ADDR);
+				if (ret != 0) {
+					return ret;
+				}
 			}
 
 			for (nibble = 0; nibble < 2; nibble++) {
 				u_addr = nibble << 8;
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_RXENDLYTG0_ADDR);
+
+				ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
+							      CSR_RXENDLYTG0_ADDR);
+				if (ret != 0) {
+					return ret;
+				}
 #if STM32MP_LPDDR4_TYPE
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_RXENDLYTG1_ADDR);
+				ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
+							      CSR_RXENDLYTG1_ADDR);
+				if (ret != 0) {
+					return ret;
+				}
 #endif /* STM32MP_LPDDR4_TYPE */
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_TXDQSDLYTG0_ADDR);
+				ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
+							      CSR_TXDQSDLYTG0_ADDR);
+				if (ret != 0) {
+					return ret;
+				}
 #if STM32MP_LPDDR4_TYPE
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_TXDQSDLYTG1_ADDR);
+				ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
+							      CSR_TXDQSDLYTG1_ADDR);
+				if (ret != 0) {
+					return ret;
+				}
 #endif /* STM32MP_LPDDR4_TYPE */
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_RXCLKDLYTG0_ADDR);
+				ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
+							      CSR_RXCLKDLYTG0_ADDR);
+				if (ret != 0) {
+					return ret;
+				}
 #if STM32MP_LPDDR4_TYPE
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
-							CSR_RXCLKDLYTG1_ADDR);
+				ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | u_addr |
+							      CSR_RXCLKDLYTG1_ADDR);
+				if (ret != 0) {
+					return ret;
+				}
 #endif /* STM32MP_LPDDR4_TYPE */
 			} /* nibble */
 
 			for (lane = R_MIN; lane <= R_MAX; lane++) {
 				r_addr = lane << 8;
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | r_addr |
-							CSR_TXDQDLYTG0_ADDR);
+
+				ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | r_addr |
+							      CSR_TXDQDLYTG0_ADDR);
+				if (ret != 0) {
+					return ret;
+				}
 #if STM32MP_LPDDR4_TYPE
-				ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | r_addr |
-							CSR_TXDQDLYTG1_ADDR);
+				ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr | r_addr |
+							      CSR_TXDQDLYTG1_ADDR);
+				if (ret != 0) {
+					return ret;
+				}
 #endif /* STM32MP_LPDDR4_TYPE */
 			} /* r_addr */
 
 #if STM32MP_LPDDR4_TYPE
-			ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr |
+			ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr |
 						CSR_PPTDQSCNTINVTRNTG0_ADDR);
-			ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr |
+			if (ret != 0) {
+				return ret;
+			}
+			ret = ddrphy_phyinit_trackreg(p_addr | TDBYTE | c_addr |
 						CSR_PPTDQSCNTINVTRNTG1_ADDR);
+			if (ret != 0) {
+				return ret;
+			}
 #endif /* STM32MP_LPDDR4_TYPE */
 		} /* c_addr */
 
 		/* PIE Registers */
-		ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR1_ADDR);
-		ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR2_ADDR);
-		ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR3_ADDR);
-		ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR4_ADDR);
-		ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR5_ADDR);
-		ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR6_ADDR);
-		ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR7_ADDR);
-		ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR8_ADDR);
+		ret = ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR1_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR2_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR3_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR4_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR5_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR6_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR7_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BGPR8_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
 
 		/* Master Registers */
-		ddrphy_phyinit_trackreg(p_addr | TMASTER | CSR_DLLGAINCTL_ADDR);
-		ddrphy_phyinit_trackreg(p_addr | TMASTER | CSR_DLLLOCKPARAM_ADDR);
+		ret = ddrphy_phyinit_trackreg(p_addr | TMASTER | CSR_DLLGAINCTL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(p_addr | TMASTER | CSR_DLLLOCKPARAM_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
 #if STM32MP_LPDDR4_TYPE
-		ddrphy_phyinit_trackreg(p_addr | TMASTER | CSR_HWTMRL_ADDR);
+		ret = ddrphy_phyinit_trackreg(p_addr | TMASTER | CSR_HWTMRL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
 #endif /* STM32MP_LPDDR4_TYPE */
 	} /* p_addr */
 
 	/* Master Registers */
-	ddrphy_phyinit_trackreg(TMASTER | CSR_HWTCAMODE_ADDR);
+	ret = ddrphy_phyinit_trackreg(TMASTER | CSR_HWTCAMODE_ADDR);
+	if (ret != 0) {
+		return ret;
+	}
+
 #if STM32MP_LPDDR4_TYPE
-	ddrphy_phyinit_trackreg(TMASTER | CSR_HWTLPCSENA_ADDR);
-	ddrphy_phyinit_trackreg(TMASTER | CSR_HWTLPCSENB_ADDR);
+	ret = ddrphy_phyinit_trackreg(TMASTER | CSR_HWTLPCSENA_ADDR);
+	if (ret != 0) {
+		return ret;
+	}
+
+	ret = ddrphy_phyinit_trackreg(TMASTER | CSR_HWTLPCSENB_ADDR);
+	if (ret != 0) {
+		return ret;
+	}
 
 	/* ACSM registers */
-	ddrphy_phyinit_trackreg(TACSM | CSR_ACSMCTRL13_ADDR);
-	ddrphy_phyinit_trackreg(TACSM | CSR_ACSMCTRL23_ADDR);
+	ret = ddrphy_phyinit_trackreg(TACSM | CSR_ACSMCTRL13_ADDR);
+	if (ret != 0) {
+		return ret;
+	}
+
+	ret = ddrphy_phyinit_trackreg(TACSM | CSR_ACSMCTRL23_ADDR);
+	if (ret != 0) {
+		return ret;
+	}
 #endif /* STM32MP_LPDDR4_TYPE */
 
 	/*
@@ -219,7 +385,10 @@ void ddrphy_phyinit_usercustom_saveretregs(void)
 	 * --------------------------------------------------------------------------
 	 */
 
-	ddrphy_phyinit_reginterface(saveregs, 0, 0);
+	ret = ddrphy_phyinit_reginterface(saveregs, 0, 0);
+	if (ret != 0) {
+		return ret;
+	}
 
 	/*
 	 * --------------------------------------------------------------------------
@@ -241,5 +410,5 @@ void ddrphy_phyinit_usercustom_saveretregs(void)
 
 	VERBOSE("%s End\n", __func__);
 
-	return;
+	return 0;
 }

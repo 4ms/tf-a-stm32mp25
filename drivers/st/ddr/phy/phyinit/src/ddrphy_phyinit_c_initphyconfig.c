@@ -432,8 +432,9 @@ static void procodttimectl_program(int *twotckrxdqspre)
  * - Dependencies:
  *   - user_input_basic.dramtype
  *   - user_input_advanced.odtimpedance
+ * \return 0 on success.
  */
-static void txodtdrvstren_program(void)
+static int txodtdrvstren_program(void)
 {
 	int pstate;
 
@@ -449,9 +450,16 @@ static void txodtdrvstren_program(void)
 		odtstrenp_state = ddrphy_phyinit_mapdrvstren(
 							(int)userinputadvanced.odtimpedance[pstate],
 							odtstrenp);
+		if (odtstrenp_state < 0) {
+			return odtstrenp_state;
+		}
+
 		odtstrenn_state = ddrphy_phyinit_mapdrvstren(
 							(int)userinputadvanced.odtimpedance[pstate],
 							odtstrenn);
+		if (odtstrenn_state < 0) {
+			return odtstrenn_state;
+		}
 
 		txodtdrvstren = (uint16_t)((odtstrenn_state << CSR_ODTSTRENN_LSB) |
 					   odtstrenp_state);
@@ -473,6 +481,8 @@ static void txodtdrvstren_program(void)
 			}
 		}
 	}
+
+	return 0;
 }
 
 /*
@@ -483,8 +493,9 @@ static void txodtdrvstren_program(void)
  * - Dependencies:
  *   - user_input_basic.dramtype
  *   - user_input_advanced.tximpedance
+ * \return 0 on success.
  */
-static void tximpedancectrl1_program(void)
+static int tximpedancectrl1_program(void)
 {
 	int pstate;
 
@@ -500,9 +511,16 @@ static void tximpedancectrl1_program(void)
 		drvstrenfsdqp_state = ddrphy_phyinit_mapdrvstren(
 							(int)userinputadvanced.tximpedance[pstate],
 							drvstrenfsdqp);
+		if (drvstrenfsdqp_state < 0) {
+			return drvstrenfsdqp_state;
+		}
+
 		drvstrenfsdqn_state = ddrphy_phyinit_mapdrvstren(
 							(int)userinputadvanced.tximpedance[pstate],
 							drvstrenfsdqn);
+		if (drvstrenfsdqn_state < 0) {
+			return drvstrenfsdqn_state;
+		}
 
 		tximpedancectrl1 = (uint16_t)((drvstrenfsdqn_state << CSR_DRVSTRENFSDQN_LSB) |
 					      (drvstrenfsdqp_state << CSR_DRVSTRENFSDQP_LSB));
@@ -524,6 +542,8 @@ static void tximpedancectrl1_program(void)
 			}
 		}
 	}
+
+	return 0;
 }
 
 /*
@@ -534,8 +554,9 @@ static void tximpedancectrl1_program(void)
  * - Dependencies:
  *   - user_input_basic.dramtype
  *   - user_input_advanced.atximpedance
+ * \return 0 on success.
  */
-static void atximpedance_program(void)
+static int atximpedance_program(void)
 {
 	int adrvstrenn_state;
 	int adrvstrenp_state;
@@ -544,8 +565,15 @@ static void atximpedance_program(void)
 
 	adrvstrenp_state = ddrphy_phyinit_mapdrvstren((int)userinputadvanced.atximpedance,
 						      adrvstrenp);
+	if (adrvstrenp_state < 0) {
+		return adrvstrenp_state;
+	}
+
 	adrvstrenn_state = ddrphy_phyinit_mapdrvstren((int)userinputadvanced.atximpedance,
 						      adrvstrenn);
+	if (adrvstrenn_state < 0) {
+		return adrvstrenn_state;
+	}
 
 	atximpedance = (uint16_t)((adrvstrenn_state << CSR_ADRVSTRENN_LSB) |
 				  (adrvstrenp_state << CSR_ADRVSTRENP_LSB));
@@ -558,6 +586,8 @@ static void atximpedance_program(void)
 							      CSR_ATXIMPEDANCE_ADDR)),
 			      atximpedance);
 	}
+
+	return 0;
 }
 
 /*
@@ -1199,11 +1229,12 @@ static void aforcetricont_acx4anibdis_program(void)
  * ddrphy_phyinit_usercustom_custompretrain().  Please see
  * ddrphy_phyinit_struct.h for PhyInit data structure definition.
  *
- * \return void
+ * \return 0 on success.
  */
-void ddrphy_phyinit_c_initphyconfig(void)
+int ddrphy_phyinit_c_initphyconfig(void)
 {
 	int twotckrxdqspre[NB_PS] = { };
+	int ret;
 
 	/*
 	 * Step (C) Initialize PHY Configuration
@@ -1233,11 +1264,20 @@ void ddrphy_phyinit_c_initphyconfig(void)
 
 	procodttimectl_program(twotckrxdqspre);
 
-	txodtdrvstren_program();
+	ret = txodtdrvstren_program();
+	if (ret != 0) {
+		return ret;
+	}
 
-	tximpedancectrl1_program();
+	ret = tximpedancectrl1_program();
+	if (ret != 0) {
+		return ret;
+	}
 
-	atximpedance_program();
+	ret = atximpedance_program();
+	if (ret != 0) {
+		return ret;
+	}
 
 	dfimode_program();
 
@@ -1283,4 +1323,5 @@ void ddrphy_phyinit_c_initphyconfig(void)
 
 	VERBOSE("%s End\n", __func__);
 
+	return 0;
 }

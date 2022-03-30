@@ -58,7 +58,10 @@ int ddrphy_phyinit_restore_sequence(void)
 	mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (TMASTER | CSR_CALZAP_ADDR)), 0x1U);
 
 	/* -# Issue register writes to restore registers values. */
-	ddrphy_phyinit_reginterface(restoreregs, 0, 0);
+	ret = ddrphy_phyinit_reginterface(restoreregs, 0, 0);
+	if (ret != 0) {
+		return ret;
+	}
 
 	/*
 	 * -# Write the UcclkHclkEnables CSR to disable the appropriate clocks after all reads done.
