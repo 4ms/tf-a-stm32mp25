@@ -84,6 +84,10 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 		panic();
 	}
 
+	if (stm32mp2_clk_init() < 0) {
+		panic();
+	}
+
 	(void)stm32mp_uart_console_setup();
 }
 
