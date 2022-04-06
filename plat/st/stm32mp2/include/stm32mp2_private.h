@@ -14,6 +14,7 @@ void stm32mp2_security_setup(void);
 
 uint32_t stm32mp2_syscfg_get_chip_version(void);
 uint32_t stm32mp2_syscfg_get_chip_dev_id(void);
+size_t stm32mp2_syscfg_get_mm_size(uint8_t bank);
 
 /* Get RISAF platform instance ID from peripheral IO memory base address */
 int stm32_risaf_get_instance(uintptr_t base);
