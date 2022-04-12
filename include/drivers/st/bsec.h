@@ -13,13 +13,6 @@
 #include <lib/utils_def.h>
 
 /*
- * IP configuration
- */
-#define BSEC_OTP_MASK			GENMASK(4, 0)
-#define BSEC_OTP_BANK_SHIFT		5
-#define BSEC_TIMEOUT_VALUE		0xFFFF
-
-/*
  * Return status
  */
 #define BSEC_OK				0U

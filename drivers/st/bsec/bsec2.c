@@ -21,6 +21,13 @@
 #define BSEC_IP_VERSION_2_0	U(0x20)
 #define BSEC_IP_ID_2		U(0x100032)
 
+/*
+ * IP configuration
+ */
+#define BSEC_OTP_MASK			GENMASK(4, 0)
+#define BSEC_OTP_BANK_SHIFT		5
+#define BSEC_TIMEOUT_VALUE		U(0xFFFF)
+
 #define OTP_ACCESS_SIZE (round_up(OTP_MAX_SIZE, __WORD_BIT) / __WORD_BIT)
 
 static uint32_t otp_nsec_access[OTP_ACCESS_SIZE] __unused;
