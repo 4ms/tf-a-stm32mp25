@@ -25,7 +25,12 @@
 
 static uint32_t otp_nsec_access[OTP_ACCESS_SIZE] __unused;
 
+static uint32_t bsec_shadow_register(uint32_t otp);
 static uint32_t bsec_power_safmem(bool power);
+static uint32_t bsec_get_version(void);
+static uint32_t bsec_get_id(void);
+static uint32_t bsec_get_status(void);
+static uint32_t bsec_read_permanent_lock(uint32_t otp, bool *value);
 
 /* BSEC access protection */
 static spinlock_t bsec_spinlock;
@@ -216,8 +221,8 @@ uint32_t bsec_probe(void)
 		return BSEC_ERROR;
 	}
 
-	if ((((bsec_get_version() & BSEC_IPVR_MSK) != BSEC_IP_VERSION_1_1) &&
-	     ((bsec_get_version() & BSEC_IPVR_MSK) != BSEC_IP_VERSION_2_0)) ||
+	if (((bsec_get_version() != BSEC_IP_VERSION_1_1) &&
+	     (bsec_get_version() != BSEC_IP_VERSION_2_0)) ||
 	    (bsec_get_id() != BSEC_IP_ID_2)) {
 		panic();
 	}
@@ -241,7 +246,7 @@ uint32_t bsec_get_base(void)
  * otp: OTP number.
  * return value: BSEC_OK if no error.
  */
-uint32_t bsec_shadow_register(uint32_t otp)
+static uint32_t bsec_shadow_register(uint32_t otp)
 {
 	uint32_t result;
 	bool value;
@@ -433,6 +438,7 @@ uint32_t bsec_program_otp(uint32_t val, uint32_t otp)
  * otp: OTP number.
  * return value: BSEC_OK if no error.
  */
+#if defined(IMAGE_BL32)
 uint32_t bsec_permanent_lock_otp(uint32_t otp)
 {
 	uint32_t result;
@@ -495,6 +501,7 @@ uint32_t bsec_permanent_lock_otp(uint32_t otp)
 
 	return result;
 }
+#endif
 
 /*
  * bsec_read_debug_conf: return debug configuration register value.
@@ -535,41 +542,25 @@ uint32_t bsec_read_scratch(void)
 /*
  * bsec_get_status: return status register value.
  */
-uint32_t bsec_get_status(void)
+static uint32_t bsec_get_status(void)
 {
 	return mmio_read_32(bsec_base + BSEC_OTP_STATUS_OFF);
 }
 
 /*
- * bsec_get_hw_conf: return hardware configuration register value.
- */
-uint32_t bsec_get_hw_conf(void)
-{
-	return mmio_read_32(bsec_base + BSEC_IPHW_CFG_OFF);
-}
-
-/*
  * bsec_get_version: return BSEC version register value.
  */
-uint32_t bsec_get_version(void)
+static uint32_t bsec_get_version(void)
 {
-	return mmio_read_32(bsec_base + BSEC_IPVR_OFF);
+	return mmio_read_32(bsec_base + BSEC_IPVR_OFF) & BSEC_IPVR_MSK;
 }
 
 /*
  * bsec_get_id: return BSEC ID register value.
  */
-uint32_t bsec_get_id(void)
+static uint32_t bsec_get_id(void)
 {
 	return mmio_read_32(bsec_base + BSEC_IP_ID_OFF);
-}
-
-/*
- * bsec_get_magic_id: return BSEC magic number register value.
- */
-uint32_t bsec_get_magic_id(void)
-{
-	return mmio_read_32(bsec_base + BSEC_IP_MAGIC_ID_OFF);
 }
 
 /*
@@ -722,7 +713,7 @@ uint32_t bsec_read_sp_lock(uint32_t otp, bool *value)
  * value: read value (true or false).
  * return value: BSEC_OK if no error.
  */
-uint32_t bsec_read_permanent_lock(uint32_t otp, bool *value)
+static uint32_t bsec_read_permanent_lock(uint32_t otp, bool *value)
 {
 	uint32_t bank = otp_bank_offset(otp);
 	uint32_t otp_mask = BIT(otp & BSEC_OTP_MASK);

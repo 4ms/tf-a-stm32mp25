@@ -52,31 +52,23 @@
 uint32_t bsec_probe(void);
 uint32_t bsec_get_base(void);
 
-uint32_t bsec_shadow_register(uint32_t otp);
 uint32_t bsec_read_otp(uint32_t *val, uint32_t otp);
+uint32_t bsec_shadow_read_otp(uint32_t *otp_value, uint32_t word);
 uint32_t bsec_write_otp(uint32_t val, uint32_t otp);
 uint32_t bsec_program_otp(uint32_t val, uint32_t otp);
-uint32_t bsec_permanent_lock_otp(uint32_t otp);
 
 uint32_t bsec_read_debug_conf(void);
 
 void bsec_write_scratch(uint32_t val);
 uint32_t bsec_read_scratch(void);
 
-uint32_t bsec_get_status(void);
-uint32_t bsec_get_hw_conf(void);
-uint32_t bsec_get_version(void);
-uint32_t bsec_get_id(void);
-uint32_t bsec_get_magic_id(void);
-
+/* Sticky lock support */
 uint32_t bsec_set_sr_lock(uint32_t otp);
 uint32_t bsec_read_sr_lock(uint32_t otp, bool *value);
 uint32_t bsec_set_sw_lock(uint32_t otp);
 uint32_t bsec_read_sw_lock(uint32_t otp, bool *value);
 uint32_t bsec_set_sp_lock(uint32_t otp);
 uint32_t bsec_read_sp_lock(uint32_t otp, bool *value);
-uint32_t bsec_read_permanent_lock(uint32_t otp, bool *value);
-uint32_t bsec_shadow_read_otp(uint32_t *otp_value, uint32_t word);
 
 uint32_t bsec_get_secure_state(void);
 static inline bool bsec_mode_is_closed_device(void)
@@ -85,6 +77,7 @@ static inline bool bsec_mode_is_closed_device(void)
 }
 
 #if defined(IMAGE_BL32)
+uint32_t bsec_permanent_lock_otp(uint32_t otp);
 uint32_t bsec_check_nsec_access_rights(uint32_t otp);
 #endif
 

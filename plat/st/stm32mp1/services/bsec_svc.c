@@ -39,12 +39,7 @@ uint32_t bsec_main(uint32_t x1, uint32_t x2, uint32_t x3,
 			break;
 		}
 
-		result = bsec_shadow_register(x2);
-		if (result != BSEC_OK) {
-			break;
-		}
-
-		result = bsec_read_otp(ret_otp_value, x2);
+		result = bsec_shadow_read_otp(ret_otp_value, x2);
 		if (result != BSEC_OK) {
 			break;
 		}
