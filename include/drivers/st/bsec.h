@@ -50,7 +50,6 @@
 #define BSEC_HARDWARE_KEY		BIT(8)
 
 uint32_t bsec_probe(void);
-uint32_t bsec_get_base(void);
 
 uint32_t bsec_read_otp(uint32_t *val, uint32_t otp);
 uint32_t bsec_shadow_read_otp(uint32_t *otp_value, uint32_t word);
