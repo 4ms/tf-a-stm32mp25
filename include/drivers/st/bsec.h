@@ -52,7 +52,6 @@ uint32_t bsec_program_otp(uint32_t val, uint32_t otp);
 uint32_t bsec_read_debug_conf(void);
 
 void bsec_write_scratch(uint32_t val);
-uint32_t bsec_read_scratch(void);
 
 /* Sticky lock support */
 uint32_t bsec_set_sr_lock(uint32_t otp);

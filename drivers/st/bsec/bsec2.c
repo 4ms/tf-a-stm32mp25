@@ -533,14 +533,6 @@ void bsec_write_scratch(uint32_t val)
 }
 
 /*
- * bsec_read_scratch: return scratch register value.
- */
-uint32_t bsec_read_scratch(void)
-{
-	return mmio_read_32(BSEC_BASE + BSEC_SCRATCH_OFF);
-}
-
-/*
  * bsec_get_status: return status register value.
  */
 static uint32_t bsec_get_status(void)
