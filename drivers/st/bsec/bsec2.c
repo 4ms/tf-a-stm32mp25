@@ -387,8 +387,7 @@ uint32_t bsec_program_otp(uint32_t val, uint32_t otp)
 		return BSEC_PROG_FAIL;
 	}
 
-	if ((mmio_read_32(bsec_base + BSEC_OTP_LOCK_OFF) &
-	     BIT(BSEC_LOCK_PROGRAM)) != 0U) {
+	if ((mmio_read_32(bsec_base + BSEC_OTP_LOCK_OFF) & GPLOCK_LOCK_MASK) != 0U) {
 		WARN("BSEC: GPLOCK activated, prog will be ignored\n");
 	}
 
@@ -736,36 +735,6 @@ uint32_t bsec_read_permanent_lock(uint32_t otp, bool *value)
 	bank_value = mmio_read_32(bsec_base + BSEC_WRLOCK_OFF + bank);
 
 	*value = ((bank_value & otp_mask) != 0U);
-
-	return BSEC_OK;
-}
-
-/*
- * bsec_otp_lock: Lock Upper OTP or Global Programming or Debug Enable.
- * service: Service to lock, see header file.
- * return value: BSEC_OK if no error.
- */
-uint32_t bsec_otp_lock(uint32_t service)
-{
-	uintptr_t reg = bsec_base + BSEC_OTP_LOCK_OFF;
-
-	if (is_otp_invalid_mode()) {
-		return BSEC_ERROR;
-	}
-
-	switch (service) {
-	case BSEC_LOCK_UPPER_OTP:
-		mmio_write_32(reg, BIT(BSEC_LOCK_UPPER_OTP));
-		break;
-	case BSEC_LOCK_DEBUG:
-		mmio_write_32(reg, BIT(BSEC_LOCK_DEBUG));
-		break;
-	case BSEC_LOCK_PROGRAM:
-		mmio_write_32(reg, BIT(BSEC_LOCK_PROGRAM));
-		break;
-	default:
-		return BSEC_INVALID_PARAM;
-	}
 
 	return BSEC_OK;
 }

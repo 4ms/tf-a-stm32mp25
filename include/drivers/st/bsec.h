@@ -49,17 +49,6 @@
 
 #define BSEC_HARDWARE_KEY		BIT(8)
 
-/*
- * OTP Lock services definition.
- * Value must corresponding to the bit number in the register.
- * Special case: (bit number << 1) for BSEC3.
- */
-#define BSEC_LOCK_UPPER_OTP		0x00
-#define BSEC_LOCK_GWLOCK		0x01
-#define BSEC_LOCK_DEBUG			0x02
-#define BSEC_LOCK_PROGRAM		0x03
-#define BSEC_LOCK_KVLOCK		0x04
-
 uint32_t bsec_probe(void);
 uint32_t bsec_get_base(void);
 
@@ -87,7 +76,6 @@ uint32_t bsec_read_sw_lock(uint32_t otp, bool *value);
 uint32_t bsec_set_sp_lock(uint32_t otp);
 uint32_t bsec_read_sp_lock(uint32_t otp, bool *value);
 uint32_t bsec_read_permanent_lock(uint32_t otp, bool *value);
-uint32_t bsec_otp_lock(uint32_t service);
 uint32_t bsec_shadow_read_otp(uint32_t *otp_value, uint32_t word);
 
 uint32_t bsec_get_secure_state(void);
