@@ -859,3 +859,25 @@ uint32_t bsec_check_nsec_access_rights(uint32_t otp)
 	return BSEC_OK;
 }
 
+uint32_t bsec_get_secure_state(void)
+{
+	uint32_t status = bsec_get_status();
+	uint32_t result = BSEC_STATE_INVALID;
+
+	if ((status & BSEC_MODE_INVALID_MASK) != 0U) {
+		result = BSEC_STATE_INVALID;
+	} else {
+		if ((status & BSEC_MODE_SECURE_MASK) != 0U) {
+			if (stm32mp_is_closed_device()) {
+				result = BSEC_STATE_SEC_CLOSED;
+			} else {
+				result = BSEC_STATE_SEC_OPEN;
+			}
+		} else {
+			/* OTP modes OPEN1 and OPEN2 are not supported */
+			result = BSEC_STATE_INVALID;
+		}
+	}
+
+	return result;
+}

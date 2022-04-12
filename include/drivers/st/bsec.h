@@ -34,6 +34,22 @@
 #define BSEC_WRITE_LOCKED		0xFFFFFFF6U
 
 /*
+ * get BSEC global state: result for bsec_get_secure_state()
+ * @state: global state
+ *           [1:0] BSEC state
+ *             00b: Sec Open
+ *             01b: Sec Closed
+ *             11b: Invalid
+ *           [8]: Hardware Key set = 1b
+ */
+#define BSEC_STATE_SEC_OPEN		U(0x0)
+#define BSEC_STATE_SEC_CLOSED		U(0x1)
+#define BSEC_STATE_INVALID		U(0x3)
+#define BSEC_STATE_MASK			GENMASK_32(1, 0)
+
+#define BSEC_HARDWARE_KEY		BIT(8)
+
+/*
  * OTP MODE
  */
 #define BSEC_MODE_OPEN1			0x00U
@@ -80,8 +96,14 @@ uint32_t bsec_set_sp_lock(uint32_t otp);
 uint32_t bsec_read_sp_lock(uint32_t otp, bool *value);
 uint32_t bsec_read_permanent_lock(uint32_t otp, bool *value);
 uint32_t bsec_otp_lock(uint32_t service);
-bool bsec_mode_is_closed_device(void);
 uint32_t bsec_shadow_read_otp(uint32_t *otp_value, uint32_t word);
+
+uint32_t bsec_get_secure_state(void);
+static inline bool bsec_mode_is_closed_device(void)
+{
+	return (bsec_get_secure_state() & BSEC_STATE_MASK) == BSEC_STATE_SEC_CLOSED;
+}
+
 uint32_t bsec_check_nsec_access_rights(uint32_t otp);
 
 #endif /* BSEC_H */
