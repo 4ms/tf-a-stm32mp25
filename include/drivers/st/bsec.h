@@ -52,58 +52,8 @@
 #define BSEC_LOCK_PROGRAM		0x03
 #define BSEC_LOCK_KVLOCK		0x04
 
-/*
- * Values for struct bsec_config::freq
- */
-#define FREQ_10_20_MHZ			0x0
-#define FREQ_20_30_MHZ			0x1
-#define FREQ_30_45_MHZ			0x2
-#define FREQ_45_67_MHZ			0x3
-
-/*
- * Device info structure, providing device-specific functions and a means of
- * adding driver-specific state.
- */
-struct bsec_config {
-	uint8_t den_lock;	/*
-				 * Debug enable sticky lock
-				 * 1 debug enable is locked until next reset
-				 */
-
-	/*  BSEC2 only */
-	uint8_t tread;		/* SAFMEM Reading current level default 0 */
-	uint8_t pulse_width;	/* SAFMEM Programming pulse width default 1 */
-	uint8_t freq;		/*
-				 * SAFMEM CLOCK see freq value define
-				 * default FREQ_45_67_MHZ
-				 */
-	uint8_t power;		/* Power up SAFMEM. 1 power up, 0 power off */
-	uint8_t prog_lock;	/*
-				 * Programming Sticky lock
-				 * 1 programming is locked until next reset
-				 */
-	uint8_t upper_otp_lock;	/*
-				 * Shadowing of upper OTP sticky lock
-				 * 1 shadowing of upper OTP is locked
-				 * until next reset
-				 */
-
-	/* BSEC3 only */
-	uint8_t global_wr_lock;	/*
-				 * BSEC register write lock
-				 * 1 write register is locked until next reset
-				 */
-	uint8_t key_value_lock;	/*
-				 * HWKEY to SAES peripheral lock
-				 * 0 device unique, 1 fixed to 0x0 or invalid
-				 */
-};
-
 uint32_t bsec_probe(void);
 uint32_t bsec_get_base(void);
-
-uint32_t bsec_set_config(struct bsec_config *cfg);
-uint32_t bsec_get_config(struct bsec_config *cfg);
 
 uint32_t bsec_shadow_register(uint32_t otp);
 uint32_t bsec_read_otp(uint32_t *val, uint32_t otp);
