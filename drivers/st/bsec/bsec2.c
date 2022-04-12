@@ -188,6 +188,11 @@ static uint32_t otp_bank_offset(uint32_t otp)
 	       sizeof(uint32_t);
 }
 
+static uint32_t otp_bit_mask(uint32_t otp)
+{
+	return BIT(otp & BSEC_OTP_MASK);
+}
+
 /*
  * bsec_check_error: check BSEC error status.
  * otp: OTP number.
@@ -197,7 +202,7 @@ static uint32_t otp_bank_offset(uint32_t otp)
  */
 static uint32_t bsec_check_error(uint32_t otp, bool check_disturbed)
 {
-	uint32_t bit = BIT(otp & BSEC_OTP_MASK);
+	uint32_t bit = otp_bit_mask(otp);
 	uint32_t bank = otp_bank_offset(otp);
 
 	if ((mmio_read_32(BSEC_BASE + BSEC_ERROR_OFF + bank) & bit) != 0U) {
@@ -567,7 +572,7 @@ static uint32_t bsec_get_id(void)
 uint32_t bsec_set_sr_lock(uint32_t otp)
 {
 	uint32_t bank = otp_bank_offset(otp);
-	uint32_t otp_mask = BIT(otp & BSEC_OTP_MASK);
+	uint32_t otp_mask = otp_bit_mask(otp);
 
 	if (is_otp_invalid_mode()) {
 		return BSEC_ERROR;
@@ -593,7 +598,7 @@ uint32_t bsec_set_sr_lock(uint32_t otp)
 uint32_t bsec_read_sr_lock(uint32_t otp, bool *value)
 {
 	uint32_t bank = otp_bank_offset(otp);
-	uint32_t otp_mask = BIT(otp & BSEC_OTP_MASK);
+	uint32_t otp_mask = otp_bit_mask(otp);
 	uint32_t bank_value;
 
 	if (otp > STM32MP1_OTP_MAX_ID) {
@@ -615,7 +620,7 @@ uint32_t bsec_read_sr_lock(uint32_t otp, bool *value)
 uint32_t bsec_set_sw_lock(uint32_t otp)
 {
 	uint32_t bank = otp_bank_offset(otp);
-	uint32_t otp_mask = BIT(otp & BSEC_OTP_MASK);
+	uint32_t otp_mask = otp_bit_mask(otp);
 
 	if (is_otp_invalid_mode()) {
 		return BSEC_ERROR;
@@ -663,7 +668,7 @@ uint32_t bsec_read_sw_lock(uint32_t otp, bool *value)
 uint32_t bsec_set_sp_lock(uint32_t otp)
 {
 	uint32_t bank = otp_bank_offset(otp);
-	uint32_t otp_mask = BIT(otp & BSEC_OTP_MASK);
+	uint32_t otp_mask = otp_bit_mask(otp);
 
 	if (is_otp_invalid_mode()) {
 		return BSEC_ERROR;
@@ -712,7 +717,7 @@ uint32_t bsec_read_sp_lock(uint32_t otp, bool *value)
 static uint32_t bsec_read_permanent_lock(uint32_t otp, bool *value)
 {
 	uint32_t bank = otp_bank_offset(otp);
-	uint32_t otp_mask = BIT(otp & BSEC_OTP_MASK);
+	uint32_t otp_mask = otp_bit_mask(otp);
 	uint32_t bank_value;
 
 	if (otp > STM32MP1_OTP_MAX_ID) {
