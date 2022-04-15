@@ -249,6 +249,19 @@ void stm32mp_print_cpuinfo(void)
 	NOTICE("CPU: %s\n", name);
 }
 
+void stm32mp_print_boardinfo(void)
+{
+	uint32_t board_id = 0U;
+
+	if (stm32_get_otp_value(BOARD_ID_OTP, &board_id) != 0) {
+		return;
+	}
+
+	if (board_id != 0U) {
+		stm32_display_board_info(board_id);
+	}
+}
+
 /* Return true when SoC provides a single Cortex-A35 core, and false otherwise */
 bool stm32mp_is_single_core(void)
 {
