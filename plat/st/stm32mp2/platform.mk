@@ -37,6 +37,9 @@ $(PLAT_PARTITION_MAX_ENTRIES)")
 endif
 endif
 
+STM32_HASH_VER		:=	4
+STM32_RNG_VER		:=	4
+
 # Download load address for serial boot devices
 DWL_BUFFER_BASE 	?=	0x87000000
 
@@ -64,6 +67,8 @@ $(eval $(call assert_booleans,\
 $(eval $(call assert_numerics,\
 	$(sort \
 		PLAT_PARTITION_MAX_ENTRIES \
+		STM32_HASH_VER \
+		STM32_RNG_VER \
 		STM32_TF_A_COPIES \
 )))
 
@@ -71,6 +76,8 @@ $(eval $(call add_defines,\
 	$(sort \
 		DWL_BUFFER_BASE \
 		PLAT_PARTITION_MAX_ENTRIES \
+		STM32_HASH_VER \
+		STM32_RNG_VER \
 		STM32_TF_A_COPIES \
 		STM32MP25 \
 )))
@@ -90,12 +97,14 @@ PLAT_BL_COMMON_SOURCES	+=	drivers/st/bsec/bsec3.c					\
 				plat/st/stm32mp2/stm32mp2_syscfg.c
 
 PLAT_BL_COMMON_SOURCES	+=	drivers/st/clk/clk-stm32-core.c				\
-				drivers/st/clk/stm32mp2_clk.c
+				drivers/st/clk/stm32mp2_clk.c				\
+				drivers/st/crypto/stm32_rng.c
 
 BL2_SOURCES		+=	plat/st/stm32mp2/plat_bl2_mem_params_desc.c		\
 				plat/st/stm32mp2/stm32mp2_fconf_firewall.c
 
-BL2_SOURCES		+=	plat/st/stm32mp2/bl2_plat_setup.c
+BL2_SOURCES		+=	drivers/st/crypto/stm32_hash.c				\
+				plat/st/stm32mp2/bl2_plat_setup.c
 
 BL2_SOURCES		+=	drivers/st/rif/stm32mp2_risaf.c
 
