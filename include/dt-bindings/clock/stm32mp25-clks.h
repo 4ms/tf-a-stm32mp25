@@ -452,7 +452,6 @@
 #define CK_SCMI_TIMG2		83
 #define CK_SCMI_BKPSRAM		84
 #define CK_SCMI_BSEC		85
-#define CK_SCMI_BUSPERFM	86
 #define CK_SCMI_ETR		87
 #define CK_SCMI_FMC		88
 #define CK_SCMI_GPIOA		89
