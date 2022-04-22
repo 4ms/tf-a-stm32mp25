@@ -7,6 +7,7 @@
 #include <platform_def.h>
 
 #include <common/debug.h>
+#include <drivers/delay_timer.h>
 #include <lib/mmio.h>
 #include <lib/utils_def.h>
 
@@ -29,6 +30,39 @@
 #define SYSCFG_DEVICEID_DEV_ID_MASK	GENMASK_32(11, 0)
 #define SYSCFG_DEVICEID_REV_ID_MASK	GENMASK_32(31, 16)
 #define SYSCFG_DEVICEID_REV_ID_SHIFT	16
+
+/*
+ * SYSCFG IO Compensation Registers
+ */
+#define SYSCFG_VDDIO3CCCR		0x4000U
+#define SYSCFG_VDDIO4CCCR		0x4008U
+#define SYSCFG_VDDCCCR			0x4010U
+#define SYSCFG_VDDIO2CCCR		0x4018U
+#define SYSCFG_VDDIO1CCCR		0x4020U
+
+/* IO compensation CCR registers bit definition */
+#define SYSCFG_CCCR_CS			BIT(9)
+#define SYSCFG_CCCR_EN			BIT(8)
+#define SYSCFG_CCCR_RAPSRC_MASK		GENMASK(7, 4)
+#define SYSCFG_CCCR_RANSRC_MASK		GENMASK(3, 0)
+
+/* IO compensation CCSR registers bit definition */
+#define SYSCFG_CCSR_READY		BIT(8)
+#define SYSCFG_CCSR_APSRC_MASK		GENMASK(7, 4)
+#define SYSCFG_CCSR_ANSRC_MASK		GENMASK(3, 0)
+
+#define SYSCFG_CCSR_READY_TIMEOUT_US	1000U
+
+/*
+ * SYSCFG IO compensation register offsets (base relative)
+ */
+static uint32_t syscfg_cccr_offset[SYSFG_NB_IO_ID] = {
+	[SYSFG_VDDIO1_ID] = SYSCFG_VDDIO1CCCR,
+	[SYSFG_VDDIO2_ID] = SYSCFG_VDDIO2CCCR,
+	[SYSFG_VDDIO3_ID] = SYSCFG_VDDIO3CCCR,
+	[SYSFG_VDDIO4_ID] = SYSCFG_VDDIO4CCCR,
+	[SYSFG_VDD_IO_ID] = SYSCFG_VDDCCCR,
+};
 
 /*
  * @brief  Get silicon revision from SYSCFG registers.
@@ -77,4 +111,35 @@ size_t stm32mp2_syscfg_get_mm_size(uint8_t bank)
 	}
 
 	return (bank == 0U) ? addr_mapping1 : addr_mapping2;
+}
+
+/*
+ * @brief  Enable IO compensation for an IO domain.
+ * @param  id: IO compensation ID
+ * @retval 0.
+ */
+void stm32mp2_syscfg_enable_io_compensation(enum syscfg_io_ids id)
+{
+	uintptr_t cccr_addr = SYSCFG_BASE + syscfg_cccr_offset[id];
+	uintptr_t ccsr_addr = cccr_addr + 4U;
+	uint64_t timeout_ref;
+
+	VERBOSE("Enable IO comp for id %u\n", id);
+
+	if ((mmio_read_32(ccsr_addr) & SYSCFG_CCSR_READY) != 0U) {
+		return;
+	}
+
+	mmio_setbits_32(cccr_addr, SYSCFG_CCCR_EN);
+
+	timeout_ref = timeout_init_us(SYSCFG_CCSR_READY_TIMEOUT_US);
+
+	while ((mmio_read_32(ccsr_addr) & SYSCFG_CCSR_READY) == 0U)
+		if (timeout_elapsed(timeout_ref)) {
+			WARN("IO compensation cell not ready\n");
+			/* Allow an almost silent failure here */
+			break;
+		}
+
+	mmio_clrbits_32(cccr_addr, SYSCFG_CCCR_CS);
 }
