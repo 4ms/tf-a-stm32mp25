@@ -280,6 +280,14 @@
 			};
 		};
 
+		iwdg1: watchdog@44010000 {
+			compatible = "st,stm32mp2-iwdg";
+			reg = <0x44010000 0x400>;
+			clocks = <&rcc CK_BUS_IWDG1>, <&rcc LSI_CK>;
+			clock-names = "pclk", "lsi";
+			status = "disabled";
+		};
+
 		rcc: rcc@44200000 {
 			compatible = "st,stm32mp25-rcc";
 			reg = <0x44200000 0x10000>;
