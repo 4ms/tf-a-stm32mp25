@@ -296,8 +296,28 @@
 		};
 
 		pwr: pwr@44210000 {
-			compatible = "st,stm32mp25-pwr", "syscon", "simple-mfd";
+			compatible = "st,stm32mp25-pwr";
 			reg = <0x44210000 0x400>;
+
+			vddio1: vddio1 {
+				regulator-name = "vddio1";
+			};
+
+			vddio2: vddio2 {
+				regulator-name = "vddio2";
+			};
+
+			vddio3: vddio3 {
+				regulator-name = "vddio3";
+			};
+
+			vddio4: vddio4 {
+				regulator-name = "vddio4";
+			};
+
+			vddio: vddio {
+				regulator-name = "vddio";
+			};
 		};
 
 		syscfg: syscon@44230000 {
