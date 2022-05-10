@@ -171,6 +171,10 @@ ifneq ($(filter 1,${STM32MP_RAW_NAND} ${STM32MP_SPI_NAND} ${STM32MP_SPI_NOR}),)
 BL2_SOURCES		+=	plat/st/stm32mp2/stm32mp2_boot_device.c
 endif
 
+ifeq (${STM32MP_UART_PROGRAMMER},1)
+BL2_SOURCES		+=	drivers/st/uart/stm32_uart.c
+endif
+
 BL2_SOURCES		+=	drivers/st/ddr/stm32mp2_ddr.c				\
 				drivers/st/ddr/stm32mp2_ddr_helpers.c			\
 				drivers/st/ddr/stm32mp2_ram.c
