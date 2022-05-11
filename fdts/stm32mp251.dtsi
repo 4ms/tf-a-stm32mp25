@@ -281,6 +281,9 @@
 			nand2_otp: otp20@50 {
 				reg = <0x50 0x4>;
 			};
+			package_otp@1e8 {
+				reg = <0x1e8 0x1>;
+			};
 		};
 
 		iwdg1: watchdog@44010000 {
