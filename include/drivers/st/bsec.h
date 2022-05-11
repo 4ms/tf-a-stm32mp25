@@ -96,6 +96,8 @@ static inline bool bsec_mode_is_closed_device(void)
 	return (bsec_get_secure_state() & BSEC_STATE_MASK) == BSEC_STATE_SEC_CLOSED;
 }
 
+#if defined(IMAGE_BL32)
 uint32_t bsec_check_nsec_access_rights(uint32_t otp);
+#endif
 
 #endif /* BSEC_H */

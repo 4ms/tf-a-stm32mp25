@@ -837,6 +837,7 @@ uint32_t bsec_shadow_read_otp(uint32_t *otp_value, uint32_t word)
 	return result;
 }
 
+#if defined(IMAGE_BL32)
 /*
  * bsec_check_nsec_access_rights: check non-secure access rights to target OTP.
  * otp: OTP number.
@@ -844,7 +845,6 @@ uint32_t bsec_shadow_read_otp(uint32_t *otp_value, uint32_t word)
  */
 uint32_t bsec_check_nsec_access_rights(uint32_t otp)
 {
-#if defined(IMAGE_BL32)
 	if (otp > STM32MP1_OTP_MAX_ID) {
 		return BSEC_INVALID_PARAM;
 	}
@@ -854,10 +854,10 @@ uint32_t bsec_check_nsec_access_rights(uint32_t otp)
 			return BSEC_ERROR;
 		}
 	}
-#endif
 
 	return BSEC_OK;
 }
+#endif
 
 uint32_t bsec_get_secure_state(void)
 {
