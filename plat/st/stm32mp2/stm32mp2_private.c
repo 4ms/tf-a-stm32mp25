@@ -192,6 +192,19 @@ static uint32_t get_part_number(void)
 	return part_number;
 }
 
+static uint32_t get_cpu_package(void)
+{
+	static uint32_t package = UINT32_MAX;
+
+	if (package == UINT32_MAX) {
+		if (stm32_get_otp_value(PACKAGE_OTP, &package) != 0) {
+			panic();
+		}
+	}
+
+	return (package & PACKAGE_OTP_PKG_MASK) >> PACKAGE_OTP_PKG_SHIFT;
+}
+
 void stm32mp_get_soc_name(char name[STM32_SOC_NAME_SIZE])
 {
 	char *cpu_s, *cpu_r, *pkg;
@@ -252,7 +265,23 @@ void stm32mp_get_soc_name(char name[STM32_SOC_NAME_SIZE])
 	}
 
 	/* Package */
-	pkg = "";
+	switch (get_cpu_package()) {
+	case STM32MP25_PKG_CUSTOM:
+		pkg = "XX";
+		break;
+	case STM32MP25_PKG_AL_TBGA361:
+		pkg = "AL";
+		break;
+	case STM32MP25_PKG_AK_TBGA424:
+		pkg = "AK";
+		break;
+	case STM32MP25_PKG_AI_TBGA436:
+		pkg = "AI";
+		break;
+	default:
+		pkg = "??";
+		break;
+	}
 
 	/* REVISION */
 	switch (stm32mp_get_chip_version()) {
