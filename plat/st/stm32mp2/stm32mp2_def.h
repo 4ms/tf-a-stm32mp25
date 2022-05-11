@@ -313,7 +313,7 @@ enum ddr_type {
 #define STM32MP2_UPPER_OTP_START	0x100U
 
 /* OTP labels */
-#define PART_NUMBER_OTP			"otp9"
+#define PART_NUMBER_OTP			"part_number_otp"
 #define PACKAGE_OTP			"package_otp"
 #define HW2_OTP				"hw2_otp"
 #define NAND_OTP			"otp16"
