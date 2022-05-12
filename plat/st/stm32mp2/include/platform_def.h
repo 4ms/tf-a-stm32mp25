@@ -75,6 +75,10 @@
 
 /* Needed by STM32CubeProgrammer support */
 #define DWL_BUFFER_SIZE			U(0x01000000)
+#if STM32MP_DDR_FIP_IO_STORAGE
+#define DWL_DDR_BUFFER_BASE		SRAM2_BASE
+#define DWL_DDR_BUFFER_SIZE		SRAM2_SIZE
+#endif
 
 /*
  * SSBL offset in case it's stored in eMMC boot partition.
