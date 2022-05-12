@@ -22,10 +22,12 @@
 uint8_t usb_dfu_get_phase(uint8_t alt);
 
 int stm32cubeprog_usb_load(struct usb_handle *usb_core_handle,
+			   uint8_t phase,
 			   uintptr_t ssbl_base,
 			   size_t ssbl_len);
 
-int stm32cubeprog_uart_load(uintptr_t instance, uintptr_t base, size_t len);
+int stm32cubeprog_uart_load(uintptr_t instance, uint8_t phase,
+			   uintptr_t base, size_t len);
 
 int stm32cubeprog_usb_ssp(struct usb_handle *usb_core_handle,
 			  uintptr_t cert_base,
