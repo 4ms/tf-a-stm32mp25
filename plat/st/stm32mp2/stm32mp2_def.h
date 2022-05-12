@@ -277,6 +277,7 @@ enum ddr_type {
 #define NAND_OTP			"otp16"
 #define NAND2_OTP			"otp20"
 #define BOARD_ID_OTP			"board_id"
+#define UID_OTP				"uid_otp"
 
 /* OTP mask */
 /* PACKAGE */
@@ -338,6 +339,8 @@ enum ddr_type {
 /* MONOTONIC OTP */
 #define MAX_MONOTONIC_VALUE		32
 
+/* UID OTP */
+#define UID_WORD_NB			U(3)
 /*******************************************************************************
  * STM32MP2 TAMP
  ******************************************************************************/
