@@ -203,7 +203,8 @@ BL2_SOURCES		+=	drivers/usb/usb_device.c				\
 				plat/st/common/usb_dfu.c
 endif
 
-BL2_SOURCES		+=	drivers/st/ddr/stm32mp_ram.c
+BL2_SOURCES		+=	drivers/st/ddr/stm32mp_ddr_test.c			\
+				drivers/st/ddr/stm32mp_ram.c
 
 BL2_SOURCES		+=	common/desc_image_load.c
 

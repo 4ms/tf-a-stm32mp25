@@ -21,6 +21,7 @@
 #include <drivers/st/stm32_console.h>
 #include <drivers/st/stm32mp_reset.h>
 #include <drivers/st/stm32mp_risab_regs.h>
+#include <drivers/st/stm32mp2_ram.h>
 #include <drivers/st/stm32mp2_risaf.h>
 #include <lib/fconf/fconf.h>
 #include <lib/fconf/fconf_dyn_cfg_getter.h>
@@ -139,6 +140,12 @@ void bl2_el3_early_platform_setup(u_register_t arg0 __unused,
 void bl2_platform_setup(void)
 {
 	int ret;
+
+	ret = stm32mp2_ddr_probe();
+	if (ret != 0) {
+		ERROR("DDR probe: error %d\n", ret);
+		panic();
+	}
 
 	if (stm32mp2_risaf_init() < 0) {
 		panic();
