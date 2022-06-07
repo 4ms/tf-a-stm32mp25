@@ -14,6 +14,7 @@
 #include <dt-bindings/clock/stm32mp25-clksrc.h>
 #include <dt-bindings/gpio/stm32-gpio.h>
 #include <dt-bindings/reset/stm32mp25-resets.h>
+#include <dt-bindings/soc/rif.h>
 
 #ifndef __ASSEMBLER__
 #include <drivers/st/bsec.h>
@@ -453,9 +454,11 @@ static inline uintptr_t tamp_bkpr(uint32_t idx)
 /*******************************************************************************
  * STM32MP RIF
  ******************************************************************************/
+#define RIFSC_BASE			U(0x42080000)
 #define RISAB1_BASE			U(0x420F0000)
 #define RISAB2_BASE			U(0x42100000)
 #define RISAB3_BASE			U(0x42110000)
+#define RISAB4_BASE			U(0x42120000)
 #define RISAB5_BASE			U(0x42130000)
 
 #define RISAF1_INST			0
@@ -492,6 +495,25 @@ static inline uintptr_t tamp_bkpr(uint32_t idx)
 					RISAF4_MAX_REGION + RISAF5_MAX_REGION)
 
 #define RISAF_KEY_SIZE_IN_BYTES		U(16)
+
+/*******************************************************************************
+ * USB boot RIFSC specific configurations
+ ******************************************************************************/
+#define RIMU_USB3DR			U(4)
+#define RISUP_USB3DR			U(66)
+
+/*
+ * Protection for USB3-IP Peripheriphal: accessible form Secure/Priv
+ */
+#define RIFSC_USB3DR_PRIV		BIT(RISUP_USB3DR / U(32))
+#define RIFSC_USB3DR_SEC		BIT(RISUP_USB3DR / U(32))
+
+/*
+ * USB3DR Secure/Priv Master (DMA) access
+ */
+#define RIFSC_USB_BOOT_USBDR_RIMC_CONF	(RIFSC_RIMC_ATTRx_MPRIV | RIFSC_RIMC_ATTRx_MSEC | \
+					 RIF_CID1 << RIFSC_RIMC_ATTRx_MCID_SHIFT | \
+					 RIFSC_RIMC_ATTRx_CIDSEL)
 
 /*******************************************************************************
  * STM32MP CA35SSC

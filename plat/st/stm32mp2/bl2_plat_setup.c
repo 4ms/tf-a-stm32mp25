@@ -20,6 +20,7 @@
 #include <drivers/st/regulator_fixed.h>
 #include <drivers/st/stm32_console.h>
 #include <drivers/st/stm32mp_reset.h>
+#include <drivers/st/stm32mp_rifsc_regs.h>
 #include <drivers/st/stm32mp_risab_regs.h>
 #include <drivers/st/stm32mp2_ram.h>
 #include <drivers/st/stm32mp2_risaf.h>
@@ -254,6 +255,28 @@ skip_console_init:
 	 */
 	mmio_write_32(RISAB3_BASE + RISAB_CR, RISAB_CR_SRWIAD);
 #endif
+#if STM32MP_USB_PROGRAMMER
+	/* Enabling SRAM2 clock is not needed as it is a critical clock */
+	/*
+	 * RISAB4 setup (dedicated for SRAM2)
+	 *
+	 * Allow secure read/writes data accesses to non-secure
+	 * blocks or pages, all RISAB registers are writable.
+	 * Secure execution is still illegal. DDR FIP is saved here.
+	 */
+	mmio_write_32(RISAB4_BASE + RISAB_CR, RISAB_CR_SRWIAD);
+
+	/*
+	 * Set USB3DR Peripheriphal accesses to Secure/Privilege only
+	 */
+	mmio_write_32(RIFSC_BASE + _RIFSC_RISC_SECCFGR(RISUP_USB3DR), RIFSC_USB3DR_SEC);
+	mmio_write_32(RIFSC_BASE + _RIFSC_RISC_PRIVCFGR(RISUP_USB3DR), RIFSC_USB3DR_PRIV);
+
+	/*
+	 * Apply USB boot specific configuration to RIF master USB3DR
+	 */
+	mmio_write_32(RIFSC_BASE + _RIFSC_RIMC_ATTR(RIMU_USB3DR), RIFSC_USB_BOOT_USBDR_RIMC_CONF);
+#endif /* STM32MP_USB_PROGRAMMER */
 
 	if (stm32mp2_pwr_init_io_domains() != 0) {
 		panic();
