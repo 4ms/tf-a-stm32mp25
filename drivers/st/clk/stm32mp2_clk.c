@@ -2114,6 +2114,12 @@ static int stm32_clk_parse_fdt(struct stm32_clk_platdata *pdata)
 }
 #endif /* IMAGE_BL2 */
 
+static void stmp32mp2_clk_init_ddr_sub_system(uintptr_t base)
+{
+	mmio_write_32(base + RCC_DDRCPCFGR,
+		      RCC_DDRCPCFGR_DDRCPEN | RCC_DDRCPCFGR_DDRCPLPEN);
+}
+
 static struct stm32_osci_dt_cfg mp25_osci[NB_OSCILLATOR];
 
 static struct stm32_pll_dt_cfg mp25_pll[_PLL_NB];
@@ -2174,6 +2180,8 @@ int stm32mp2_clk_init(void)
 	if (ret != 0) {
 		return ret;
 	}
+
+	stmp32mp2_clk_init_ddr_sub_system(base);
 
 #ifdef IMAGE_BL2
 	ret = stm32mp2_init_clock_tree();
