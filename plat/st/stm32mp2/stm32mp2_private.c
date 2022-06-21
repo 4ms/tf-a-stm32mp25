@@ -29,6 +29,22 @@
 					MT_SECURE | \
 					MT_EXECUTE_NEVER)
 
+#if STM32MP_USB_PROGRAMMER
+#define MAP_SEC_DEVICE_SYSRAM	MAP_REGION_FLAT(STM32MP_SEC_DEVICE_SYSRAM_BASE, \
+					STM32MP_SEC_DEVICE_SYSRAM_SIZE, \
+					MT_DEVICE | \
+					MT_RW | \
+					MT_SECURE | \
+					MT_EXECUTE_NEVER)
+
+#define MAP_SRAM2	MAP_REGION_FLAT(SRAM2_BASE, \
+					SRAM2_SIZE, \
+					MT_MEMORY | \
+					MT_RW | \
+					MT_SECURE | \
+					MT_EXECUTE_NEVER)
+#endif
+
 /* Non-secure SYSRAM is used a uncached memory for SCMI message transfer */
 #define MAP_NS_SYSRAM	MAP_REGION_FLAT(STM32MP_NS_SYSRAM_BASE, \
 					STM32MP_NS_SYSRAM_SIZE, \
@@ -55,7 +71,13 @@
 
 #if defined(IMAGE_BL2)
 static const mmap_region_t stm32mp2_mmap[] = {
+#if STM32MP_USB_PROGRAMMER
+	MAP_SEC_SYSRAM,
+	MAP_SEC_DEVICE_SYSRAM,
+	MAP_SRAM2,
+#else
 	MAP_SYSRAM,
+#endif
 #if STM32MP_DDR_FIP_IO_STORAGE
 	MAP_SRAM1,
 #endif
