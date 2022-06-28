@@ -47,7 +47,7 @@ static void bsec_unlock(void)
 
 static bool is_otp_invalid_mode(void)
 {
-	bool ret = ((bsec_get_status() & BSEC_MODE_INVALID) == BSEC_MODE_INVALID);
+	bool ret = ((bsec_get_status() & BSEC_OTP_STATUS_INVALID) == BSEC_OTP_STATUS_INVALID);
 
 	if (ret) {
 		ERROR("OTP mode is OTP-INVALID\n");
@@ -262,7 +262,7 @@ uint32_t bsec_shadow_register(uint32_t otp)
 			otp);
 	}
 
-	if ((bsec_get_status() & BSEC_MODE_PWR_MASK) == 0U) {
+	if ((bsec_get_status() & BSEC_OTP_STATUS_PWRON) == 0U) {
 		result = bsec_power_safmem(true);
 
 		if (result != BSEC_OK) {
@@ -276,7 +276,7 @@ uint32_t bsec_shadow_register(uint32_t otp)
 
 	mmio_write_32(bsec_base + BSEC_OTP_CTRL_OFF, otp | BSEC_READ);
 
-	while ((bsec_get_status() & BSEC_MODE_BUSY_MASK) != 0U) {
+	while ((bsec_get_status() & BSEC_OTP_STATUS_BUSY) != 0U) {
 		;
 	}
 
@@ -392,7 +392,7 @@ uint32_t bsec_program_otp(uint32_t val, uint32_t otp)
 		WARN("BSEC: GPLOCK activated, prog will be ignored\n");
 	}
 
-	if ((bsec_get_status() & BSEC_MODE_PWR_MASK) == 0U) {
+	if ((bsec_get_status() & BSEC_OTP_STATUS_PWRON) == 0U) {
 		result = bsec_power_safmem(true);
 
 		if (result != BSEC_OK) {
@@ -408,11 +408,11 @@ uint32_t bsec_program_otp(uint32_t val, uint32_t otp)
 
 	mmio_write_32(bsec_base + BSEC_OTP_CTRL_OFF, otp | BSEC_WRITE);
 
-	while ((bsec_get_status() & BSEC_MODE_BUSY_MASK) != 0U) {
+	while ((bsec_get_status() & BSEC_OTP_STATUS_BUSY) != 0U) {
 		;
 	}
 
-	if ((bsec_get_status() & BSEC_MODE_PROGFAIL_MASK) != 0U) {
+	if ((bsec_get_status() & BSEC_OTP_STATUS_PROGFAIL) != 0U) {
 		result = BSEC_PROG_FAIL;
 	} else {
 		result = bsec_check_error(otp, true);
@@ -449,7 +449,7 @@ uint32_t bsec_permanent_lock_otp(uint32_t otp)
 		return BSEC_INVALID_PARAM;
 	}
 
-	if ((bsec_get_status() & BSEC_MODE_PWR_MASK) == 0U) {
+	if ((bsec_get_status() & BSEC_OTP_STATUS_PWRON) == 0U) {
 		result = bsec_power_safmem(true);
 
 		if (result != BSEC_OK) {
@@ -476,11 +476,11 @@ uint32_t bsec_permanent_lock_otp(uint32_t otp)
 	mmio_write_32(bsec_base + BSEC_OTP_CTRL_OFF,
 		      addr | BSEC_WRITE | BSEC_LOCK);
 
-	while ((bsec_get_status() & BSEC_MODE_BUSY_MASK) != 0U) {
+	while ((bsec_get_status() & BSEC_OTP_STATUS_BUSY) != 0U) {
 		;
 	}
 
-	if ((bsec_get_status() & BSEC_MODE_PROGFAIL_MASK) != 0U) {
+	if ((bsec_get_status() & BSEC_OTP_STATUS_PROGFAIL) != 0U) {
 		result = BSEC_PROG_FAIL;
 	} else {
 		result = bsec_check_error(otp, false);
@@ -793,12 +793,12 @@ static uint32_t bsec_power_safmem(bool power)
 	mmio_write_32(bsec_base + BSEC_OTP_CONF_OFF, register_val);
 
 	if (power) {
-		while (((bsec_get_status() & BSEC_MODE_PWR_MASK) == 0U) &&
+		while (((bsec_get_status() & BSEC_OTP_STATUS_PWRON) == 0U) &&
 		       (timeout != 0U)) {
 			timeout--;
 		}
 	} else {
-		while (((bsec_get_status() & BSEC_MODE_PWR_MASK) != 0U) &&
+		while (((bsec_get_status() & BSEC_OTP_STATUS_PWRON) != 0U) &&
 		       (timeout != 0U)) {
 			timeout--;
 		}
@@ -864,10 +864,10 @@ uint32_t bsec_get_secure_state(void)
 	uint32_t status = bsec_get_status();
 	uint32_t result = BSEC_STATE_INVALID;
 
-	if ((status & BSEC_MODE_INVALID_MASK) != 0U) {
+	if ((status & BSEC_OTP_STATUS_INVALID) != 0U) {
 		result = BSEC_STATE_INVALID;
 	} else {
-		if ((status & BSEC_MODE_SECURE_MASK) != 0U) {
+		if ((status & BSEC_OTP_STATUS_SECURE) != 0U) {
 			if (stm32mp_is_closed_device()) {
 				result = BSEC_STATE_SEC_CLOSED;
 			} else {
