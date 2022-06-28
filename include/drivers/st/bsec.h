@@ -50,14 +50,6 @@
 #define BSEC_HARDWARE_KEY		BIT(8)
 
 /*
- * OTP MODE
- */
-#define BSEC_MODE_OPEN1			0x00U
-#define BSEC_MODE_SECURED		0x01U
-#define BSEC_MODE_OPEN2			0x02U
-#define BSEC_MODE_INVALID		0x04U
-
-/*
  * OTP Lock services definition.
  * Value must corresponding to the bit number in the register.
  * Special case: (bit number << 1) for BSEC3.
