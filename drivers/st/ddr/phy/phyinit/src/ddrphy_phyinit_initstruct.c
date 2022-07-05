@@ -49,7 +49,7 @@ void ddrphy_phyinit_initstruct(void)
 	 * These are typically invariant across pstate
 	 * ##############################################################
 	 */
-	uint8_t msgmisc = 0x06U;		/*For fast simulation */
+	uint8_t msgmisc = 0x00U;	/* For fast simulation */
 	uint8_t reserved00 = 0x0U;	/*
 					 * Set reserved00[7] = 1 (If using T28 attenuated receivers)
 					 * Set reserved00[6:0] = 0 (Reserved; must be set to 0)
