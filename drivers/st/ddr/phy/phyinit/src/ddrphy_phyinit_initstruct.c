@@ -69,10 +69,17 @@ void ddrphy_phyinit_initstruct(void)
 					 * Set cspresent[3]   = 1 (if CS3 is populated with DRAM)
 					 * Set cspresent[7:4] = 0 (Reserved; must be set to 0)
 					 */
+#if STM32MP_DDR3_TYPE
+	uint8_t phyvref = 0x40U;	/*
+					 * Use Analytical VREF and Compensate for T28 Attenuator,
+					 * see PHY databook
+					 */
+#else
 	uint8_t phyvref = 0x56U;	/*
 					 * Use Analytical VREF and Compensate for T28 Attenuator,
 					 * see PHY databook
 					 */
+#endif /* STM32MP_DDR3_TYPE */
 	uint8_t dfimrlmargin = 0x01U;	/* 1 is typically good in DDR3 */
 #if STM32MP_DDR3_TYPE
 	uint8_t addrmirror = 0x00U;	/*
