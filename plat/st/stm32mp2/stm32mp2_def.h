@@ -61,6 +61,9 @@
 #define SRAM2_SIZE			U(0x00020000)
 #define STM32MP_BACKUP_RAM_BASE		U(0x42000000)
 
+/* the first 4KB of SRAM1 are reserved are for BSEC shadow */
+#define STM32MP_SEC_SRAM1_SIZE		U(0x1000)
+
 #define STM32MP_SEC_SYSRAM_BASE		STM32MP_SYSRAM_BASE
 
 #if defined(IMAGE_BL2)
@@ -149,6 +152,8 @@ enum ddr_type {
  */
 #if STM32MP_USB_PROGRAMMER
 #define MAX_MMAP_REGIONS		8
+#elif defined(IMAGE_BL31)
+#define MAX_MMAP_REGIONS		7
 #else
 #define MAX_MMAP_REGIONS		6
 #endif

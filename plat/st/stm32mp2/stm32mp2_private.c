@@ -15,6 +15,14 @@
 
 #include <platform_def.h>
 
+#if STM32MP_DDR_FIP_IO_STORAGE && defined(IMAGE_BL2)
+/* Map the whole SRAM1 as secure, required to load DDR FW from FIP */
+#define SRAM1_MAP_SIZE	SRAM1_SIZE
+#else
+/* Map the beginning of SRAM1 as secure */
+#define SRAM1_MAP_SIZE	STM32MP_SEC_SRAM1_SIZE
+#endif
+
 #define MAP_SYSRAM	MAP_REGION_FLAT(STM32MP_SYSRAM_BASE, \
 					STM32MP_SYSRAM_SIZE, \
 					MT_MEMORY | \
@@ -53,14 +61,12 @@
 					MT_NS | \
 					MT_EXECUTE_NEVER)
 
-#if STM32MP_DDR_FIP_IO_STORAGE
 #define MAP_SRAM1	MAP_REGION_FLAT(SRAM1_BASE, \
-					SRAM1_SIZE, \
+					SRAM1_MAP_SIZE, \
 					MT_MEMORY | \
 					MT_RW | \
 					MT_SECURE | \
 					MT_EXECUTE_NEVER)
-#endif
 
 #define MAP_DEVICE	MAP_REGION_FLAT(STM32MP_DEVICE_BASE, \
 					STM32MP_DEVICE_SIZE, \
@@ -78,9 +84,7 @@ static const mmap_region_t stm32mp2_mmap[] = {
 #else
 	MAP_SYSRAM,
 #endif
-#if STM32MP_DDR_FIP_IO_STORAGE
 	MAP_SRAM1,
-#endif
 	MAP_DEVICE,
 	{0}
 };
@@ -89,6 +93,7 @@ static const mmap_region_t stm32mp2_mmap[] = {
 static const mmap_region_t stm32mp2_mmap[] = {
 	MAP_SEC_SYSRAM,
 	MAP_NS_SYSRAM,
+	MAP_SRAM1,
 	MAP_DEVICE,
 	{0}
 };
