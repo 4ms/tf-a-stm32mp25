@@ -245,7 +245,9 @@ static void ddr_sysconf_configuration(struct stm32mp_ddr_priv *priv)
 {
 	mmio_write_32(stm32_ddrdbg_get_base() + DDRDBG_LP_DISABLE,
 		      DDRDBG_LP_DISABLE_LPI_XPI_DISABLE | DDRDBG_LP_DISABLE_LPI_DDRC_DISABLE);
-	mmio_write_32(stm32_ddrdbg_get_base() + DDRDBG_BYPASS_PCLKEN, 0U);
+
+	mmio_write_32(stm32_ddrdbg_get_base() + DDRDBG_BYPASS_PCLKEN,
+		      (uint32_t)ddrphy_phyinit_get_user_input_basic_pllbypass_0());
 
 	mmio_write_32(priv->rcc + RCC_DDRPHYCCFGR, RCC_DDRPHYCCFGR_DDRPHYCEN);
 	mmio_write_32(priv->rcc + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRRST);

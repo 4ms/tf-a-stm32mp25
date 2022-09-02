@@ -26,6 +26,7 @@ extern pmu_smb_ddr_1d_t shdw_ddr_1d[NB_PS];
 int ddrphy_phyinit_softsetmb(int ps, char *field, int value);
 void ddrphy_phyinit_initstruct(void);
 void *ddrphy_phyinit_get_user_input_basic_base(void);
+int ddrphy_phyinit_get_user_input_basic_pllbypass_0(void);
 void *ddrphy_phyinit_get_user_input_advanced_base(void);
 void *ddrphy_phyinit_get_user_input_mode_register_base(void);
 void *ddrphy_phyinit_get_user_input_swizzle_base(void);

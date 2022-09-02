@@ -15,6 +15,11 @@ void *ddrphy_phyinit_get_user_input_basic_base(void)
 	return (void *)&userinputbasic;
 }
 
+int ddrphy_phyinit_get_user_input_basic_pllbypass_0(void)
+{
+	return userinputbasic.pllbypass[0];
+}
+
 void *ddrphy_phyinit_get_user_input_advanced_base(void)
 {
 	return (void *)&userinputadvanced;
