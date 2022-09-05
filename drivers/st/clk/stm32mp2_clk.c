@@ -1654,7 +1654,14 @@ static int stm32mp2_clk_flexgen_configure(struct stm32_clk_priv *priv)
 		fdiv = (cmd_data & FLEX_FDIV_MASK) >> FLEX_FDIV_SHIFT;
 
 		/* TODO: check if channel can be reconfigured */
-		flexclkgen_config_channel(channel, clk_src, pdiv, fdiv);
+		switch (channel) {
+		case 33U: /* STGEN */
+			break;
+
+		default:
+			flexclkgen_config_channel(channel, clk_src, pdiv, fdiv);
+			break;
+		}
 	}
 
 	return 0;
@@ -1709,17 +1716,6 @@ static int stm32mp2_clk_switch_to_hsi(struct stm32_clk_priv *priv)
 	stm32mp2_a35_ss_on_hsi();
 	stm32mp2_clk_muxsel_on_hsi(priv);
 	stm32mp2_clk_xbar_on_hsi(priv);
-
-	return 0;
-}
-
-static int stm32_clk_stgen_configure(struct stm32_clk_priv *priv, int id)
-{
-	unsigned long stgen_freq;
-
-	stgen_freq = _clk_stm32_get_rate(priv, id);
-
-	stm32mp_stgen_config(stgen_freq);
 
 	return 0;
 }
@@ -1875,10 +1871,9 @@ static int stm32mp2_init_clock_tree(void)
 	struct stm32_clk_priv *priv = clk_stm32_get_priv();
 	int ret;
 
-	ret = stm32_clk_stgen_configure(priv, _CK_HSI);
-	if (ret != 0) {
-		panic();
-	}
+	/* Set timer with STGEN without changing its clock source */
+	stm32mp_stgen_restore_rate();
+	generic_delay_timer_init();
 
 	stm32_clk_oscillators_enable(priv);
 
@@ -1905,11 +1900,6 @@ static int stm32mp2_init_clock_tree(void)
 	}
 
 	ret = stm32_clk_bus_configure(priv);
-	if (ret != 0) {
-		panic();
-	}
-
-	ret = stm32_clk_stgen_configure(priv, _CK_STGEN);
 	if (ret != 0) {
 		panic();
 	}
