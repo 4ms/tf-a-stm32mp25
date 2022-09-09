@@ -80,7 +80,7 @@ void ddrphy_phyinit_initstruct(void)
 					 * see PHY databook
 					 */
 #else
-	uint8_t phyvref = 0x56U;	/*
+	uint8_t phyvref = 0x5EU;	/*
 					 * Use Analytical VREF and Compensate for T28 Attenuator,
 					 * see PHY databook
 					 */
