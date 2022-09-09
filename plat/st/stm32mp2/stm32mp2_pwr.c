@@ -119,6 +119,11 @@ static int stm32mp2_pwr_handle_vrsel(void *fdt, int node, const struct pwr_regu 
 		VERBOSE("Enable VRSEL for %s\n", regu->node_name);
 
 		mmio_setbits_32(stm32mp_pwr_base() + regu->enable_reg, regu->vrsel_mask);
+
+		if ((mmio_read_32(stm32mp_pwr_base() + regu->enable_reg) &
+		    regu->vrsel_mask) == 0U) {
+			WARN("Could not enable VRSEL for %s\n", regu->node_name);
+		}
 	}
 
 	return 0;
