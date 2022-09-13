@@ -74,17 +74,6 @@ void ddrphy_phyinit_initstruct(void)
 					 * Set cspresent[3]   = 1 (if CS3 is populated with DRAM)
 					 * Set cspresent[7:4] = 0 (Reserved; must be set to 0)
 					 */
-#if STM32MP_DDR3_TYPE
-	uint8_t phyvref = 0x40U;	/*
-					 * Use Analytical VREF and Compensate for T28 Attenuator,
-					 * see PHY databook
-					 */
-#else
-	uint8_t phyvref = 0x5EU;	/*
-					 * Use Analytical VREF and Compensate for T28 Attenuator,
-					 * see PHY databook
-					 */
-#endif /* STM32MP_DDR3_TYPE */
 	uint8_t dfimrlmargin = 0x01U;	/* 1 is typically good in DDR3 */
 #if STM32MP_DDR3_TYPE
 	uint8_t addrmirror = 0x00U;	/*
@@ -160,7 +149,6 @@ void ddrphy_phyinit_initstruct(void)
 					 */
 #endif /* STM32MP_DDR3_TYPE */
 #elif STM32MP_LPDDR4_TYPE
-	uint8_t phyvref = 0x14U;
 	uint8_t caterminatingrankcha = 0x00U; /*Usually Rank0 is terminating rank */
 	uint8_t caterminatingrankchb = 0x00U; /*Usually Rank0 is terminating rank */
 	uint8_t dfimrlmargin = 0x02U; /*This needs to be large enough for max tDQSCK variation */
@@ -193,8 +181,6 @@ void ddrphy_phyinit_initstruct(void)
 	 * ##############################################################
 	 */
 
-	uint16_t sequencectrl[NB_PS];
-
 #if STM32MP_DDR4_TYPE
 	uint16_t alt_cas_l[NB_PS]; /* Need to set if using RDDBI */
 	uint16_t alt_wcas_l[NB_PS]; /* Need to set if using 2tck Write Preambles */
@@ -209,17 +195,6 @@ void ddrphy_phyinit_initstruct(void)
 #endif /* STM32MP_DDR4_TYPE */
 
 	VERBOSE("%s Start\n", __func__);
-
-	for (myps = 0; myps < NB_PS; myps++) {
-		if (myps == 0) {
-			sequencectrl[0] = 0x031FU;
-		} else {
-			sequencectrl[myps] = 0x021FU;
-		}
-#if STM32MP_LPDDR4_TYPE
-		sequencectrl[myps] |= 0x1000U;
-#endif /* STM32MP_LPDDR4_TYPE */
-	}
 
 #if STM32MP_DDR4_TYPE
 	for (myps = 0; myps < NB_PS; myps++) {
@@ -261,13 +236,13 @@ void ddrphy_phyinit_initstruct(void)
 	/* 1D message block defaults */
 	for (myps = 0; myps < NB_PS; myps++) {
 		mb_ddr_1d[myps].pstate = (uint8_t)myps;
-		mb_ddr_1d[myps].sequencectrl = sequencectrl[myps];
+		mb_ddr_1d[myps].sequencectrl = (uint16_t)userinputadvanced.sequencectrl[myps];
 		mb_ddr_1d[myps].phyconfigoverride = 0x0U;
 		mb_ddr_1d[myps].hdtctrl = hdtctrl;
 		mb_ddr_1d[myps].msgmisc = msgmisc;
 		mb_ddr_1d[myps].reserved00 = reserved00;
 		mb_ddr_1d[myps].dfimrlmargin = dfimrlmargin;
-		mb_ddr_1d[myps].phyvref = phyvref;
+		mb_ddr_1d[myps].phyvref = (uint8_t)userinputadvanced.phyvref;
 
 #if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
 		mb_ddr_1d[myps].cspresent = cspresent;

@@ -968,18 +968,66 @@ typedef struct user_input_advanced {
 					 *   0x0 | Minimizes number of Imem/Dmem loads (default)
 					 */
 
-	int enabledficspolarityfix;     /* Enable alternative PIE program */
+	int enabledficspolarityfix;     /*
+					 * Enable alternative PIE program
+					 *
+					 * See STAR 9001524249 for details on this workaround. Set
+					 * to 1 if PUB_VERSION <2.43a, otherwise set to 0. If
+					 * enabled the PIE programs Dfi{Rd,Wr}DataCsDestMap CSR's
+					 * to default values 0x00E4 before running PPT.
+					 * Before exiting PPT, PIE will restore
+					 * Dfi{Rd,Wr}DataCsDestMap CSR's to 0x00E1.
+					 *
+					 * Value | Description
+					 * ----- | ---
+					 *   0x0 | Disable (default)
+					 */
 
-	/*
-	 * See STAR 9001524249 for details on this workaround. Set to 1 if
-	 * PUB_VERSION <2.43a, otherwise set to 0. If enabled the PIE programs
-	 * Dfi{Rd,Wr}DataCsDestMap CSR's to default values 0x00E4 before runnning PPT.
-	 * Before exiting PPT, PIE will restore Dfi{Rd,Wr}DataCsDestMap CSR's to 0x00E1.
-	 *
-	 * Value | Description
-	 * ----- | ---
-	 *   0x0 | Disable (default)
-	 */
+	int phyvref;			/*
+					 * Must be programmed with the Vref level to be used by the
+					 * PHY during reads
+					 *
+					 * The units of this field are a percentage of VDDQ
+					 * according to the following equation:
+					 *
+					 * Receiver Vref = VDDQ*phyvref[6:0]/128
+					 *
+					 * For example to set Vref at 0.75*VDDQ, set this field to
+					 * 0x60.
+					 *
+					 * For digital simulation, any legal value can be used. For
+					 * silicon, the users must calculate the analytical Vref by
+					 * using the impedances, terminations, and series resistance
+					 * present in the system.
+					 */
+
+	int sequencectrl[NB_PS];	/*
+					 * Controls the training steps to be run. Each bit
+					 * corresponds to a training step.
+					 *
+					 * If the bit is set to 1, the training step will run.
+					 * If the bit is set to 0, the training step will be
+					 * skipped.
+					 *
+					 * Training step to bit mapping:
+					 * sequencectrl[0] = Run DevInit - Device/phy
+					 *		     initialization. Should always be set.
+					 * sequencectrl[1] = Run WrLvl - Write leveling
+					 * sequencectrl[2] = Run RxEn - Read gate training
+					 * sequencectrl[3] = Run RdDQS1D - 1d read dqs training
+					 * sequencectrl[4] = Run WrDQ1D - 1d write dq training
+					 * sequencectrl[5] = RFU, must be zero
+					 * sequencectrl[6] = RFU, must be zero
+					 * sequencectrl[7] = RFU, must be zero
+					 * sequencectrl[8] = Run RdDeskew - Per lane read dq deskew
+					 *		     training
+					 * sequencectrl[9] = Run MxRdLat - Max read latency training
+					 * sequencectrl[10] = RFU, must be zero
+					 * sequencectrl[11] = RFU, must be zero
+					 * sequencectrl[12] = RFU, must be zero
+					 * sequencectrl[13] = RFU, must be zero
+					 * sequencectrl[15-14] = RFU, must be zero
+					 */
 } user_input_advanced_t;
 
 /*
