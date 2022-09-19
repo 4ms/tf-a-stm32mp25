@@ -221,6 +221,59 @@ static uint32_t bsec_check_error(uint32_t otp, bool check_disturbed)
 }
 
 /*
+ * bsec_get_otp_by_phandle: return OTP id and OTP size for a given phandle
+ * fdt: device tree
+ * phandle: phandle to be found
+ * otp_id: return value for the OTP id found
+ * otp_len: return value for the OTP len
+ * return: BSEC_OK if OTP found, < 0 otherwise
+ */
+int bsec_get_otp_by_phandle(const void *fdt, const uint32_t phandle,
+			    uint32_t *otp_id, uint32_t *otp_len)
+{
+	int node;
+	int child;
+	const fdt32_t *cuint;
+	uint32_t offset;
+	bool otp_found = false;
+
+	if (fdt == NULL) {
+		panic();
+	}
+
+	node = fdt_node_offset_by_compatible(fdt, -1, DT_BSEC_COMPAT);
+	if (node < 0) {
+		return BSEC_ERROR;
+	}
+
+	fdt_for_each_subnode(child, fdt, node) {
+		uint32_t ph = fdt_get_phandle(fdt, child);
+
+		if (ph == phandle) {
+			otp_found = true;
+			break;
+		}
+	}
+
+	if (!otp_found) {
+		return BSEC_ERROR;
+	}
+
+	cuint = fdt_getprop(fdt, child, "reg", NULL);
+	if (cuint == NULL) {
+		panic();
+	}
+
+	offset = fdt32_to_cpu(*cuint);
+	cuint++;
+	*otp_len = fdt32_to_cpu(*cuint);
+
+	*otp_id = offset / sizeof(uint32_t);
+
+	return BSEC_OK;
+}
+
+/*
  * bsec_probe: initialize BSEC driver.
  * return value: BSEC_OK if no error.
  */
