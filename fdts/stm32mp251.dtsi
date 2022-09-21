@@ -284,6 +284,9 @@
 			package_otp@1e8 {
 				reg = <0x1e8 0x1>;
 			};
+			hconf1_otp: otp124@1f0 {
+				reg = <0x1f0 0x4>;
+			};
 		};
 
 		iwdg1: watchdog@44010000 {
