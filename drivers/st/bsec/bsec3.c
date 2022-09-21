@@ -284,6 +284,40 @@ static uint32_t bsec_shadow_register(uint32_t otp)
 }
 
 /*
+ * bsec_write_otp: write a value in shadow OTP.
+ * val: value to program.
+ * otp: OTP number.
+ * return value: BSEC_OK if no error.
+ */
+uint32_t bsec_write_otp(uint32_t val, uint32_t otp)
+{
+	bool state;
+	uint32_t result;
+
+	if (otp > STM32MP2_OTP_MAX_ID) {
+		panic();
+	}
+
+	if (!is_fuse_shadowed(otp)) {
+		return BSEC_ERROR;
+	}
+
+	if (is_bsec_write_locked()) {
+		return BSEC_WRITE_LOCKED;
+	}
+
+	result = bsec_read_sw_lock(otp, &state);
+	if (result != BSEC_OK) {
+		WARN("Shadow register is SW locked\n");
+		return result;
+	}
+
+	mmio_write_32(BSEC_BASE + BSEC_FVR(otp), val);
+
+	return BSEC_OK;
+}
+
+/*
  * bsec_program_otp: program a bit in SAFMEM after the prog.
  *	The OTP data is not refreshed.
  * val: value to program.
