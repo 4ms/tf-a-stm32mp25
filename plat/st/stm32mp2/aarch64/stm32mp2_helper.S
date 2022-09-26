@@ -19,6 +19,7 @@
 	.globl	plat_crash_console_init
 	.globl	plat_crash_console_flush
 	.globl	plat_crash_console_putc
+	.globl	plat_report_exception
 
 func platform_mem_init
 	/* Nothing to do, don't need to init SYSRAM */
@@ -186,3 +187,41 @@ func plat_crash_console_putc
 1:
 	b	console_stm32_core_putc
 endfunc plat_crash_console_putc
+
+#ifdef IMAGE_BL2
+	/* ---------------------------------------------
+	 * void plat_report_exception(unsigned int type)
+	 * Function to report an unhandled exception
+	 * with platform-specific means.
+	 * ---------------------------------------------
+	 */
+func plat_report_exception
+	mov	x8, x30
+
+	adr	x4, plat_err_str
+	bl	asm_print_str
+
+	adr	x4, esr_el3_str
+	bl	asm_print_str
+
+	mrs	x4, esr_el3
+	bl	asm_print_hex
+
+	adr	x4, elr_el3_str
+	bl	asm_print_str
+
+	mrs	x4, elr_el3
+	bl	asm_print_hex
+
+	mov	x30, x8
+	ret
+endfunc plat_report_exception
+
+.section .rodata.rev_err_str, "aS"
+plat_err_str:
+	.asciz "\nPlatform exception reporting:"
+esr_el3_str:
+	.asciz "\nESR_EL3: "
+elr_el3_str:
+	.asciz "\nELR_EL3: "
+#endif /* IMAGE_BL2 */
