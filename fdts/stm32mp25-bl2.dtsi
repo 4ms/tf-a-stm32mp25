@@ -6,6 +6,7 @@
 /omit-if-no-ref/ &sdmmc1_b4_pins_a;
 /omit-if-no-ref/ &sdmmc2_b4_pins_a;
 /omit-if-no-ref/ &sdmmc2_d47_pins_a;
+/omit-if-no-ref/ &usart2_pins_a;
 
 / {
 	soc@0 {
