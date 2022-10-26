@@ -14,8 +14,6 @@
 
 #include <platform_def.h>
 
-#define NS_DT_MAX_SIZE		0x10000U
-
 static entry_point_info_t bl32_image_ep_info;
 static entry_point_info_t bl33_image_ep_info;
 
@@ -34,7 +32,7 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 	 * Map non-secure device tree with secure property, i.e. default region.
 	 * DDR region definitions will be finalized at BL32 level.
 	 */
-	mmap_add_region(arg2, arg2, NS_DT_MAX_SIZE, MT_RO_DATA | MT_SECURE);
+	mmap_add_region(arg2, arg2, STM32MP_HW_CONFIG_MAX_SIZE, MT_RO_DATA | MT_SECURE);
 
 #if USE_COHERENT_MEM
 	/* Map coherent memory */
