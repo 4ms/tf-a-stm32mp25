@@ -3,6 +3,10 @@
  * Copyright (C) STMicroelectronics 2020-2022 - All Rights Reserved
  */
 
+/omit-if-no-ref/ &sdmmc1_b4_pins_a;
+/omit-if-no-ref/ &sdmmc2_b4_pins_a;
+/omit-if-no-ref/ &sdmmc2_d47_pins_a;
+
 / {
 	soc@0 {
 #if !STM32MP_SPI_NAND && !STM32MP_SPI_NOR
