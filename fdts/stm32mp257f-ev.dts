@@ -34,3 +34,11 @@
 		reg = <0x3fc 0x4>;
 	};
 };
+
+&sdmmc1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&sdmmc1_b4_pins_a>;
+	st,neg-edge;
+	bus-width = <4>;
+	status = "okay";
+};
