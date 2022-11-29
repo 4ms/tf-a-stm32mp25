@@ -4,6 +4,9 @@
  */
 
 /omit-if-no-ref/ &i2c7_pins_a;
+/omit-if-no-ref/ &ospi1_clk_pins_a;
+/omit-if-no-ref/ &ospi1_cs0_pins_a;
+/omit-if-no-ref/ &ospi1_io03_pins_a;
 /omit-if-no-ref/ &sdmmc1_b4_pins_a;
 /omit-if-no-ref/ &sdmmc2_b4_pins_a;
 /omit-if-no-ref/ &sdmmc2_d47_pins_a;
