@@ -873,16 +873,114 @@ static enum usb_status usb_dwc3_ep0_out_start(void *handle)
 static enum usb_status usb_dwc3_start_device(void *handle)
 {
 	dwc3_handle_t *dwc3_handle = (dwc3_handle_t *)handle;
+	enum usb_status ret;
+
+	if (dwc3_handle->EP0_State != HAL_PCD_EP0_SETUP_QUEUED) {
+		dwc3_handle->EP0_State = HAL_PCD_EP0_SETUP_QUEUED;
+
+		ret = dwc3_ep0_out_start(dwc3_handle, dwc3_handle->setup_dma_addr);
+		if (ret != USBD_OK) {
+			ERROR("%s: %d\n", __func__, __LINE__);
+			return ret;
+		}
+	}
 
 	DWC3_regupdateset(dwc3_handle->usb_device, DWC3_DCTL, USB3_DCTL_RUN_STOP);
 
 	return USBD_OK;
 }
 
+static inline void dwc3_ack_evt_count(dwc3_handle_t *dwc3_handle, uint8_t intr_num,
+				      uint32_t evt_count)
+{
+	DWC3_regwrite(dwc3_handle->usb_global, DWC3_GEVNTCOUNT(intr_num), evt_count);
+}
+
+static inline uint32_t dwc3_read_intr_count(dwc3_handle_t *dwc3_handle, uint8_t intr_num)
+{
+	return DWC3_regread(dwc3_handle->usb_global, DWC3_GEVNTCOUNT(intr_num)) &
+	       DWC3_GEVNTCOUNT_MASK;
+}
+
+static enum usb_status dwc3_ep_stop_xfer(dwc3_handle_t *dwc3_handle, struct usbd_ep *ep)
+{
+	usb_dwc3_endpoint_t *dwc3_ep = ((ep->is_in) ? &dwc3_handle->IN_ep[ep->num] :
+					&dwc3_handle->OUT_ep[ep->num]);
+	enum usb_status ret;
+	dwc3_epcmd_t cmd;
+	dwc3_epcmd_params_t params;
+
+	VERBOSE("%s PHYEP%d %x\n", __func__, dwc3_ep->phy_epnum, dwc3_ep->flags);
+
+	/* Reset ISOC flags */
+	if (ep->type == EP_TYPE_ISOC) {
+		dwc3_ep->flags &= ~(USB_DWC3_EP_ISOC_START_PENDING | USB_DWC3_EP_ISOC_STARTED);
+	}
+
+	if ((dwc3_ep->flags & USB_DWC3_EP_REQ_QUEUED) == 0U) {
+		return USBD_FAIL;
+	}
+
+	(void)memset(&params, 0x00, sizeof(params));
+	cmd = USB_DWC3_DEPCMD_ENDTRANSFER | USB3_DEPCMD_HIPRI_FORCERM | USB3_DEPCMD_CMDIOC |
+	      DWC3_DEPCMD_PARAM((uint32_t)dwc3_ep->resc_idx);
+
+	ret = dwc3_execute_dep_cmd(dwc3_handle, dwc3_ep->phy_epnum, cmd, &params);
+	/* Need Delay 100us as mentioned in Linux Driver */
+	udelay(100);
+
+	ep->xfer_count = ep->xfer_len - (dwc3_ep->trb_addr->size & DWC3_TRB_SIZE_MASK);
+
+	dwc3_ep->flags &= ~USB_DWC3_EP_REQ_QUEUED;
+
+        if ((!ep->is_in) && (ep->num == 0U)) {
+		dwc3_handle->EP0_State = HAL_PCD_EP0_SETUP_COMPLETED;
+	}
+
+	return ret;
+}
+
 static enum usb_status usb_dwc3_stop_device(void *handle)
 {
 	dwc3_handle_t *dwc3_handle = (dwc3_handle_t *)handle;
 	uint64_t timeout;
+	uint8_t i;
+	uint32_t evtcnt;
+
+	/*
+	 * Stop transfers for all(USB_DWC3_NUM_IN_EPS) EP
+	 * except EP0IN k = USB_DWC3_NUM_IN_EP
+	 */
+	for (i = 0; i < USB_DWC3_NUM_IN_EP; i++) {
+		dwc3_ep_stop_xfer(dwc3_handle, &dwc3_handle->pcd_handle->in_ep[i]);
+	}
+
+	/* Stop transfers for all EP except EP0OUT k = USB_DWC3_NUM_OUT_EP */
+	for (i = 0; i < USB_DWC3_NUM_OUT_EP; i++) {
+		dwc3_ep_stop_xfer(dwc3_handle, &dwc3_handle->pcd_handle->out_ep[i]);
+	}
+
+	/*
+	 * In the Synopsis DesignWare Cores USB3 Databook Rev. 3.30a
+	 * Section 1.3.4, it mentions that for the DEVCTRLHLT bit, the
+	 * "software needs to acknowledge the events that are generated
+	 * (by writing to GEVNTCOUNTn) while it is waiting for this bit
+	 * to be set to '1'."
+	 */
+
+	/* Check for all Event Buffer interrupt k = USB_DWC3_INT_INUSE */
+	for (i = 0; i < USB_DWC3_INT_INUSE; i++) {
+		evtcnt = dwc3_read_intr_count(dwc3_handle, i);
+
+		if (!evtcnt) {
+			continue;
+		}
+
+		__HAL_PCD_INCR_EVENT_POS(dwc3_handle, i, evtcnt);
+
+		dwc3_ack_evt_count(dwc3_handle, i, evtcnt);
+	}
+
 
 	DWC3_regupdateclr(dwc3_handle->usb_device, DWC3_DCTL, USB3_DCTL_RUN_STOP);
 
@@ -1052,40 +1150,6 @@ static uint32_t dwc3_get_ep_trblen(usb_dwc3_endpoint_t *ep)
 static uint32_t dwc3_get_ep_trbstatus(usb_dwc3_endpoint_t *ep)
 {
 	return DWC3_TRB_SIZE_TRBSTS(ep->trb_addr->size);
-}
-
-static enum usb_status dwc3_ep_stop_xfer(dwc3_handle_t *dwc3_handle, struct usbd_ep *ep)
-{
-	usb_dwc3_endpoint_t *dwc3_ep = ((ep->is_in) ? &dwc3_handle->IN_ep[ep->num] :
-					&dwc3_handle->OUT_ep[ep->num]);
-	enum usb_status ret;
-	dwc3_epcmd_t cmd;
-	dwc3_epcmd_params_t params;
-
-	VERBOSE("%s PHYEP%d %x\n", __func__, dwc3_ep->phy_epnum, dwc3_ep->flags);
-
-	/* Reset ISOC flags */
-	if (ep->type == EP_TYPE_ISOC) {
-		dwc3_ep->flags &= ~(USB_DWC3_EP_ISOC_START_PENDING | USB_DWC3_EP_ISOC_STARTED);
-	}
-
-	if ((dwc3_ep->flags & USB_DWC3_EP_REQ_QUEUED) == 0U) {
-		return USBD_FAIL;
-	}
-
-	(void)memset(&params, 0x00, sizeof(params));
-	cmd = USB_DWC3_DEPCMD_ENDTRANSFER | USB3_DEPCMD_HIPRI_FORCERM | USB3_DEPCMD_CMDIOC |
-	      DWC3_DEPCMD_PARAM((uint32_t)dwc3_ep->resc_idx);
-
-	ret = dwc3_execute_dep_cmd(dwc3_handle, dwc3_ep->phy_epnum, cmd, &params);
-	/* Need Delay 100us as mentioned in Linux Driver */
-	udelay(100);
-
-	ep->xfer_count = ep->xfer_len - (dwc3_ep->trb_addr->size & DWC3_TRB_SIZE_MASK);
-
-	dwc3_ep->flags &= ~USB_DWC3_EP_REQ_QUEUED;
-
-	return ret;
 }
 
 static enum usb_action dwc3_handle_ep0_xfernotready_event(dwc3_handle_t *dwc3_handle,
@@ -1623,7 +1687,7 @@ static enum usb_action dwc3_handle_dev_event(dwc3_handle_t *dwc3_handle, uint32_
 			if (ret != USBD_OK) {
 				ERROR("%s: %d\n", __func__, __LINE__);
 			}
-			ret = dwc3_ep_set_stall(dwc3_handle, &dwc3_handle->OUT_ep[0]); // OUT EP0
+			ret = dwc3_epaddr_set_stall(dwc3_handle, EP0_OUT); // OUT EP0
 			if (ret != USBD_OK) {
 				ERROR("%s: %d\n", __func__, __LINE__);
 			}
@@ -1808,18 +1872,6 @@ static enum usb_action dwc3_handle_dev_event(dwc3_handle_t *dwc3_handle, uint32_
 	return action;
 }
 
-static inline void dwc3_ack_evt_count(dwc3_handle_t *dwc3_handle, uint8_t intr_num,
-				      uint32_t evt_count)
-{
-	DWC3_regwrite(dwc3_handle->usb_global, DWC3_GEVNTCOUNT(intr_num), evt_count);
-}
-
-static inline uint32_t dwc3_read_intr_count(dwc3_handle_t *dwc3_handle, uint8_t intr_num)
-{
-	return DWC3_regread(dwc3_handle->usb_global, DWC3_GEVNTCOUNT(intr_num)) &
-	       DWC3_GEVNTCOUNT_MASK;
-}
-
 static inline bool dwc3_is_ep_event(uint32_t event)
 {
 	return ((event & DWC3_EVT_TYPE_MASK) == (DWC3_EVT_TYPE_EP << DWC3_EVT_TYPE_BITPOS));
@@ -1844,7 +1896,7 @@ static enum usb_action usb_dwc3_it_handler(void *handle, uint32_t *param)
 		evtcnt = dwc3_read_intr_count(dwc3_handle, i);
 
 		if (!evtcnt) {
-			break;
+			continue;
 		}
 
 		VERBOSE("Interrupt Count %u\n", evtcnt);
