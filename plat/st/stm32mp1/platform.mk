@@ -231,6 +231,7 @@ PLAT_BL_COMMON_SOURCES	+=	drivers/arm/tzc/tzc400.c				\
 				drivers/st/ddr/stm32mp1_ddr_helpers.c			\
 				drivers/st/i2c/stm32_i2c.c				\
 				drivers/st/iwdg/stm32_iwdg.c				\
+				drivers/st/pmic/stm32mp_pmic.c				\
 				drivers/st/pmic/stpmic1.c				\
 				drivers/st/reset/stm32mp1_reset.c			\
 				plat/st/stm32mp1/stm32mp1_context.c			\

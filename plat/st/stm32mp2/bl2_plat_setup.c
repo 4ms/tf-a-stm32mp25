@@ -19,6 +19,7 @@
 #include <drivers/st/regulator.h>
 #include <drivers/st/regulator_fixed.h>
 #include <drivers/st/stm32_console.h>
+#include <drivers/st/stm32mp_pmic2.h>
 #include <drivers/st/stm32mp_reset.h>
 #include <drivers/st/stm32mp_rifsc_regs.h>
 #include <drivers/st/stm32mp_risab_regs.h>
@@ -252,6 +253,10 @@ skip_console_init:
 
 	if (fixed_regulator_register() != 0) {
 		panic();
+	}
+
+	if (dt_pmic_status() > 0) {
+		initialize_pmic();
 	}
 
 	stm32mp2_arch_security_setup();
