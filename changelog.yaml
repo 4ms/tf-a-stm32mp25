@@ -537,6 +537,9 @@ subsections:
               - title: STM32MP15
                 scope: stm32mp15
 
+          - title: STM32MP2
+            scope: stm32mp2
+
       - title: Texas Instruments
         scope: ti
 
@@ -1153,6 +1156,9 @@ subsections:
 
               - title: STM32MP15
                 scope: stm32mp15-fdts
+
+          - title: STM32MP2
+            scope: stm32mp2-fdts
 
       - title: PIE
         scope: pie
