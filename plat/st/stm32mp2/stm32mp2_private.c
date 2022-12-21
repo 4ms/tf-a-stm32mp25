@@ -290,6 +290,9 @@ void stm32mp_get_soc_name(char name[STM32_SOC_NAME_SIZE])
 	case STM32MP2_REV_A:
 		cpu_r = "A";
 		break;
+	case STM32MP2_REV_B:
+		cpu_r = "B";
+		break;
 	default:
 		cpu_r = "?";
 		break;

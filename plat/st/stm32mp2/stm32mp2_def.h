@@ -50,6 +50,7 @@
 #define STM32MP257F_PART_NB	U(0x80002000)
 
 #define STM32MP2_REV_A		U(0x1000)
+#define STM32MP2_REV_B		U(0x2000)
 
 /*******************************************************************************
  * PACKAGE ID
