@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include <common/bl_common.h>
+#include <drivers/generic_delay_timer.h>
 #include <drivers/st/stm32_console.h>
 #include <lib/xlat_tables/xlat_tables_v2.h>
 #include <plat/common/platform.h>
@@ -21,6 +22,7 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 				u_register_t arg2, u_register_t arg3)
 {
 	bl_params_t *params_from_bl2 = (bl_params_t *)arg0;
+	char name[STM32_SOC_NAME_SIZE];
 
 	stm32mp_setup_early_console();
 
@@ -29,10 +31,10 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 			MT_CODE | MT_SECURE);
 
 	/*
-	 * Map non-secure device tree with secure property, i.e. default region.
+	 * Map soc_fw_config device tree with secure property, i.e. default region.
 	 * DDR region definitions will be finalized at BL32 level.
 	 */
-	mmap_add_region(arg2, arg2, STM32MP_HW_CONFIG_MAX_SIZE, MT_RO_DATA | MT_SECURE);
+	mmap_add_region(arg1, arg1, STM32MP_SOC_FW_CONFIG_MAX_SIZE, MT_RO_DATA | MT_SECURE);
 
 #if USE_COHERENT_MEM
 	/* Map coherent memory */
@@ -78,7 +80,7 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 		bl_params = bl_params->next_params_info;
 	}
 
-	if (dt_open_and_check(arg2) < 0) {
+	if (dt_open_and_check(arg1) < 0) {
 		panic();
 	}
 
@@ -87,6 +89,13 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 	}
 
 	(void)stm32mp_uart_console_setup();
+
+	/*
+	 * This stm32mp_get_soc_name() call is mandatory here to store SoC part number,
+	 * and avoid using BL31 DT at runtime to check stm32mp_is_single_core().
+	 */
+	stm32mp_get_soc_name(name);
+	VERBOSE("CPU: %s\n", name);
 }
 
 void bl31_plat_arch_setup(void)
@@ -95,6 +104,8 @@ void bl31_plat_arch_setup(void)
 
 void bl31_platform_setup(void)
 {
+	generic_delay_timer_init();
+
 	stm32mp_gic_init();
 }
 
