@@ -4,6 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
+# Extra partitions used to find FIP, contains:
+# metadata (2) and fsbl-m (2) and the FIP partitions (default is 2).
+STM32_EXTRA_PARTS	:=	6
+
 include plat/st/common/common.mk
 
 CRASH_REPORTING		:=	1
@@ -36,25 +40,6 @@ endif
 
 PKA_USE_NIST_P256	?=	0
 PKA_USE_BRAINPOOL_P256T1 ?=	0
-
-# Number of TF-A copies in the device
-STM32_TF_A_COPIES		:=	2
-
-# PLAT_PARTITION_MAX_ENTRIES must take care of STM32_TF-A_COPIES and other partitions
-# such as metadata (2) and fsbl-m (2) to find all the FIP partitions (default is 2).
-PLAT_PARTITION_MAX_ENTRIES	:=	$(shell echo $$(($(STM32_TF_A_COPIES) + 6)))
-
-ifeq (${PSA_FWU_SUPPORT},1)
-# Number of banks of updatable firmware
-NR_OF_FW_BANKS			:=	2
-NR_OF_IMAGES_IN_FW_BANK		:=	1
-
-FWU_MAX_PART = $(shell echo $$(($(STM32_TF_A_COPIES) + 2 + $(NR_OF_FW_BANKS))))
-ifeq ($(shell test $(FWU_MAX_PART) -gt $(PLAT_PARTITION_MAX_ENTRIES); echo $$?),0)
-$(error "Required partition number is $(FWU_MAX_PART) where PLAT_PARTITION_MAX_ENTRIES is only \
-$(PLAT_PARTITION_MAX_ENTRIES)")
-endif
-endif
 
 STM32_HASH_VER		:=	4
 STM32_RNG_VER		:=	4
