@@ -10,11 +10,6 @@ ARM_CORTEX_A7		:=	yes
 ARM_WITH_NEON		:=	yes
 USE_COHERENT_MEM	:=	0
 
-STM32MP_USE_EXTERNAL_HEAP ?=	0
-
-# Use secure library from the ROM code for authentication
-STM32MP_CRYPTO_ROM_LIB	?=	0
-
 # Default Device tree
 DTB_FILE_NAME		?=	stm32mp157c-ev1.dtb
 
@@ -270,42 +265,10 @@ BL2_SOURCES		+=	drivers/st/mce/stm32_mce.c
 endif
 
 ifeq (${TRUSTED_BOARD_BOOT},1)
-AUTH_SOURCES		:=	drivers/auth/auth_mod.c					\
-				drivers/auth/crypto_mod.c				\
-				drivers/auth/img_parser_mod.c
-
-ifeq (${GENERATE_COT},1)
-TFW_NVCTR_VAL		:=	0
-NTFW_NVCTR_VAL		:=	0
-KEY_SIZE		:=
-KEY_ALG			:=	ecdsa
-HASH_ALG		:=	sha256
-
-ifeq (${SAVE_KEYS},1)
-TRUSTED_WORLD_KEY	?=	${BUILD_PLAT}/trusted.pem
-NON_TRUSTED_WORLD_KEY	?=	${BUILD_PLAT}/non-trusted.pem
-BL32_KEY		?=	${BUILD_PLAT}/trusted_os.pem
-BL33_KEY		?=	${BUILD_PLAT}/non-trusted_os.pem
-endif
-
-endif
-TF_MBEDTLS_KEY_ALG 	:=	ecdsa
-MBEDTLS_CONFIG_FILE	?=	"<stm32mp_mbedtls_config.h>"
-
-include drivers/auth/mbedtls/mbedtls_x509.mk
-
-COT_DESC_IN_DTB		:=	1
-AUTH_SOURCES		+=	lib/fconf/fconf_cot_getter.c				\
-				lib/fconf/fconf_tbbr_getter.c				\
-				plat/st/common/stm32mp_crypto_lib.c
-
 ifeq ($(STM32MP13),1)
-AUTH_SOURCES		+=	drivers/st/crypto/stm32_pka.c
-AUTH_SOURCES		+=	drivers/st/crypto/stm32_saes.c
+BL2_SOURCES		+=	drivers/st/crypto/stm32_pka.c
+BL2_SOURCES		+=	drivers/st/crypto/stm32_saes.c
 endif
-
-BL2_SOURCES		+=	$(AUTH_SOURCES)						\
-				plat/st/common/stm32mp_trusted_boot.c
 endif
 
 ifneq ($(filter 1,${STM32MP_EMMC} ${STM32MP_SDMMC}),)
