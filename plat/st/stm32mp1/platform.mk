@@ -290,7 +290,7 @@ endif
 
 endif
 TF_MBEDTLS_KEY_ALG 	:=	ecdsa
-MBEDTLS_CONFIG_FILE	?=	"<stm32mp1_mbedtls_config.h>"
+MBEDTLS_CONFIG_FILE	?=	"<stm32mp_mbedtls_config.h>"
 
 include drivers/auth/mbedtls/mbedtls_x509.mk
 
