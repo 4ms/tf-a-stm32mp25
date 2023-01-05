@@ -623,7 +623,7 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 		bl32_mem_params->ep_info.lr_svc = bl_mem_params->ep_info.pc;
 #if PSA_FWU_SUPPORT
 		if (plat_fwu_is_enabled()) {
-			stm32mp1_fwu_set_boot_idx();
+			stm32_fwu_set_boot_idx();
 		}
 #endif /* PSA_FWU_SUPPORT */
 		break;
