@@ -125,10 +125,6 @@ PLAT_INCLUDES		+=	-Iplat/st/stm32mp2/include/
 PLAT_INCLUDES		+=	-Idrivers/st/ddr/phy/phyinit/include/
 PLAT_INCLUDES		+=	-Idrivers/st/ddr/phy/firmware/include/
 
-ifeq (${STM32MP_DDR_FIP_IO_STORAGE},1)
-$(shell cp tools/st/plat_fiptool/plat_fiptool.mk ${PLAT_DIR})
-endif
-
 PLAT_BL_COMMON_SOURCES	+=	plat/st/stm32mp2/stm32mp2_private.c
 
 PLAT_BL_COMMON_SOURCES	+=	drivers/st/uart/${ARCH}/stm32_console.S

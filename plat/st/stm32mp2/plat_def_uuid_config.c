@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -15,6 +15,11 @@ toc_entry_t plat_def_toc_entries[] = {
 		.name = "DDR_FW",
 		.uuid = UUID_DDR_FW,
 		.cmdline_name = "ddr-fw"
+	},
+
+	{
+		.name = NULL,
+		.uuid = { {0} },
+		.cmdline_name = NULL,
 	}
 };
-
