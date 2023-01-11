@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -249,6 +249,11 @@ static int risaf_configure_region(int instance, uint32_t region_id, uint32_t cfg
 	if ((cfg & _RISAF_REG_CFGR_ENC) == _RISAF_REG_CFGR_ENC) {
 		if (!risaf_is_hw_encryption_functional(instance)) {
 			ERROR("RISAF%d: encryption feature error\n", instance + 1);
+			return -EIO;
+		}
+
+		if ((cfg & _RISAF_REG_CFGR_SEC) != _RISAF_REG_CFGR_SEC) {
+			ERROR("RISAF%d: encryption on non secure area error\n", instance + 1);
 			return -EIO;
 		}
 	}
