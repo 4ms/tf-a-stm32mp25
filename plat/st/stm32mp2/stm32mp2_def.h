@@ -331,6 +331,7 @@ enum ddr_type {
 #define NAND2_OTP			"otp20"
 #define BOARD_ID_OTP			"board_id"
 #define UID_OTP				"uid_otp"
+#define LIFECYCLE2_OTP			"otp18"
 
 /* OTP mask */
 /* PACKAGE */
@@ -394,6 +395,10 @@ enum ddr_type {
 
 /* UID OTP */
 #define UID_WORD_NB			U(3)
+
+/* Lifecycle OTP */
+#define SECURE_BOOT_CLOSED_SECURE	GENMASK_32(3, 0)
+
 /*******************************************************************************
  * STM32MP2 TAMP
  ******************************************************************************/
