@@ -177,12 +177,12 @@ void bl2_el3_plat_arch_setup(void)
 			BL_CODE_END - BL_CODE_BASE,
 			MT_CODE | MT_SECURE);
 
-	/* Prevent corruption of preloaded Device Tree */
-	mmap_add_region(DTB_BASE, DTB_BASE,
-			DTB_LIMIT - DTB_BASE,
-			MT_RO_DATA | MT_SECURE);
-
 	configure_mmu();
+
+	/* Prevent corruption of preloaded Device Tree */
+	mmap_add_dynamic_region(DTB_BASE, DTB_BASE,
+				DTB_LIMIT - DTB_BASE,
+				MT_RO_DATA | MT_SECURE);
 
 	if (dt_open_and_check(STM32MP_DTB_BASE) < 0) {
 		panic();
@@ -374,6 +374,8 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 				return -EINVAL;
 			}
 		}
+
+		mmap_remove_dynamic_region(DTB_BASE, DTB_LIMIT - DTB_BASE);
 
 		break;
 
