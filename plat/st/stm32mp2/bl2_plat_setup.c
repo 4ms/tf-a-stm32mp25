@@ -255,7 +255,7 @@ skip_console_init:
 	 */
 	mmio_write_32(RISAB3_BASE + RISAB_CR, RISAB_CR_SRWIAD);
 #endif
-#if STM32MP_USB_PROGRAMMER
+#if STM32MP_USB_PROGRAMMER || TRUSTED_BOARD_BOOT
 	/* Enabling SRAM2 clock is not needed as it is a critical clock */
 	/*
 	 * RISAB4 setup (dedicated for SRAM2)
@@ -266,6 +266,7 @@ skip_console_init:
 	 */
 	mmio_write_32(RISAB4_BASE + RISAB_CR, RISAB_CR_SRWIAD);
 
+#if STM32MP_USB_PROGRAMMER
 	/*
 	 * Set USB3DR Peripheriphal accesses to Secure/Privilege only
 	 */
@@ -277,6 +278,7 @@ skip_console_init:
 	 */
 	mmio_write_32(RIFSC_BASE + _RIFSC_RIMC_ATTR(RIMU_USB3DR), RIFSC_USB_BOOT_USBDR_RIMC_CONF);
 #endif /* STM32MP_USB_PROGRAMMER */
+#endif /* STM32MP_USB_PROGRAMMER || TRUSTED_BOARD_BOOT */
 
 	if (stm32mp2_pwr_init_io_domains() != 0) {
 		panic();
