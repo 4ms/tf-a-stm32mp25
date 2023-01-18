@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
 /*
- * Copyright (C) STMicroelectronics 2021 - All Rights Reserved
+ * Copyright (C) STMicroelectronics 2023 - All Rights Reserved
  * Author: Alexandre Torgue <alexandre.torgue@foss.st.com> for STMicroelectronics.
  */
 
@@ -47,6 +47,10 @@
 	};
 };
 
+&hash {
+	status = "okay";
+};
+
 &ommanager {
 	pinctrl-names = "default";
 	pinctrl-0 = <&ospi1_clk_pins_a
@@ -66,6 +70,18 @@
 			spi-max-frequency = <133000000>;
 		};
 	};
+};
+
+&pka {
+	status = "okay";
+};
+
+&rng {
+	status = "okay";
+};
+
+&saes {
+	status = "okay";
 };
 
 &sdmmc1 {
