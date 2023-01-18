@@ -344,13 +344,44 @@ typedef struct {
 	 */
 	uint32_t image_version;
 	/*
-	 * Option flags:
-	 * Bit 0 : No signature check request : 'No_sig_check'
-	 *      value 1 : for No signature check request
-	 *      value 0 : No request to bypass the signature check
-	 * Note : No signature check is never allowed on a Secured chip
+	 * Extension flags :
+	 *
+	 * Bit 0 : Authentication extension header
+	 *      value 0 : No signature check request
+	 * Bit 1 : Encryption extension header
+	 * Bit 2 : Padding extension header
 	 */
-	uint32_t option_flags;
+	uint32_t extension_flags;
+	/* Length in bytes of all extension headers */
+	uint32_t extension_headers_length;
+	/* Add binary type information */
+	uint32_t binary_type;
+	/* Pad up to 128 byte total size */
+	uint8_t pad[16];
+	/* Followed by extension header */
+	uint8_t ext_header[];
+} __packed boot_api_image_header_t;
+
+typedef uint8_t boot_api_sha256_t[BOOT_API_SHA256_DIGEST_SIZE_IN_BYTES];
+
+typedef struct {
+	/* Extension header type:
+	 * BOOT_API_FSBL_DECRYPTION_HEADER_MAGIC_NB or
+	 * BOOT_API_AUTHENTICATION_HEADER_MAGIC_NB
+	 * BOOT_API_PADDING_HEADER_MAGIC_NB
+	 */
+	uint32_t type;
+	/* Extension header len in byte */
+	uint32_t len;
+	/* parameters of this extension */
+	uint8_t  params[];
+} __packed boot_extension_header_t;
+
+typedef struct {
+	/* Idx of ECDSA public key to be used in table */
+	uint32_t pk_idx;
+	/* Number of ECDSA public key in table */
+	uint32_t nb_pk;
 	/*
 	 * Type of ECC algorithm to use  :
 	 * value 1 : for P-256 NIST algorithm
@@ -358,16 +389,18 @@ typedef struct {
 	 * See definitions 'BOOT_API_ECDSA_ALGO_TYPE_XXX' above.
 	 */
 	uint32_t ecc_algo_type;
-	/*
-	 * OEM ECC Public Key (aka Root pubk) provided in header on 512 bits.
-	 * The SHA-256 hash of the OEM ECC pubk must match the one stored
-	 * in OTP cells.
-	 */
+	/* ECDSA public key to be used to check signature. */
 	uint8_t ecc_pubk[BOOT_API_ECDSA_PUB_KEY_LEN_IN_BYTES];
-	/* Pad up to 256 byte total size */
-	uint8_t pad[83];
-	/* Add binary type information */
-	uint8_t binary_type;
-} __packed boot_api_image_header_t;
+	/* table of Hash of Algo+ECDSA public key */
+	boot_api_sha256_t pk_hashes[];
+} __packed boot_ext_header_params_authentication_t;
+
+typedef struct {
+	/* Size of encryption key (128 or 256) */
+	uint32_t key_size;
+	uint32_t derivation_cont;
+	/* 128 msb bits of plain payload SHA256 */
+	uint32_t hash[4];
+} __packed boot_ext_header_params_encrypted_fsbl_t;
 
 #endif /* BOOT_API_H */
