@@ -16,6 +16,11 @@ toc_entry_t plat_def_toc_entries[] = {
 		.uuid = UUID_DDR_FW,
 		.cmdline_name = "ddr-fw"
 	},
+	{
+		.name = "STM32MP CONFIG CERT",
+		.uuid = UUID_STM32MP_CONFIG_CERT,
+		.cmdline_name = "stm32mp-cfg-cert"
+	},
 
 	{
 		.name = NULL,
