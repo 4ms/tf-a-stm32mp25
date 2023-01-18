@@ -298,6 +298,9 @@
 			hconf1_otp: otp124@1f0 {
 				reg = <0x1f0 0x4>;
 			};
+			pkh_otp: otp144@240 {
+				reg = <0x240 0x20>;
+			};
 		};
 
 		iwdg1: watchdog@44010000 {

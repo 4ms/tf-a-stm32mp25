@@ -332,6 +332,7 @@ enum ddr_type {
 #define BOARD_ID_OTP			"board_id"
 #define UID_OTP				"uid_otp"
 #define LIFECYCLE2_OTP			"otp18"
+#define PKH_OTP				"otp144"
 
 /* OTP mask */
 /* PACKAGE */
