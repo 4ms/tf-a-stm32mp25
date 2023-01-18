@@ -235,7 +235,20 @@ void bl2_el3_plat_arch_setup(void)
 
 	print_reset_reason();
 
+	if (boot_context->auth_status != BOOT_API_CTX_AUTH_NO) {
+		NOTICE("Bootrom authentication %s\n",
+		       (boot_context->auth_status == BOOT_API_CTX_AUTH_FAILED) ?
+		       "failed" : "succeeded");
+	}
+
 skip_console_init:
+#if !TRUSTED_BOARD_BOOT
+	if (stm32mp_check_closed_device() == STM32MP_CHIP_SEC_CLOSED) {
+		/* Closed chip mandates authentication */
+		ERROR("Secure chip: TRUSTED_BOARD_BOOT must be enabled\n");
+		panic();
+	}
+#endif
 
 	if (fixed_regulator_register() != 0) {
 		panic();
