@@ -141,8 +141,8 @@ enum ddr_type {
 
 #define STM32MP_BL31_SIZE		U(0x0001C000)	/* 112 KB for BL31 */
 
-#define STM32MP_BL2_RO_SIZE		U(0x00017000)	/* 76 KB */
-#define STM32MP_BL2_SIZE		U(0x00029000)	/* 164 KB for BL2 */
+#define STM32MP_BL2_RO_SIZE		U(0x00018000)	/* 96 KB */
+#define STM32MP_BL2_SIZE		U(0x0002B000)	/* 172 KB for BL2 */
 #define STM32MP_BL2_BASE		(STM32MP_SEC_SYSRAM_BASE + \
 					 STM32MP_SEC_SYSRAM_SIZE - \
 					 STM32MP_BL2_SIZE)
@@ -340,6 +340,7 @@ enum ddr_type {
 #define UID_OTP				"uid_otp"
 #define LIFECYCLE2_OTP			"otp18"
 #define PKH_OTP				"otp144"
+#define ENCKEY_OTP			"otp260"
 
 /* OTP mask */
 /* PACKAGE */
