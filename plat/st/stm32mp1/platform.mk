@@ -256,10 +256,6 @@ endif
 BL2_SOURCES		+=	drivers/st/crypto/stm32_hash.c				\
 				plat/st/stm32mp1/bl2_plat_setup.c
 
-ifneq (${DECRYPTION_SUPPORT},none)
-BL2_SOURCES		+=	drivers/io/io_encrypted.c
-endif
-
 ifeq ($(STM32MP13),1)
 BL2_SOURCES		+=	drivers/st/mce/stm32_mce.c
 endif

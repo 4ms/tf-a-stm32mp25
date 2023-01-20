@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2022, ARM Limited and Contributors. All rights reserved.
+# Copyright (c) 2022-2023, ARM Limited and Contributors. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -193,6 +193,10 @@ AUTH_SOURCES		+=	lib/fconf/fconf_cot_getter.c				\
 
 BL2_SOURCES		+=	$(AUTH_SOURCES)						\
 				plat/st/common/stm32mp_trusted_boot.c
+endif
+
+ifneq (${DECRYPTION_SUPPORT},none)
+BL2_SOURCES		+=	drivers/io/io_encrypted.c
 endif
 
 ifneq ($(filter 1,${STM32MP_EMMC} ${STM32MP_SDMMC}),)
