@@ -301,6 +301,9 @@
 			pkh_otp: otp144@240 {
 				reg = <0x240 0x20>;
 			};
+			oem_fip_enc_key: otp260@410 {
+				reg = <0x410 0x20>;
+			};
 		};
 
 		iwdg1: watchdog@44010000 {
