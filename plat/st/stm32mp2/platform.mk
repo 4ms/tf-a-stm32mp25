@@ -287,9 +287,10 @@ check_ddr_type:
 ifeq (${STM32MP_DDR_FIP_IO_STORAGE},1)
 ifneq ($(filter 1,${STM32MP_UART_PROGRAMMER} ${STM32MP_USB_PROGRAMMER}),)
 
+STM32MP_DDR_FW_COPY	:=	${STM32MP_DDR_FW}
 DDR_FIP_NAME		?=	fip-ddr.bin
-DDR_FIP_ARGS		+=	--ddr-fw ${STM32MP_DDR_FW}
-DDR_FIP_DEPS		+=	${STM32MP_DDR_FW}
+
+$(eval $(call TOOL_ADD_IMG,STM32MP_DDR_FW_COPY,--ddr-fw,DDR_))
 
 ${BUILD_PLAT}/${DDR_FIP_NAME}: ${DDR_FIP_DEPS} fiptool
 	${Q}${FIPTOOL} create ${DDR_FIP_ARGS} $@
