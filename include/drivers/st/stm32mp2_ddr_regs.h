@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: GPL-2.0+ OR BSD-3-Clause
  */
@@ -16,7 +16,15 @@ struct stm32mp_ddrphy {
 } __packed;
 
 /* DDRPHY registers offsets */
+#define DDRPHY_INITENG0_P0_PHYINLPX		U(0x2400A0)
+#define DDRPHY_DRTUB0_UCCLKHCLKENABLES		U(0x300200)
 #define DDRPHY_APBONLY0_MICROCONTMUXSEL		U(0x340000)
+
+/* DDRPHY registers fields */
+#define DDRPHY_INITENG0_P0_PHYINLPX_PHYINLP3			BIT(0)
+#define DDRPHY_DRTUB0_UCCLKHCLKENABLES_UCCLKEN			BIT(0)
+#define DDRPHY_DRTUB0_UCCLKHCLKENABLES_HCLKEN			BIT(1)
+#define DDRPHY_APBONLY0_MICROCONTMUXSEL_MICROCONTMUXSEL		BIT(0)
 
 /* DDRDBG registers offsets */
 #define DDRDBG_LP_DISABLE			U(0x0)

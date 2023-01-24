@@ -60,6 +60,31 @@ static void wait_dfi_init_complete(struct stm32mp_ddrctl *ctl)
 	VERBOSE("[0x%lx] dfistat = 0x%x\n", (uintptr_t)&ctl->dfistat, dfistat);
 }
 
+static void disable_dfi_low_power_interface(struct stm32mp_ddrctl *ctl)
+{
+	uint64_t timeout;
+	uint32_t dfistat;
+	uint32_t stat;
+
+	mmio_clrbits_32((uintptr_t)&ctl->dfilpcfg0, DDRCTRL_DFILPCFG0_DFI_LP_EN_SR);
+
+	timeout = timeout_init_us(DDR_TIMEOUT_US_1S);
+	do {
+		dfistat = mmio_read_32((uintptr_t)&ctl->dfistat);
+		stat = mmio_read_32((uintptr_t)&ctl->stat);
+		VERBOSE("[0x%lx] dfistat = 0x%x ", (uintptr_t)&ctl->dfistat, dfistat);
+		VERBOSE("[0x%lx] stat = 0x%x ", (uintptr_t)&ctl->stat, stat);
+
+		if (timeout_elapsed(timeout)) {
+			panic();
+		}
+	} while (((dfistat & DDRCTRL_DFISTAT_DFI_LP_ACK) != 0U) ||
+		((stat & DDRCTRL_STAT_OPERATING_MODE_MASK) == DDRCTRL_STAT_OPERATING_MODE_SR));
+
+	VERBOSE("[0x%lx] dfistat = 0x%x\n", (uintptr_t)&ctl->dfistat, dfistat);
+	VERBOSE("[0x%lx] stat = 0x%x\n", (uintptr_t)&ctl->stat, stat);
+}
+
 void ddr_activate_controller(struct stm32mp_ddrctl *ctl, bool sr_entry)
 {
 	/*
@@ -93,25 +118,79 @@ void ddr_activate_controller(struct stm32mp_ddrctl *ctl, bool sr_entry)
 	unset_qd1_qd3_update_conditions(ctl);
 }
 
+static void wait_lp3_mode(bool sr_entry)
+{
+	uint64_t timeout;
+	bool repeat_loop = false;
+
+	/* Enable APB access to internal CSR registers */
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_APBONLY0_MICROCONTMUXSEL, 0);
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_DRTUB0_UCCLKHCLKENABLES,
+		      DDRPHY_DRTUB0_UCCLKHCLKENABLES_UCCLKEN |
+		      DDRPHY_DRTUB0_UCCLKHCLKENABLES_HCLKEN);
+
+	timeout = timeout_init_us(DDR_TIMEOUT_US_1S);
+	do {
+		uint16_t phyinlpx = mmio_read_32(stm32mp_ddrphyc_base() +
+						 DDRPHY_INITENG0_P0_PHYINLPX);
+
+		if (timeout_elapsed(timeout)) {
+			panic();
+		}
+
+		if (sr_entry) {
+			repeat_loop = (phyinlpx & DDRPHY_INITENG0_P0_PHYINLPX_PHYINLP3) == 0U;
+		} else {
+			repeat_loop = ((phyinlpx & DDRPHY_INITENG0_P0_PHYINLPX_PHYINLP3) != 0U);
+		}
+	} while (repeat_loop);
+
+	/* Disable APB access to internal CSR registers */
+#if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_DRTUB0_UCCLKHCLKENABLES, 0);
+#elif STM32MP_LPDDR4_TYPE
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_DRTUB0_UCCLKHCLKENABLES,
+		      DDRPHY_DRTUB0_UCCLKHCLKENABLES_HCLKEN);
+#endif /* STM32MP_LPDDR4_TYPE */
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_APBONLY0_MICROCONTMUXSEL,
+		      DDRPHY_APBONLY0_MICROCONTMUXSEL_MICROCONTMUXSEL);
+}
+
 static int sr_loop(bool is_entry)
 {
-	uint32_t read_data;
+	uint32_t type;
+	uint32_t state __maybe_unused;
 	uint64_t timeout = timeout_init_us(DDR_TIMEOUT_US_1S);
 	bool repeat_loop = false;
 
-	/* Wait for DDRCTRL to be out of or back to "normal/mission mode" */
+	/*
+	 * Wait for DDRCTRL to be out of or back to "normal/mission mode".
+	 * Consider also SRPD mode for LPDDR4 only.
+	 */
 	do {
-		read_data = mmio_read_32(stm32mp_ddrctrl_base() + DDRCTRL_STAT) &
-			    DDRCTRL_STAT_SELFREF_TYPE_MASK;
+		type = mmio_read_32(stm32mp_ddrctrl_base() + DDRCTRL_STAT) &
+				    DDRCTRL_STAT_SELFREF_TYPE_MASK;
+#if STM32MP_LPDDR4_TYPE
+		state = mmio_read_32(stm32mp_ddrctrl_base() + DDRCTRL_STAT) &
+				    DDRCTRL_STAT_SELFREF_STATE_MASK;
+#endif /* STM32MP_LPDDR4_TYPE */
 
 		if (timeout_elapsed(timeout)) {
 			return -ETIMEDOUT;
 		}
 
 		if (is_entry) {
-			repeat_loop = (read_data == 0x0);
+#if STM32MP_LPDDR4_TYPE
+			repeat_loop = (type == 0x0) || (state != DDRCTRL_STAT_SELFREF_STATE_SRPD);
+#else /* STM32MP_LPDDR4_TYPE */
+			repeat_loop = (type == 0x0);
+#endif /* STM32MP_LPDDR4_TYPE */
 		} else {
-			repeat_loop = (read_data != 0x0);
+#if STM32MP_LPDDR4_TYPE
+			repeat_loop = (type != 0x0) || (state != 0x0);
+#else /* STM32MP_LPDDR4_TYPE */
+			repeat_loop = (type != 0x0);
+#endif /* STM32MP_LPDDR4_TYPE */
 		}
 	} while (repeat_loop);
 
@@ -130,29 +209,96 @@ static int sr_exit_loop(void)
 
 static int sr_ssr_set(void)
 {
+	uintptr_t ddrctrl_base = stm32mp_ddrctrl_base();
+
+	/*
+	 * Disable Clock disable with LP modes
+	 * (used in RUN mode for LPDDR2 with specific timing).
+	*/
+	mmio_clrbits_32(ddrctrl_base + DDRCTRL_PWRCTL, DDRCTRL_PWRCTL_EN_DFI_DRAM_CLK_DISABLE);
+
+	/* Disable automatic Self-Refresh mode */
+	mmio_clrbits_32(ddrctrl_base + DDRCTRL_PWRCTL, DDRCTRL_PWRCTL_SELFREF_EN);
+
+	mmio_write_32(stm32_ddrdbg_get_base() + DDRDBG_LP_DISABLE,
+		      DDRDBG_LP_DISABLE_LPI_XPI_DISABLE | DDRDBG_LP_DISABLE_LPI_DDRC_DISABLE);
+
+	return 0;
+}
+
+static int ssr_entry(bool standby)
+{
+	uintptr_t ddrctrl_base = stm32mp_ddrctrl_base();
+	uintptr_t rcc_base = stm32mp_rcc_base();
+
+	if (stm32mp_ddr_disable_axi_port((struct stm32mp_ddrctl *)ddrctrl_base) != 0) {
+		panic();
+	}
+
+	disable_dfi_low_power_interface((struct stm32mp_ddrctl *)ddrctrl_base);
+
+	/* SW self refresh entry prequested */
+	mmio_setbits_32(ddrctrl_base + DDRCTRL_PWRCTL, DDRCTRL_PWRCTL_SELFREF_SW);
+#if STM32MP_LPDDR4_TYPE
+	mmio_clrbits_32(ddrctrl_base + DDRCTRL_PWRCTL, DDRCTRL_PWRCTL_STAY_IN_SELFREF);
+#endif /* STM32MP_LPDDR4_TYPE */
+
+	if (sr_entry_loop() != 0) {
+		return -1;
+	}
+
+	ddr_activate_controller((struct stm32mp_ddrctl *)ddrctrl_base, true);
+
+	/* Poll on ddrphy_initeng0_phyinlpx.phyinlp3 = 1 */
+	wait_lp3_mode(true);
+
+	if (standby) {
+		mmio_clrbits_32(stm32mp_pwr_base() + PWR_CR11, PWR_CR11_DDRRETDIS);
+	}
+
+	mmio_clrsetbits_32(rcc_base + RCC_DDRCPCFGR, RCC_DDRCPCFGR_DDRCPLPEN,
+			   RCC_DDRCPCFGR_DDRCPEN);
+	mmio_setbits_32(rcc_base + RCC_DDRPHYCCFGR, RCC_DDRPHYCCFGR_DDRPHYCEN);
+	mmio_setbits_32(rcc_base + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRPHYDLP);
+
 	return 0;
 }
 
 static int sr_ssr_entry(void)
 {
-	/* Enable APB access to internal CSR registers */
-	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_APBONLY0_MICROCONTMUXSEL, 0);
-
-	/* SW self refresh entry prequested */
-	mmio_write_32(stm32mp_ddrctrl_base() + DDRCTRL_PWRCTL, DDRCTRL_PWRCTL_SELFREF_SW);
-
-	return sr_entry_loop();
+	return ssr_entry(false);
 }
 
 static int sr_ssr_exit(void)
 {
-	/* Enable APB access to internal CSR registers */
-	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_APBONLY0_MICROCONTMUXSEL, 0);
+	uintptr_t ddrctrl_base = stm32mp_ddrctrl_base();
+	uintptr_t rcc_base = stm32mp_rcc_base();
 
-	/* SW self refresh entry prequested */
-	mmio_write_32(stm32mp_ddrctrl_base() + DDRCTRL_PWRCTL, 0);
+	mmio_setbits_32(rcc_base + RCC_DDRCPCFGR,
+			RCC_DDRCPCFGR_DDRCPLPEN | RCC_DDRCPCFGR_DDRCPEN);
+	mmio_clrbits_32(rcc_base + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRPHYDLP);
+	mmio_setbits_32(rcc_base + RCC_DDRPHYCCFGR, RCC_DDRPHYCCFGR_DDRPHYCEN);
 
-	return sr_exit_loop();
+	udelay(DDR_DELAY_1US);
+
+	ddr_activate_controller((struct stm32mp_ddrctl *)ddrctrl_base, false);
+
+	/* Poll on ddrphy_initeng0_phyinlpx.phyinlp3 = 0 */
+	wait_lp3_mode(false);
+
+	/* SW self refresh exit prequested */
+	mmio_clrbits_32(ddrctrl_base + DDRCTRL_PWRCTL, DDRCTRL_PWRCTL_SELFREF_SW);
+
+	if (sr_exit_loop() != 0) {
+		return -1;
+	}
+
+	/* Re-enable DFI low-power interface */
+	mmio_setbits_32(ddrctrl_base + DDRCTRL_DFILPCFG0, DDRCTRL_DFILPCFG0_DFI_LP_EN_SR);
+
+	stm32mp_ddr_enable_axi_port((struct stm32mp_ddrctl *)ddrctrl_base);
+
+	return 0;
 }
 
 static int sr_hsr_set(void)
