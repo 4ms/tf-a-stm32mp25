@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2022-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: GPL-2.0+ OR BSD-3-Clause
  */
@@ -241,9 +241,11 @@ struct stm32mp_ddrctl {
 
 #define DDRCTRL_DFIMISC_DFI_INIT_COMPLETE_EN	BIT(0)
 #define DDRCTRL_DFIMISC_DFI_INIT_START		BIT(5)
+#define DDRCTRL_DFIMISC_DFI_FREQUENCY		GENMASK(12, 8)
 
 #define DDRCTRL_DFISTAT_DFI_INIT_COMPLETE	BIT(0)
 
+#define DDRCTRL_DBG1_DIS_DQ			BIT(0)
 #define DDRCTRL_DBG1_DIS_HIF			BIT(1)
 
 #define DDRCTRL_DBGCAM_WR_DATA_PIPELINE_EMPTY	BIT(29)

@@ -10,6 +10,7 @@
 #include <drivers/delay_timer.h>
 #include <drivers/st/stm32mp_ddr.h>
 #include <drivers/st/stm32mp2_ddr.h>
+#include <drivers/st/stm32mp2_ddr_helpers.h>
 #include <drivers/st/stm32mp2_ddr_regs.h>
 #include <lib/mmio.h>
 
@@ -320,45 +321,6 @@ static void restore_refresh(struct stm32mp_ddrctl *ctl, uint32_t rfshctl3, uint3
 	set_dfi_init_complete_en(ctl, true);
 }
 
-static void wait_dfi_init_complete(struct stm32mp_ddrctl *ctl)
-{
-	uint64_t timeout;
-	uint32_t dfistat;
-
-	timeout = timeout_init_us(DDR_TIMEOUT_US_1S);
-	do {
-		dfistat = mmio_read_32((uintptr_t)&ctl->dfistat);
-		VERBOSE("[0x%lx] dfistat = 0x%x ", (uintptr_t)&ctl->dfistat, dfistat);
-		if (timeout_elapsed(timeout)) {
-			panic();
-		}
-	} while ((dfistat & DDRCTRL_DFISTAT_DFI_INIT_COMPLETE) == 0U);
-
-	VERBOSE("[0x%lx] dfistat = 0x%x\n", (uintptr_t)&ctl->dfistat, dfistat);
-}
-
-static void activate_controller(struct stm32mp_ddrctl *ctl)
-{
-	stm32mp_ddr_set_qd3_update_conditions(ctl);
-
-	mmio_setbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_INIT_START);
-
-	stm32mp_ddr_unset_qd3_update_conditions(ctl);
-
-	wait_dfi_init_complete(ctl);
-
-	udelay(DDR_DELAY_1US);
-
-	stm32mp_ddr_set_qd3_update_conditions(ctl);
-
-	mmio_clrsetbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_INIT_START,
-			   DDRCTRL_DFIMISC_DFI_INIT_COMPLETE_EN);
-
-	udelay(DDR_DELAY_1US);
-
-	stm32mp_ddr_unset_qd3_update_conditions(ctl);
-}
-
 void stm32mp2_ddr_init(struct stm32mp_ddr_priv *priv,
 		       struct stm32mp_ddr_config *config)
 {
@@ -432,7 +394,7 @@ void stm32mp2_ddr_init(struct stm32mp_ddr_priv *priv,
 		panic();
 	}
 
-	activate_controller(priv->ctl);
+	ddr_activate_controller(priv->ctl, false);
 
 	restore_refresh(priv->ctl, config->c_reg.rfshctl3, config->c_reg.pwrctl);
 

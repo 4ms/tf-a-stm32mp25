@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -26,6 +26,71 @@ static enum stm32mp2_ddr_sr_mode saved_ddr_sr_mode;
 uintptr_t stm32_ddrdbg_get_base(void)
 {
 	return 0U;
+}
+
+static void set_qd1_qd3_update_conditions(struct stm32mp_ddrctl *ctl)
+{
+	mmio_setbits_32((uintptr_t)&ctl->dbg1, DDRCTRL_DBG1_DIS_DQ);
+
+	stm32mp_ddr_set_qd3_update_conditions(ctl);
+}
+
+static void unset_qd1_qd3_update_conditions(struct stm32mp_ddrctl *ctl)
+{
+	stm32mp_ddr_unset_qd3_update_conditions(ctl);
+
+	mmio_clrbits_32((uintptr_t)&ctl->dbg1, DDRCTRL_DBG1_DIS_DQ);
+}
+
+static void wait_dfi_init_complete(struct stm32mp_ddrctl *ctl)
+{
+	uint64_t timeout;
+	uint32_t dfistat;
+
+	timeout = timeout_init_us(DDR_TIMEOUT_US_1S);
+	do {
+		dfistat = mmio_read_32((uintptr_t)&ctl->dfistat);
+		VERBOSE("[0x%lx] dfistat = 0x%x ", (uintptr_t)&ctl->dfistat, dfistat);
+
+		if (timeout_elapsed(timeout)) {
+			panic();
+		}
+	} while ((dfistat & DDRCTRL_DFISTAT_DFI_INIT_COMPLETE) == 0U);
+
+	VERBOSE("[0x%lx] dfistat = 0x%x\n", (uintptr_t)&ctl->dfistat, dfistat);
+}
+
+void ddr_activate_controller(struct stm32mp_ddrctl *ctl, bool sr_entry)
+{
+	/*
+	 * Manage quasi-dynamic registers modification
+	 * dfimisc.dfi_frequency : Group 1
+	 * dfimisc.dfi_init_complete_en and dfimisc.dfi_init_start : Group 3
+	 */
+	set_qd1_qd3_update_conditions(ctl);
+
+	if (sr_entry) {
+		mmio_setbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_FREQUENCY);
+	} else {
+		mmio_clrbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_FREQUENCY);
+	}
+
+	mmio_setbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_INIT_START);
+	mmio_clrbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_INIT_START);
+
+	wait_dfi_init_complete(ctl);
+
+	udelay(DDR_DELAY_1US);
+
+	if (sr_entry) {
+		mmio_clrbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_INIT_COMPLETE_EN);
+	} else {
+		mmio_setbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_INIT_COMPLETE_EN);
+	}
+
+	udelay(DDR_DELAY_1US);
+
+	unset_qd1_qd3_update_conditions(ctl);
 }
 
 static int sr_loop(bool is_entry)
