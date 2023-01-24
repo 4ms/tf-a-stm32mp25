@@ -118,7 +118,27 @@ void ddr_activate_controller(struct stm32mp_ddrctl *ctl, bool sr_entry)
 	unset_qd1_qd3_update_conditions(ctl);
 }
 
-static void wait_lp3_mode(bool sr_entry)
+#if STM32MP_LPDDR4_TYPE
+static void disable_phy_ddc(void)
+{
+	/* Enable APB access to internal CSR registers */
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_APBONLY0_MICROCONTMUXSEL, 0);
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_DRTUB0_UCCLKHCLKENABLES,
+		      DDRPHY_DRTUB0_UCCLKHCLKENABLES_UCCLKEN |
+		      DDRPHY_DRTUB0_UCCLKHCLKENABLES_HCLKEN);
+
+	/* Disable DRAM drift compensation */
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_INITENG0_P0_SEQ0BDISABLEFLAG6, 0xFFFF);
+
+	/* Disable APB access to internal CSR registers */
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_DRTUB0_UCCLKHCLKENABLES,
+		      DDRPHY_DRTUB0_UCCLKHCLKENABLES_HCLKEN);
+	mmio_write_32(stm32mp_ddrphyc_base() + DDRPHY_APBONLY0_MICROCONTMUXSEL,
+		      DDRPHY_APBONLY0_MICROCONTMUXSEL_MICROCONTMUXSEL);
+}
+#endif /* STM32MP_LPDDR4_TYPE */
+
+void ddr_wait_lp3_mode(bool sr_entry)
 {
 	uint64_t timeout;
 	bool repeat_loop = false;
@@ -202,7 +222,7 @@ static int sr_entry_loop(void)
 	return sr_loop(true);
 }
 
-static int sr_exit_loop(void)
+int ddr_sr_exit_loop(void)
 {
 	return sr_loop(false);
 }
@@ -235,6 +255,13 @@ static int ssr_entry(bool standby)
 		panic();
 	}
 
+#if STM32MP_LPDDR4_TYPE
+	if (standby) {
+		/* Disable DRAM drift compensation */
+		disable_phy_ddc();
+	}
+#endif /* STM32MP_LPDDR4_TYPE */
+
 	disable_dfi_low_power_interface((struct stm32mp_ddrctl *)ddrctrl_base);
 
 	/* SW self refresh entry prequested */
@@ -250,7 +277,7 @@ static int ssr_entry(bool standby)
 	ddr_activate_controller((struct stm32mp_ddrctl *)ddrctrl_base, true);
 
 	/* Poll on ddrphy_initeng0_phyinlpx.phyinlp3 = 1 */
-	wait_lp3_mode(true);
+	ddr_wait_lp3_mode(true);
 
 	if (standby) {
 		mmio_clrbits_32(stm32mp_pwr_base() + PWR_CR11, PWR_CR11_DDRRETDIS);
@@ -269,6 +296,11 @@ static int sr_ssr_entry(void)
 	return ssr_entry(false);
 }
 
+static int stdby_sr_ssr_entry(void)
+{
+	return ssr_entry(true);
+}
+
 static int sr_ssr_exit(void)
 {
 	uintptr_t ddrctrl_base = stm32mp_ddrctrl_base();
@@ -284,12 +316,12 @@ static int sr_ssr_exit(void)
 	ddr_activate_controller((struct stm32mp_ddrctl *)ddrctrl_base, false);
 
 	/* Poll on ddrphy_initeng0_phyinlpx.phyinlp3 = 0 */
-	wait_lp3_mode(false);
+	ddr_wait_lp3_mode(false);
 
 	/* SW self refresh exit prequested */
 	mmio_clrbits_32(ddrctrl_base + DDRCTRL_PWRCTL, DDRCTRL_PWRCTL_SELFREF_SW);
 
-	if (sr_exit_loop() != 0) {
+	if (ddr_sr_exit_loop() != 0) {
 		return -1;
 	}
 
@@ -326,11 +358,21 @@ static int sr_hsr_set(void)
 	return 0;
 }
 
-static int sr_hsr_entry(void)
+static int hsr_entry(bool standby __unused)
 {
 	mmio_write_32(stm32mp_rcc_base() + RCC_DDRCPCFGR, RCC_DDRCPCFGR_DDRCPLPEN);
 
 	return sr_entry_loop(); /* read_data should be equal to 0x223 */
+}
+
+static int sr_hsr_entry(void)
+{
+	return hsr_entry(false);
+}
+
+static int stdby_sr_hsr_entry(void)
+{
+	return hsr_entry(true);
 }
 
 static int sr_hsr_exit(void)
@@ -338,7 +380,7 @@ static int sr_hsr_exit(void)
 	mmio_write_32(stm32mp_rcc_base() + RCC_DDRCPCFGR,
 		      RCC_DDRCPCFGR_DDRCPLPEN | RCC_DDRCPCFGR_DDRCPEN);
 
-	/* TODO: check if sr_exit_loop() is needed here */
+	/* TODO: check if ddr_sr_exit_loop() is needed here */
 
 	return 0;
 }
@@ -350,7 +392,7 @@ static int sr_asr_set(void)
 	return 0;
 }
 
-static int sr_asr_entry(void)
+static int asr_entry(bool standby __unused)
 {
 	/*
 	 * Automatically enter into self refresh when there is no ddr traffic
@@ -360,14 +402,24 @@ static int sr_asr_entry(void)
 	return sr_entry_loop();
 }
 
+static int sr_asr_entry(void)
+{
+	return asr_entry(false);
+}
+
+static int stdby_sr_asr_entry(void)
+{
+	return asr_entry(true);
+}
+
 static int sr_asr_exit(void)
 {
-	return sr_exit_loop();
+	return ddr_sr_exit_loop();
 }
 
 int ddr_sw_self_refresh_exit(void)
 {
-	int ret = -1;
+	int ret = -EINVAL;
 
 	switch (saved_ddr_sr_mode) {
 	case DDR_SSR_MODE:
@@ -393,9 +445,9 @@ uint32_t ddr_get_io_calibration_val(void)
 	return 0U;
 }
 
-int ddr_standby_sr_entry(void)
+int ddr_sr_entry(void)
 {
-	int ret = -1;
+	int ret = -EINVAL;
 
 	switch (saved_ddr_sr_mode) {
 	case DDR_SSR_MODE:
@@ -406,6 +458,27 @@ int ddr_standby_sr_entry(void)
 		break;
 	case DDR_ASR_MODE:
 		ret = sr_asr_entry();
+		break;
+	default:
+		break;
+	}
+
+	return ret;
+}
+
+int ddr_standby_sr_entry(void)
+{
+	int ret = -EINVAL;
+
+	switch (saved_ddr_sr_mode) {
+	case DDR_SSR_MODE:
+		ret = stdby_sr_ssr_entry();
+		break;
+	case DDR_HSR_MODE:
+		ret = stdby_sr_hsr_entry();
+		break;
+	case DDR_ASR_MODE:
+		ret = stdby_sr_asr_entry();
 		break;
 	default:
 		break;
@@ -439,7 +512,7 @@ enum stm32mp2_ddr_sr_mode ddr_read_sr_mode(void)
 
 void ddr_set_sr_mode(enum stm32mp2_ddr_sr_mode mode)
 {
-	int ret = -1;
+	int ret = -EINVAL;
 
 	if (mode == saved_ddr_sr_mode) {
 		return;

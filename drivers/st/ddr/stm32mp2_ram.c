@@ -126,10 +126,9 @@ static int stm32mp2_ddr_setup(void)
 
 	config.self_refresh = false;
 
-	/* TODO if (stm32mp1_is_wakeup_from_standby()) {
+	if (stm32mp_is_wakeup_from_standby()) {
 		config.self_refresh = true;
-		config.zdata = stm32_get_zdata_from_context();
-	}*/
+	}
 
 	/*  Map dynamically RETRAM area to save or restore PHY retention registers */
 	if (stm32mp_map_retram() != 0) {

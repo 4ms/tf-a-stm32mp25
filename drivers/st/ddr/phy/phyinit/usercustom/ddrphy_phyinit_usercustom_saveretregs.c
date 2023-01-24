@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -318,6 +318,11 @@ int ddrphy_phyinit_usercustom_saveretregs(void)
 		}
 #if STM32MP_LPDDR4_TYPE
 		ret = ddrphy_phyinit_trackreg(p_addr | TMASTER | CSR_HWTMRL_ADDR);
+		if (ret != 0) {
+			return ret;
+		}
+
+		ret = ddrphy_phyinit_trackreg(p_addr | TINITENG | CSR_SEQ0BDISABLEFLAG6_ADDR);
 		if (ret != 0) {
 			return ret;
 		}

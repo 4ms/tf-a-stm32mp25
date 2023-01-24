@@ -20,8 +20,11 @@ enum stm32mp2_ddr_sr_mode {
 };
 
 void ddr_activate_controller(struct stm32mp_ddrctl *ctl, bool sr_entry);
+void ddr_wait_lp3_mode(bool state);
+int ddr_sr_exit_loop(void);
 int ddr_sw_self_refresh_exit(void);
 uint32_t ddr_get_io_calibration_val(void);
+int ddr_sr_entry(void);
 int ddr_standby_sr_entry(void);
 enum stm32mp2_ddr_sr_mode ddr_read_sr_mode(void);
 void ddr_set_sr_mode(enum stm32mp2_ddr_sr_mode mode);

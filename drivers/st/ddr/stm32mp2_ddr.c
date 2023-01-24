@@ -242,6 +242,38 @@ static void ddr_reset(struct stm32mp_ddr_priv *priv)
 	udelay(DDR_DELAY_1US);
 }
 
+static void ddr_standby_reset(struct stm32mp_ddr_priv *priv)
+{
+	udelay(DDR_DELAY_1US);
+
+	mmio_write_32(priv->rcc + RCC_DDRCPCFGR,
+		      RCC_DDRCPCFGR_DDRCPEN | RCC_DDRCPCFGR_DDRCPLPEN | RCC_DDRCPCFGR_DDRCPRST);
+	mmio_write_32(priv->rcc + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRRST);
+	mmio_write_32(priv->rcc + RCC_DDRPHYCAPBCFGR,
+		      RCC_DDRPHYCAPBCFGR_DDRPHYCAPBEN | RCC_DDRPHYCAPBCFGR_DDRPHYCAPBLPEN |
+		      RCC_DDRPHYCAPBCFGR_DDRPHYCAPBRST);
+	mmio_write_32(priv->rcc + RCC_DDRCAPBCFGR,
+		      RCC_DDRCAPBCFGR_DDRCAPBEN | RCC_DDRCAPBCFGR_DDRCAPBLPEN |
+		      RCC_DDRCAPBCFGR_DDRCAPBRST);
+
+	mmio_clrbits_32(priv->rcc + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRPHYDLP);
+	mmio_setbits_32(priv->rcc + RCC_DDRPHYCCFGR, RCC_DDRPHYCCFGR_DDRPHYCEN);
+
+	udelay(DDR_DELAY_1US);
+}
+
+static void ddr_standby_reset_release(struct stm32mp_ddr_priv *priv)
+{
+	udelay(DDR_DELAY_1US);
+
+	mmio_write_32(priv->rcc + RCC_DDRCPCFGR, RCC_DDRCPCFGR_DDRCPEN | RCC_DDRCPCFGR_DDRCPLPEN);
+	mmio_write_32(priv->rcc + RCC_DDRITFCFGR, 0U);
+	mmio_clrbits_32(priv->rcc + RCC_DDRPHYCAPBCFGR, RCC_DDRPHYCAPBCFGR_DDRPHYCAPBRST);
+	mmio_write_32(priv->rcc + RCC_DDRCFGR, RCC_DDRCFGR_DDRCFGEN | RCC_DDRCFGR_DDRCFGLPEN);
+
+	udelay(DDR_DELAY_1US);
+}
+
 static void ddr_sysconf_configuration(struct stm32mp_ddr_priv *priv)
 {
 	mmio_write_32(stm32_ddrdbg_get_base() + DDRDBG_LP_DISABLE,
@@ -349,8 +381,7 @@ void stm32mp2_ddr_init(struct stm32mp_ddr_priv *priv,
 	}
 
 	/* Check DDR PHY pads retention */
-	ddr_retdis = mmio_read_32((uint32_t)(priv->pwr) + PWR_CR11) &
-		     PWR_CR11_DDRRETDIS;
+	ddr_retdis = mmio_read_32(priv->pwr + PWR_CR11) & PWR_CR11_DDRRETDIS;
 	if (config->self_refresh) {
 		if (ddr_retdis == PWR_CR11_DDRRETDIS) {
 			VERBOSE("self-refresh aborted: no retention\n");
@@ -358,32 +389,51 @@ void stm32mp2_ddr_init(struct stm32mp_ddr_priv *priv,
 		}
 	}
 
-	if (!config->self_refresh) {
+	if (config->self_refresh) {
+		ddr_standby_reset(priv);
+
 		VERBOSE("disable DDR PHY retention\n");
-		mmio_setbits_32((uint32_t)(priv->pwr) + PWR_CR11, PWR_CR11_DDRRETDIS);
+		mmio_setbits_32(priv->pwr + PWR_CR11, PWR_CR11_DDRRETDIS);
+
+		udelay(DDR_DELAY_1US);
+
+		mmio_clrbits_32(priv->rcc + RCC_DDRCAPBCFGR, RCC_DDRCAPBCFGR_DDRCAPBRST);
+
+		udelay(DDR_DELAY_1US);
+
+	} else {
+		VERBOSE("disable DDR PHY retention\n");
+		mmio_setbits_32(priv->pwr + PWR_CR11, PWR_CR11_DDRRETDIS);
+
+		ddr_reset(priv);
+
+		ddr_sysconf_configuration(priv);
 	}
-
-	ddr_reset(priv);
-
-	ddr_sysconf_configuration(priv);
 
 	stm32mp_ddr_set_reg(priv, REG_REG, &config->c_reg, ddr_registers);
 	stm32mp_ddr_set_reg(priv, REG_TIMING, &config->c_timing, ddr_registers);
 	stm32mp_ddr_set_reg(priv, REG_MAP, &config->c_map, ddr_registers);
 	stm32mp_ddr_set_reg(priv, REG_PERF, &config->c_perf, ddr_registers);
 
-	/*  DDR core and PHY reset de-assert */
-	mmio_clrbits_32(priv->rcc + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRRST);
+	if (!config->self_refresh) {
+		/*  DDR core and PHY reset de-assert */
+		mmio_clrbits_32(priv->rcc + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRRST);
 
-	disable_refresh(priv->ctl);
+		disable_refresh(priv->ctl);
+	}
 
-	if (false /* TODO stm32mp1_is_wakeup_from_standby() */) {
+	if (config->self_refresh) {
+		ddr_standby_reset_release(priv);
+
 		/* Initialize DDR by skipping training and disabling result saving */
 		ret = ddrphy_phyinit_sequence(true, false);
 
 		if (ret == 0) {
 			ret = ddrphy_phyinit_restore_sequence();
 		}
+
+		/* Poll on ddrphy_initeng0_phyinlpx.phyinlp3 = 0 */
+		ddr_wait_lp3_mode(false);
 	} else {
 		/* Initialize DDR including training and result saving */
 		ret = ddrphy_phyinit_sequence(false, true);
@@ -396,7 +446,22 @@ void stm32mp2_ddr_init(struct stm32mp_ddr_priv *priv,
 
 	ddr_activate_controller(priv->ctl, false);
 
-	restore_refresh(priv->ctl, config->c_reg.rfshctl3, config->c_reg.pwrctl);
+	if (config->self_refresh) {
+		struct stm32mp_ddrctl *ctl = priv->ctl;
+
+		/* SW self refresh exit prequested */
+		mmio_clrbits_32((uintptr_t)&ctl->pwrctl, DDRCTRL_PWRCTL_SELFREF_SW);
+
+		if (ddr_sr_exit_loop() != 0) {
+			ERROR("DDR Standby exit error\n");
+			panic();
+		}
+
+		/* Re-enable DFI low-power interface */
+		mmio_clrbits_32((uintptr_t)&ctl->dfilpcfg0, DDRCTRL_DFILPCFG0_DFI_LP_EN_SR);
+	} else {
+		restore_refresh(priv->ctl, config->c_reg.rfshctl3, config->c_reg.pwrctl);
+	}
 
 	stm32mp_ddr_enable_axi_port(priv->ctl);
 }
