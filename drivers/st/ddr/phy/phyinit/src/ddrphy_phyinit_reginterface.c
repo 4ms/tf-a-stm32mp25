@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -38,10 +38,14 @@
  * Array of Address/value pairs used to store register values for the purpose
  * of retention restore.
  */
-static reg_addr_val_t retreglist[MAX_NUM_RET_REGS];
+#define RETREG_AREA	((MAX_NUM_RET_REGS + 1) * sizeof(reg_addr_val_t))
+#define RETREG_BASE	(RETRAM_BASE + RETRAM_SIZE - RETREG_AREA)
 
-static int numregsaved;        /* Current Number of registers saved. */
-static int tracken = 1;        /* Enabled tracking of registers */
+static int *retregsize = (int *)(RETREG_BASE);
+static reg_addr_val_t *retreglist = (reg_addr_val_t *)(RETREG_BASE + sizeof(int));
+
+static int numregsaved; /* Current Number of registers saved. */
+static int tracken = 1; /* Enabled tracking of registers */
 
 /*
  * Tags a register if tracking is enabled in the register
@@ -134,6 +138,8 @@ int ddrphy_phyinit_reginterface(reginstr myreginstr, uint32_t adr, uint16_t dat)
 			retreglist[regindx].value = data;
 		}
 
+		*retregsize = numregsaved;
+
 		return 0;
 	} else if (myreginstr == restoreregs) {
 		int regindx;
@@ -142,7 +148,7 @@ int ddrphy_phyinit_reginterface(reginstr myreginstr, uint32_t adr, uint16_t dat)
 		 * write PHY registers based on Address, Data value pairs stores in
 		 * retreglist
 		 */
-		for (regindx = 0; regindx < numregsaved; regindx++) {
+		for (regindx = 0; regindx < *retregsize; regindx++) {
 			mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * retreglist[regindx].address),
 				      retreglist[regindx].value);
 		}
