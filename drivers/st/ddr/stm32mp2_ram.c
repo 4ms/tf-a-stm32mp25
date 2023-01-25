@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: GPL-2.0+ OR BSD-3-Clause
  */
@@ -131,7 +131,17 @@ static int stm32mp2_ddr_setup(void)
 		config.zdata = stm32_get_zdata_from_context();
 	}*/
 
+	/*  Map dynamically RETRAM area to save or restore PHY retention registers */
+	if (stm32mp_map_retram() != 0) {
+		panic();
+	}
+
 	stm32mp2_ddr_init(priv, &config);
+
+	/*  Unmap RETRAM, no more used until next DDR initialization call */
+	if (stm32mp_unmap_retram() != 0) {
+		panic();
+	}
 
 	priv->info.size = config.info.size;
 
