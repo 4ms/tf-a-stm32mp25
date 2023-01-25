@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -255,6 +255,30 @@ static void ddr_sysconf_configuration(struct stm32mp_ddr_priv *priv)
 	udelay(DDR_DELAY_1US);
 }
 
+static void set_dfi_init_complete_en(struct stm32mp_ddrctl *ctl, bool phy_init_done)
+{
+	/*
+	 * Manage quasi-dynamic registers modification
+	 * dfimisc.dfi_init_complete_en : Group 3
+	 */
+	stm32mp_ddr_set_qd3_update_conditions(ctl);
+
+	udelay(DDR_DELAY_1US);
+
+	if (phy_init_done) {
+		/* Indicates to controller that PHY has completed initialization */
+		mmio_setbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_INIT_COMPLETE_EN);
+	} else {
+		/* PHY not initialized yet, wait for completion */
+		mmio_clrbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_INIT_COMPLETE_EN);
+	}
+
+	udelay(DDR_DELAY_1US);
+
+	stm32mp_ddr_unset_qd3_update_conditions(ctl);
+
+}
+
 static void disable_refresh(struct stm32mp_ddrctl *ctl)
 {
 	mmio_setbits_32((uintptr_t)&ctl->rfshctl3, DDRCTRL_RFSHCTL3_DIS_AUTO_REFRESH);
@@ -268,30 +292,32 @@ static void disable_refresh(struct stm32mp_ddrctl *ctl)
 
 	udelay(DDR_DELAY_1US);
 
-	/*
-	 * manage quasi-dynamic registers modification
-	 * dfimisc.dfi_init_complete_en : Group 3
-	 */
-	stm32mp_ddr_set_qd3_update_conditions(ctl);
-
-	udelay(DDR_DELAY_1US);
-
-	mmio_clrbits_32((uintptr_t)&ctl->dfimisc, DDRCTRL_DFIMISC_DFI_INIT_COMPLETE_EN);
-
-	udelay(DDR_DELAY_1US);
-
-	stm32mp_ddr_unset_qd3_update_conditions(ctl);
+	set_dfi_init_complete_en(ctl, false);
 }
 
-static void enable_refresh(struct stm32mp_ddrctl *ctl)
+static void restore_refresh(struct stm32mp_ddrctl *ctl, uint32_t rfshctl3, uint32_t pwrctl)
 {
-	mmio_clrbits_32((uintptr_t)&ctl->pwrctl, DDRCTRL_PWRCTL_SELFREF_SW);
+	if ((rfshctl3 & DDRCTRL_RFSHCTL3_DIS_AUTO_REFRESH) == 0U) {
+		mmio_clrbits_32((uintptr_t)&ctl->rfshctl3, DDRCTRL_RFSHCTL3_DIS_AUTO_REFRESH);
 
-	udelay(DDR_DELAY_1US);
+		stm32mp_ddr_wait_refresh_update_done_ack(ctl);
 
-	mmio_clrbits_32((uintptr_t)&ctl->rfshctl3, DDRCTRL_RFSHCTL3_DIS_AUTO_REFRESH);
+		udelay(DDR_DELAY_1US);
+	}
 
-	stm32mp_ddr_wait_refresh_update_done_ack(ctl);
+	if ((pwrctl & DDRCTRL_PWRCTL_POWERDOWN_EN) != 0U) {
+		mmio_setbits_32((uintptr_t)&ctl->pwrctl, DDRCTRL_PWRCTL_POWERDOWN_EN);
+
+		udelay(DDR_DELAY_1US);
+	}
+
+	if ((pwrctl & DDRCTRL_PWRCTL_SELFREF_EN) != 0U) {
+		mmio_setbits_32((uintptr_t)&ctl->pwrctl, DDRCTRL_PWRCTL_SELFREF_EN);
+
+		udelay(DDR_DELAY_1US);
+	}
+
+	set_dfi_init_complete_en(ctl, true);
 }
 
 static void wait_dfi_init_complete(struct stm32mp_ddrctl *ctl)
@@ -408,7 +434,7 @@ void stm32mp2_ddr_init(struct stm32mp_ddr_priv *priv,
 
 	activate_controller(priv->ctl);
 
-	enable_refresh(priv->ctl);
+	restore_refresh(priv->ctl, config->c_reg.rfshctl3, config->c_reg.pwrctl);
 
 	stm32mp_ddr_enable_axi_port(priv->ctl);
 }
