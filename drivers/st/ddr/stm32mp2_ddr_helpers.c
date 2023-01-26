@@ -317,6 +317,8 @@ void ddr_set_sr_mode(enum stm32mp2_ddr_sr_mode mode)
 		ERROR("Unknown Self Refresh mode\n");
 		panic();
 	}
+
+	saved_ddr_sr_mode = mode;
 }
 
 void ddr_save_sr_mode(void)
