@@ -413,6 +413,12 @@ bool stm32mp_skip_boot_device_after_standby(void)
 	return false;
 }
 
+bool stm32mp_is_wakeup_from_standby(void)
+{
+	/* TODO add source code to determine if platform is waking up from standby mode */
+	return false;
+}
+
 int stm32_risaf_get_instance(uintptr_t base)
 {
 	switch (base) {
