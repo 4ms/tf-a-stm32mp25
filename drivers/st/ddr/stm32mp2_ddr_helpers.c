@@ -417,27 +417,6 @@ static int sr_asr_exit(void)
 	return ddr_sr_exit_loop();
 }
 
-int ddr_sw_self_refresh_exit(void)
-{
-	int ret = -EINVAL;
-
-	switch (saved_ddr_sr_mode) {
-	case DDR_SSR_MODE:
-		ret = sr_ssr_exit();
-		break;
-	case DDR_HSR_MODE:
-		ret = sr_hsr_exit();
-		break;
-	case DDR_ASR_MODE:
-		ret = sr_asr_exit();
-		break;
-	default:
-		break;
-	}
-
-	return ret;
-}
-
 uint32_t ddr_get_io_calibration_val(void)
 {
 	/* TODO create related service */
@@ -458,6 +437,27 @@ int ddr_sr_entry(void)
 		break;
 	case DDR_ASR_MODE:
 		ret = sr_asr_entry();
+		break;
+	default:
+		break;
+	}
+
+	return ret;
+}
+
+int ddr_sr_exit(void)
+{
+	int ret = -EINVAL;
+
+	switch (saved_ddr_sr_mode) {
+	case DDR_SSR_MODE:
+		ret = sr_ssr_exit();
+		break;
+	case DDR_HSR_MODE:
+		ret = sr_hsr_exit();
+		break;
+	case DDR_ASR_MODE:
+		ret = sr_asr_exit();
 		break;
 	default:
 		break;
