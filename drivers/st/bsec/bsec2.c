@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2017-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -877,7 +877,7 @@ uint32_t bsec_get_secure_state(void)
 		result = BSEC_STATE_INVALID;
 	} else {
 		if ((status & BSEC_OTP_STATUS_SECURE) != 0U) {
-			if (stm32mp_is_closed_device()) {
+			if (stm32mp_check_closed_device() == STM32MP_CHIP_SEC_CLOSED) {
 				result = BSEC_STATE_SEC_CLOSED;
 			} else {
 				result = BSEC_STATE_SEC_OPEN;

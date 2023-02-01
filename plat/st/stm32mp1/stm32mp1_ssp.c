@@ -1026,7 +1026,7 @@ void bl2_el3_plat_arch_setup(void)
 
 skip_console_init:
 #endif
-	if (stm32mp_is_closed_device()) {
+	if (stm32mp_check_closed_device() == STM32MP_CHIP_SEC_CLOSED) {
 		/* Closed chip required authentication */
 		ERROR("SSP not supported on closed chip\n");
 		panic();

@@ -348,7 +348,7 @@ void bl2_el3_plat_arch_setup(void)
 
 skip_console_init:
 #if !TRUSTED_BOARD_BOOT
-	if (stm32mp_is_closed_device()) {
+	if (stm32mp_check_closed_device() == STM32MP_CHIP_SEC_CLOSED) {
 		/* Closed chip mandates authentication */
 		ERROR("Secure chip: TRUSTED_BOARD_BOOT must be enabled\n");
 		panic();
@@ -384,7 +384,7 @@ skip_console_init:
 	stm32_iwdg_refresh();
 
 	if (bsec_read_debug_conf() != 0U) {
-		if (stm32mp_is_closed_device()) {
+		if (stm32mp_check_closed_device() == STM32MP_CHIP_SEC_CLOSED) {
 #if DEBUG
 			WARN("\n%s", debug_msg);
 #else
@@ -478,7 +478,8 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 	switch (image_id) {
 	case FW_CONFIG_ID:
 #if STM32MP13
-		if (stm32mp_is_closed_device() || stm32mp_is_auth_supported()) {
+		if ((stm32mp_check_closed_device() == STM32MP_CHIP_SEC_CLOSED) ||
+		    stm32mp_is_auth_supported()) {
 			prepare_encryption();
 		}
 #endif

@@ -338,9 +338,9 @@ bool stm32mp_is_single_core(void)
 }
 
 /* Return true when device is in closed state */
-bool stm32mp_is_closed_device(void)
+uint32_t stm32mp_check_closed_device(void)
 {
-	return false;
+	return STM32MP_CHIP_SEC_OPEN;
 }
 
 /* Return true when device supports secure boot */

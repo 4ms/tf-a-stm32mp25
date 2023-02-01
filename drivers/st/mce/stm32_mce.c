@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2020-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -382,7 +382,8 @@ static int fconf_populate_mce(uintptr_t config)
 	/* Check the node offset point to "st,mem-encrypt" compatible property */
 	const char *compatible_str = "st,mem-encrypt";
 
-	if (!stm32mp_is_closed_device() && !stm32mp_is_auth_supported()) {
+	if ((stm32mp_check_closed_device() == STM32MP_CHIP_SEC_OPEN) &&
+	    !stm32mp_is_auth_supported()) {
 		return 0;
 	}
 
