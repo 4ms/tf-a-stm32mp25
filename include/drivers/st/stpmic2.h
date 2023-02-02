@@ -145,6 +145,9 @@ enum {
 #define INT_DBG_LATCH_R2	0x81
 #define INT_DBG_LATCH_R3	0x82
 #define INT_DBG_LATCH_R4	0x83
+/* NVM SHADOW REGISTERS */
+#define NVM_LDOS_IOUT_SHR	0xAE
+#define LDO5_ILIM_SHIFT		2
 
 /* BUCKS_MRST_CR bits definition */
 #define BUCK1_MRST		BIT(0)

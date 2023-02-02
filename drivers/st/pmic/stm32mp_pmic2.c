@@ -479,4 +479,16 @@ void initialize_pmic(void)
 #if EVENT_LOG_LEVEL == LOG_LEVEL_VERBOSE
 	stpmic2_dump_regulators(pmic2);
 #endif
+
+	/* set LDO5 current limit to 200mA */
+	if (stpmic2_register_read(pmic2, NVM_LDOS_IOUT_SHR, &val) != 0) {
+		panic();
+	}
+
+	val |= 2U << LDO5_ILIM_SHIFT;
+
+	if (stpmic2_register_write(pmic2, NVM_LDOS_IOUT_SHR, val) != 0) {
+		panic();
+	}
+
 }
