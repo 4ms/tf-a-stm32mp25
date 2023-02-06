@@ -293,6 +293,16 @@ skip_console_init:
 #endif /* STM32MP_USB_PROGRAMMER */
 #endif /* STM32MP_USB_PROGRAMMER || TRUSTED_BOARD_BOOT */
 
+	/*
+	 * RISAB5 setup (dedicated for RETRAM)
+	 *
+	 * Allow secure read/writes data accesses to non-secure
+	 * blocks or pages, all RISAB registers are writable.
+	 * DDR retention registers are saved there and restored
+	 * when exiting standby low power state.
+	 */
+	mmio_write_32(RISAB5_BASE + RISAB_CR, RISAB_CR_SRWIAD);
+
 	if (stm32mp2_pwr_init_io_domains() != 0) {
 		panic();
 	}

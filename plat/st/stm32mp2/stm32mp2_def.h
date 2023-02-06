@@ -70,6 +70,8 @@
 #define SRAM1_SIZE			U(0x00020000)
 #define SRAM2_BASE			U(0x0E060000)
 #define SRAM2_SIZE			U(0x00020000)
+#define RETRAM_BASE			U(0x0E080000)
+#define RETRAM_SIZE			U(0x00020000)
 #define STM32MP_BACKUP_RAM_BASE		U(0x42000000)
 
 /* the first 4KB of SRAM1 are reserved are for BSEC shadow */
