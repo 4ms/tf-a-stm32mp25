@@ -76,6 +76,43 @@
 		};
 	};
 
+	domain-idle-states {
+		stop1 {
+			compatible = "domain-idle-state";
+			arm,psci-suspend-param = <0x00000011>;
+		};
+
+		stop2 {
+			compatible = "domain-idle-state";
+			arm,psci-suspend-param = <0x40001333>;
+		};
+
+		lp-stop1 {
+			compatible = "domain-idle-state";
+			arm,psci-suspend-param = <0x00000021>;
+		};
+
+		lp-stop2 {
+			compatible = "domain-idle-state";
+			arm,psci-suspend-param = <0x40002333>;
+		};
+
+		lplv-stop1 {
+			compatible = "domain-idle-state";
+			arm,psci-suspend-param = <0x00000211>;
+		};
+
+		lplv-stop2 {
+			compatible = "domain-idle-state";
+			arm,psci-suspend-param = <0x40023333>;
+		};
+
+		standby {
+			compatible = "domain-idle-state";
+			arm,psci-suspend-param = <0x40033333>;
+		};
+	};
+
 	soc@0 {
 		compatible = "simple-bus";
 		#address-cells = <1>;

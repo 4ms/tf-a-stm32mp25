@@ -24,17 +24,31 @@
 #define STM32MP_PRIMARY_CPU		U(0x0)
 #define STM32MP_SECONDARY_CPU		U(0x1)
 
-#define PLATFORM_CLUSTER_COUNT		U(1)
-#define PLATFORM_CLUSTER0_CORE_COUNT	U(2)
-#define PLATFORM_CLUSTER1_CORE_COUNT	U(0)
-#define PLATFORM_CORE_COUNT		(PLATFORM_CLUSTER1_CORE_COUNT + \
-					 PLATFORM_CLUSTER0_CORE_COUNT)
-#define PLATFORM_MAX_CPUS_PER_CLUSTER	2
-
 #define MAX_IO_DEVICES			U(4)
 #define MAX_IO_HANDLES			U(4)
 #define MAX_IO_BLOCK_DEVICES		U(1)
 #define MAX_IO_MTD_DEVICES		U(1)
+
+#define PLATFORM_CLUSTER_COUNT		U(1)
+#define PLATFORM_CORE_COUNT		U(2)
+#define PLATFORM_MAX_CPUS_PER_CLUSTER	U(2)
+
+#define PLAT_MAX_PWR_LVL		U(4)
+#define PLAT_NUM_PWR_DOMAINS		U(7)
+
+/* Local power state for power domains in Run state. */
+#define STM32MP_LOCAL_STATE_RUN		U(0)
+/* Local power state for retention. */
+#define STM32MP_LOCAL_STATE_RET		U(1)
+#define STM32MP_LOCAL_STATE_LP		U(2)
+#define PLAT_MAX_RET_STATE		STM32MP_LOCAL_STATE_LP
+/* Local power state for OFF/power-down. */
+#define STM32MP_LOCAL_STATE_OFF		U(3)
+#define PLAT_MAX_OFF_STATE		STM32MP_LOCAL_STATE_OFF
+
+/* Macros to parse the state information from State-ID (recommended encoding) */
+#define PLAT_LOCAL_PSTATE_WIDTH		U(4)
+#define PLAT_LOCAL_PSTATE_MASK		GENMASK(PLAT_LOCAL_PSTATE_WIDTH - 1U, 0)
 
 /*******************************************************************************
  * BL2 specific defines.
@@ -168,27 +182,5 @@
 	INTR_PROP_DESC(ARM_IRQ_SEC_SGI_6,		\
 		       GIC_HIGHEST_SEC_PRIORITY,	\
 		       (grp), GIC_INTR_CFG_EDGE)
-
-/*
- * Power
- */
-#define PLAT_MAX_PWR_LVL	U(1)
-
-/* Local power state for power domains in Run state. */
-#define ARM_LOCAL_STATE_RUN	U(0)
-/* Local power state for retention. Valid only for CPU power domains */
-#define ARM_LOCAL_STATE_RET	U(1)
-/* Local power state for power-down. Valid for CPU and cluster power domains */
-#define ARM_LOCAL_STATE_OFF	U(2)
-/*
- * This macro defines the deepest retention state possible.
- * A higher state id will represent an invalid or a power down state.
- */
-#define PLAT_MAX_RET_STATE		ARM_LOCAL_STATE_RET
-/*
- * This macro defines the deepest power down states possible. Any state ID
- * higher than this is invalid.
- */
-#define PLAT_MAX_OFF_STATE		ARM_LOCAL_STATE_OFF
 
 #endif /* PLATFORM_DEF_H */
