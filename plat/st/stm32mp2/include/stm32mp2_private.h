@@ -15,6 +15,10 @@ void stm32mp2_security_setup(void);
 uint32_t stm32mp2_syscfg_get_chip_version(void);
 uint32_t stm32mp2_syscfg_get_chip_dev_id(void);
 size_t stm32mp2_syscfg_get_mm_size(uint8_t bank);
+int stm32mp2_syscfg_dlyb_init(uint8_t bank, bool bypass_mode,
+			      uint16_t period_ps);
+int stm32mp2_syscfg_dlyb_find_tap(uint8_t bank, int (*check_transfer)(void),
+				  bool rx_only);
 
 /* IO compensation identifiers */
 enum syscfg_io_ids {
