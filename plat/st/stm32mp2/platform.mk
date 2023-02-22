@@ -159,6 +159,10 @@ $(eval $(call add_defines,\
 		STM32MP25 \
 )))
 
+# STM32MP2x is based on Cortex-A35, which is Armv8.0, and does not support BTI
+# Disable mbranch-protection to avoid adding useless code
+TF_CFLAGS		+=	-mbranch-protection=none
+
 # Include paths and source files
 PLAT_INCLUDES		+=	-Iplat/st/stm32mp2/include/
 PLAT_INCLUDES		+=	-Idrivers/st/ddr/phy/phyinit/include/
