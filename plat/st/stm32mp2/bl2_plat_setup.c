@@ -112,7 +112,7 @@ static void print_reset_reason(void)
 	}
 
 	if ((rstsr & RCC_C1BOOTRSTSCLRR_C1P1RSTF) != 0U) {
-		INFO("  A35 processor 1 reset\n");
+		INFO("  A35 processor core 1 reset\n");
 		return;
 	}
 
@@ -123,6 +123,11 @@ static void print_reset_reason(void)
 
 	if ((rstsr & RCC_C1BOOTRSTSCLRR_VCORERSTF) != 0U) {
 		INFO("  Reset due to a failure of VDD_CORE\n");
+		return;
+	}
+
+	if ((rstsr & RCC_C1BOOTRSTSCLRR_C1RSTF) != 0U) {
+		INFO("  A35 processor reset\n");
 		return;
 	}
 
