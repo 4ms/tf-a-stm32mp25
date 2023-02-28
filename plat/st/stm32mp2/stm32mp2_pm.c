@@ -11,6 +11,7 @@
 #include <common/debug.h>
 #include <drivers/arm/gic_common.h>
 #include <drivers/arm/gicv2.h>
+#include <drivers/st/stm32mp_clkfunc.h>
 #include <drivers/st/stm32mp_reset.h>
 #include <lib/mmio.h>
 #include <lib/psci/psci.h>
@@ -23,8 +24,8 @@
 
 #define CA35SS_SYSCFG_VBAR_CR	0x2084U
 
-static uintptr_t stm32_sec_entrypoint;
-static u_register_t cntfrq_core0;
+static volatile uint32_t stm32mp_core0_go;
+static uintptr_t stm32_core0_entrypoint;
 
 /*******************************************************************************
  * STM32MP2 handler called when a CPU is about to enter standby.
@@ -63,24 +64,24 @@ static void stm32_cpu_standby(plat_local_state_t cpu_state)
  ******************************************************************************/
 static int stm32_pwr_domain_on(u_register_t mpidr)
 {
-	unsigned long current_cpu_mpidr = read_mpidr();
+	unsigned int core_id = MPIDR_AFFLVL0_VAL(mpidr);
 
 	if (stm32mp_is_single_core()) {
 		return PSCI_E_INTERN_FAIL;
 	}
 
-	if (mpidr == current_cpu_mpidr) {
-		return PSCI_E_INVALID_PARAMS;
+	if (core_id == STM32MP_PRIMARY_CPU) {
+		/* Cortex-A35 core0 can't be turned OFF, emulate it with a WFE loop */
+		VERBOSE("BL31: Releasing core0 from wait loop...\n");
+		stm32mp_core0_go = 1U;
+		flush_dcache_range((uintptr_t)&stm32mp_core0_go, sizeof(stm32mp_core0_go));
+		dsb();
+		isb();
+		sev();
+	} else {
+		/* Reset the secondary core */
+		mmio_write_32(RCC_BASE + RCC_C1P1RSTCSETR, RCC_C1P1RSTCSETR_C1P1PORRST);
 	}
-
-	cntfrq_core0 = read_cntfrq_el0();
-	flush_dcache_range((uintptr_t)&cntfrq_core0, sizeof(u_register_t));
-
-	/* Set CA35SS_SYSCFG VBAR address to secure entrypoint */
-	mmio_write_32(A35SSC_BASE + CA35SS_SYSCFG_VBAR_CR, stm32_sec_entrypoint);
-
-	/* Reset CPU1 */
-	mmio_write_32(RCC_BASE + RCC_C1P1RSTCSETR, RCC_C1P1RSTCSETR_C1P1PORRST);
 
 	return PSCI_E_SUCCESS;
 }
@@ -103,9 +104,20 @@ static void stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
  ******************************************************************************/
 static void stm32_pwr_domain_on_finish(const psci_power_state_t *target_state)
 {
-	stm32mp_gic_pcpu_init();
+	unsigned long mpidr = read_mpidr();
+	unsigned int core_id = MPIDR_AFFLVL0_VAL(mpidr);
 
-	write_cntfrq_el0(cntfrq_core0);
+	if (core_id == STM32MP_PRIMARY_CPU) {
+		stm32mp_core0_go = 0U;
+		flush_dcache_range((uintptr_t)&stm32mp_core0_go, sizeof(stm32mp_core0_go));
+		dsb();
+		isb();
+	} else {
+		/* restore generic timer after reset */
+		stm32mp_stgen_restore_rate();
+	}
+
+	stm32mp_gic_pcpu_init();
 }
 
 /*******************************************************************************
@@ -122,6 +134,25 @@ static void stm32_pwr_domain_suspend_finish(const psci_power_state_t
 static void __dead2 stm32_pwr_domain_pwr_down_wfi(const psci_power_state_t
 						  *target_state)
 {
+	unsigned long mpidr = read_mpidr();
+	unsigned int core_id = MPIDR_AFFLVL0_VAL(mpidr);
+
+	/* core 0 can't be turned OFF, emulate it with a WFE loop */
+	if (core_id == STM32MP_PRIMARY_CPU) {
+		VERBOSE("BL31: core0 entering wait loop...\n");
+
+		while (stm32mp_core0_go == 0U) {
+			wfe();
+		}
+
+		VERBOSE("BL31: core0 resumed.\n");
+		dsbsy();
+
+		/* jump manually to entry point, with mmu disabled. */
+		disable_mmu_el3();
+		((void(*)(void))stm32_core0_entrypoint)();
+	}
+
 	/*
 	 * Synchronize on memory accesses and instruction flow before
 	 * auto-reset from the WFI instruction.
@@ -230,7 +261,13 @@ static const plat_psci_ops_t stm32_psci_ops = {
 int plat_setup_psci_ops(uintptr_t sec_entrypoint,
 			const plat_psci_ops_t **psci_ops)
 {
-	stm32_sec_entrypoint = sec_entrypoint;
+	/* Program secondary CPU entry points. */
+	mmio_write_32(A35SSC_BASE + CA35SS_SYSCFG_VBAR_CR, sec_entrypoint);
+
+	/* core 0 can't be turned OFF, emulate it with a WFE loop */
+	stm32mp_core0_go = 0U;
+	stm32_core0_entrypoint = sec_entrypoint;
+
 	*psci_ops = &stm32_psci_ops;
 
 	return 0;
