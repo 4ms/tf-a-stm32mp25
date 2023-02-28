@@ -88,12 +88,14 @@ static int stm32_pwr_domain_on(u_register_t mpidr)
 
 static void stm32_pwr_domain_off(const psci_power_state_t *target_state)
 {
-	/* Nothing to do */
+	/* Prevent interrupts from spuriously waking up this cpu */
+	stm32mp_gic_cpuif_disable();
 }
 
 static void stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 {
-	/* Nothing to do, power domain is not disabled */
+	/* Prevent interrupts from spuriously waking up this cpu */
+	stm32mp_gic_cpuif_disable();
 }
 
 /*******************************************************************************
@@ -118,6 +120,7 @@ static void stm32_pwr_domain_on_finish(const psci_power_state_t *target_state)
 	}
 
 	stm32mp_gic_pcpu_init();
+	stm32mp_gic_cpuif_enable();
 }
 
 /*******************************************************************************
@@ -128,7 +131,7 @@ static void stm32_pwr_domain_on_finish(const psci_power_state_t *target_state)
 static void stm32_pwr_domain_suspend_finish(const psci_power_state_t
 					    *target_state)
 {
-	/* Nothing to do, power domain is not disabled */
+	stm32mp_gic_cpuif_enable();
 }
 
 static void __dead2 stm32_pwr_domain_pwr_down_wfi(const psci_power_state_t
