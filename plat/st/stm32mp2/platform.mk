@@ -8,6 +8,7 @@ include plat/st/common/common.mk
 
 CRASH_REPORTING		:=	1
 ENABLE_PIE		:=	1
+PROGRAMMABLE_RESET_ADDRESS := 1
 
 # Default Device tree
 DTB_FILE_NAME		?=	stm32mp257f-ev.dtb

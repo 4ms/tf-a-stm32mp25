@@ -12,7 +12,6 @@
 #define GPIO_TX_SHIFT		(DEBUG_UART_TX_GPIO_PORT << 1)
 
 	.globl	platform_mem_init
-	.globl	plat_get_my_entrypoint
 	.globl	plat_secondary_cold_boot_setup
 	.globl	plat_is_my_cpu_primary
 	.globl	plat_my_core_pos
@@ -26,19 +25,6 @@ func platform_mem_init
 	ret
 endfunc platform_mem_init
 
-	/* ------------------------------------------------------------------
-	 * unsigned long plat_get_my_entrypoint (void);
-	 *
-	 * Main job of this routine is to distinguish between a cold and warm
-	 * boot.
-	 *
-	 * Currently supports only cold boot
-	 * ------------------------------------------------------------------
-	 */
-func plat_get_my_entrypoint
-	mov	x0, #0
-	ret
-endfunc plat_get_my_entrypoint
 
 	/* ---------------------------------------------
 	 * void plat_secondary_cold_boot_setup (void);
