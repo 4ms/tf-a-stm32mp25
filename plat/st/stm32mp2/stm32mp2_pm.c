@@ -25,7 +25,6 @@
 
 static uintptr_t stm32_sec_entrypoint;
 static u_register_t cntfrq_core0;
-static uintptr_t saved_entrypoint;
 
 /*******************************************************************************
  * STM32MP2 handler called when a CPU is about to enter standby.
@@ -177,8 +176,6 @@ static int stm32_validate_ns_entrypoint(uintptr_t entrypoint)
 	if (entrypoint < STM32MP_DDR_BASE) {
 		return PSCI_E_INVALID_ADDRESS;
 	}
-
-	saved_entrypoint = entrypoint;
 
 	return PSCI_E_SUCCESS;
 }
