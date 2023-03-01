@@ -19,6 +19,7 @@
 #include <drivers/st/regulator.h>
 #include <drivers/st/regulator_fixed.h>
 #include <drivers/st/stm32_console.h>
+#include <drivers/st/stm32_rng.h>
 #include <drivers/st/stm32mp_pmic2.h>
 #include <drivers/st/stm32mp_reset.h>
 #include <drivers/st/stm32mp_rifsc_regs.h>
@@ -35,6 +36,7 @@
 #include <platform_def.h>
 #include <stm32mp_common.h>
 #include <stm32mp_dt.h>
+#include <stm32mp2_context.h>
 
 #if CONFIG_STM32MP25X_REVA
 #define BOOT_CTX_ADDR	0x0e000000UL /* beginning of SYSRAM */
@@ -264,6 +266,10 @@ skip_console_init:
 	}
 #endif
 
+	if (stm32_rng_init() != 0) {
+		panic();
+	}
+
 	if (fixed_regulator_register() != 0) {
 		panic();
 	}
@@ -318,9 +324,18 @@ skip_console_init:
 
 static void prepare_encryption(void)
 {
-	/* TODO use random generator to create key */
-	uint8_t mkey[RISAF_KEY_SIZE_IN_BYTES] = { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
-						  0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF };
+	uint8_t mkey[RISAF_KEY_SIZE_IN_BYTES];
+
+	if (stm32mp_is_wakeup_from_standby()) {
+		stm32mp_pm_get_enc_mkey_from_context(mkey);
+	} else {
+		/* Generate RISAF master key from RNG */
+		if (stm32_rng_read(mkey, RISAF_KEY_SIZE_IN_BYTES) != 0) {
+			panic();
+		}
+
+		stm32mp_pm_save_enc_mkey_in_context(mkey);
+	}
 
 	if (stm32mp2_risaf_write_master_key(RISAF4_INST, mkey) != 0) {
 		panic();
