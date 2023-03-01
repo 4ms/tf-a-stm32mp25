@@ -214,26 +214,6 @@ static int stm32_validate_ns_entrypoint(uintptr_t entrypoint)
 	return PSCI_E_SUCCESS;
 }
 
-static int stm32_node_hw_state(u_register_t target_cpu,
-			       unsigned int power_level)
-{
-	/*
-	 * The format of 'power_level' is implementation-defined, but 0 must
-	 * mean a CPU. Only allow level 0.
-	 */
-	if (power_level != MPIDR_AFFLVL0) {
-		return PSCI_E_INVALID_PARAMS;
-	}
-
-	/*
-	 * From psci view the CPU 0 is always ON,
-	 * CPU 1 can be SUSPEND or RUNNING.
-	 * Therefore do not manage POWER OFF state and always return HW_ON.
-	 */
-
-	return (int)HW_ON;
-}
-
 static void stm32_get_sys_suspend_power_state(psci_power_state_t *req_state)
 {
 }
@@ -254,7 +234,6 @@ static const plat_psci_ops_t stm32_psci_ops = {
 	.system_reset = stm32_system_reset,
 	.validate_power_state = stm32_validate_power_state,
 	.validate_ns_entrypoint = stm32_validate_ns_entrypoint,
-	.get_node_hw_state = stm32_node_hw_state,
 	.get_sys_suspend_power_state = stm32_get_sys_suspend_power_state,
 };
 
