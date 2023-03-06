@@ -10,6 +10,7 @@
 
 #include <arch_helpers.h>
 #include <common/debug.h>
+#include <drivers/clk.h>
 #include <drivers/delay_timer.h>
 #include <drivers/st/stm32mp2_risaf.h>
 #include <dt-bindings/soc/rif.h>
@@ -94,8 +95,8 @@
 #define DT_RISAF_WRITE_MASK		GENMASK_32(31, 24)
 
 /* RISAF max properties */
-#define RISAF_REGION_DT_PARAM		3
-#define RISAF_REGION_DT_SIZE		(RISAF_REGION_DT_PARAM * sizeof(uint32_t))
+#define RISAF_REGION_REG_SIZE		(4 * sizeof(uint32_t))
+#define RISAF_REGION_PROTREG_SIZE	(1 * sizeof(uint32_t))
 #define RISAF_TIMEOUT_1MS_IN_US		U(1000)
 
 #pragma weak stm32_risaf_get_instance
@@ -103,27 +104,24 @@
 #pragma weak stm32_risaf_get_max_region
 #pragma weak stm32_risaf_get_memory_base
 #pragma weak stm32_risaf_get_memory_size
-#pragma weak stm32_risaf_preconf_process
-#pragma weak stm32_risaf_postconf_process
 
 struct stm32mp2_risaf_region {
 	int instance;
 	uint32_t cfg;
-	uint32_t addr;
-	uint32_t len;
+	uintptr_t addr;
+	size_t len;
 };
 
 struct stm32mp2_risaf_platdata {
 	uintptr_t *base;
+	unsigned long *clock;
+	uint32_t *granularity;
 	struct stm32mp2_risaf_region *region;
 	int nregions;
 };
 
-struct risaf_dt_id_attr {
-	fdt32_t id_attr[RISAF_MAX_REGION * RISAF_REGION_DT_PARAM];
-};
-
 static struct stm32mp2_risaf_platdata stm32mp2_risaf;
+static int region_per_instance[RISAF_MAX_INSTANCE];
 
 int stm32_risaf_get_instance(uintptr_t base)
 {
@@ -150,14 +148,6 @@ size_t stm32_risaf_get_memory_size(int instance)
 	return 0U;
 }
 
-void stm32_risaf_preconf_process(uint32_t inst_mask)
-{
-}
-
-void stm32_risaf_postconf_process(uint32_t inst_mask)
-{
-}
-
 #if ENABLE_ASSERTIONS
 static bool valid_protreg_id(int instance, uint32_t id)
 {
@@ -181,42 +171,75 @@ static bool risaf_is_hw_encryption_functional(int instance)
 	       _RISAF_SR_ENCDIS;
 }
 
-static int check_region_address(int instance, uint32_t addr, uint32_t len)
+static int check_region_boundaries(int instance, uintptr_t addr, size_t len)
 {
-	uint32_t granularity;
-	uint64_t end_address;
+	uintptr_t end_address;
 	uintptr_t mem_base = stm32_risaf_get_memory_base(instance);
 
-	if (addr < mem_base) {
-		ERROR("RISAF%d: region start address lower than memory base\n", instance + 1);
-		return -EINVAL;
-	}
-
-	if (len == 0) {
-		ERROR("RISAF%d: region length is equal to zero\n", instance + 1);
+	if ((addr < mem_base) || (len == 0U)) {
 		return -EINVAL;
 	}
 
 	/* Get physical end address */
 	end_address = mem_base + stm32_risaf_get_memory_size(instance) - 1U;
-	if (((uint64_t)addr > end_address) || ((uint64_t)(addr - 1U + len) > end_address)) {
-		ERROR("RISAF%d: start/end address higher than physical end\n", instance + 1);
+	if ((addr > end_address) || ((addr - 1U + len) > end_address)) {
 		return -EINVAL;
 	}
 
-	/* Get IP region granularity */
-	granularity = mmio_read_32(stm32mp2_risaf.base[instance] + _RISAF_HWCFGR);
-	granularity = BIT((granularity & _RISAF_HWCFGR_CFG3_MASK) >> _RISAF_HWCFGR_CFG3_SHIFT);
-	if (((addr % granularity) != 0U) || ((len % granularity) != 0U)) {
-		ERROR("RISAF%d: start/end address granularity not respected\n", instance + 1);
+	if ((stm32mp2_risaf.granularity[instance] == 0U) ||
+	    ((addr % stm32mp2_risaf.granularity[instance]) != 0U) ||
+	    ((len % stm32mp2_risaf.granularity[instance]) != 0U)) {
 		return -EINVAL;
 	}
 
 	return 0;
 }
 
+static bool do_regions_overlap(uintptr_t addr1, size_t len1, uintptr_t addr2, size_t len2)
+{
+	return (((addr2 >= addr1) && (addr2 < (addr1 + len1))) ||
+		((addr2 < addr1) && (addr2 + len2) > addr1));
+}
+
+static int check_region_overlap(void)
+{
+	struct stm32mp2_risaf_platdata *pdata = &stm32mp2_risaf;
+	int i;
+	uintptr_t addr;
+	size_t length;
+	int instance;
+	int region_id;
+
+	if (pdata->nregions <= 1) {
+		/*
+		 * No region found, or first region found.
+		 * No need to check overlap with previous ones.
+		 */
+		return 0;
+	}
+
+	region_id = pdata->nregions - 1;
+	addr = pdata->region[region_id].addr;
+	length = pdata->region[region_id].len;
+	instance = pdata->region[region_id].instance;
+
+	for (i = 0; i < region_id; i++) {
+		if (pdata->region[i].instance != instance) {
+			continue;
+		}
+
+		if (do_regions_overlap(addr, length,
+				      pdata->region[i].addr, pdata->region[i].len)) {
+			ERROR("RISAF%d: Regions %d and %d overlap\n", instance + 1, region_id, i);
+			return -EINVAL;
+		}
+	}
+
+	return 0;
+}
+
 static int risaf_configure_region(int instance, uint32_t region_id, uint32_t cfg,
-				  uint32_t cid_cfg, uint32_t saddr, uint32_t eaddr)
+				  uint32_t cid_cfg, uintptr_t saddr, uintptr_t eaddr)
 {
 	uintptr_t base = stm32mp2_risaf.base[instance];
 	uint32_t hwcfgr;
@@ -273,21 +296,18 @@ static void risaf_conf_protreg(void)
 			continue;
 		}
 
+		clk_enable(pdata->clock[idx]);
+
 		for (n = 0; n < pdata->nregions; n++) {
 			uint32_t id;
 			uint32_t value;
 			uint32_t cfg;
 			uint32_t cid_cfg;
-			uint32_t start_addr;
-			uint32_t end_addr;
+			uintptr_t start_addr;
+			uintptr_t end_addr;
 
 			if (pdata->region[n].instance != idx) {
 				continue;
-			}
-
-			if (check_region_address(idx, pdata->region[n].addr,
-						 pdata->region[n].len) != 0) {
-				panic();
 			}
 
 			value = pdata->region[n].cfg;
@@ -316,6 +336,8 @@ static void risaf_conf_protreg(void)
 				panic();
 			}
 		}
+
+		clk_disable(pdata->clock[idx]);
 	}
 }
 
@@ -324,31 +346,102 @@ static int risaf_get_dt_node(struct dt_node_info *info, int offset)
 	return dt_get_node(info, offset, DT_RISAF_COMPAT);
 }
 
-static int risaf_get_base_from_fdt(void)
+static int risaf_get_instance_from_region(uintptr_t address, size_t length)
 {
-	struct dt_node_info risaf_info;
-	int node = -1;
-	void *fdt;
+	struct stm32mp2_risaf_platdata *pdata = &stm32mp2_risaf;
+	unsigned int idx;
+	int instance = -1;
 
-	if (fdt_get_address(&fdt) == 0) {
-		return -ENOENT;
-	}
-
-	for (node = risaf_get_dt_node(&risaf_info, node); node >= 0;
-	     node = risaf_get_dt_node(&risaf_info, node)) {
-		int idx;
-
-		idx = stm32_risaf_get_instance(risaf_info.base);
-		if (idx < 0) {
+	for (idx = 0U; idx < RISAF_MAX_INSTANCE; idx++) {
+		if (pdata->base[idx] == 0U) {
 			continue;
 		}
 
-		stm32mp2_risaf.base[idx] = risaf_info.base;
+		if (check_region_boundaries(idx, address, length) == 0) {
+			instance = idx;
+		}
+	}
+
+	return instance;
+}
+
+/*
+ * Register region in platfoirm data structure if parameters are valid.
+ * If instance is known, related entry parameter is filled, else it is equal to -1.
+ */
+static int risaf_register_region(void *fdt, int node, int instance)
+{
+	struct stm32mp2_risaf_platdata *pdata = &stm32mp2_risaf;
+	const fdt32_t *cuint;
+	int len = 0;
+	int inst;
+	uintptr_t address;
+	size_t length;
+	uint32_t protreg;
+
+	/*  Get address and length */
+	cuint = fdt_getprop(fdt, node, "reg", &len);
+	if ((cuint == NULL) || (len != RISAF_REGION_REG_SIZE)) {
+		ERROR("RISAF: No or bad reg entry in DT\n");
+		return -EINVAL;
+	}
+
+	address = (uintptr_t)fdt32_to_cpu(cuint[0]) << 32;
+	address |= fdt32_to_cpu(cuint[1]);
+	length = (size_t)fdt32_to_cpu(cuint[2]) << 32;
+	length |= fdt32_to_cpu(cuint[3]);
+
+	/* Get instance */
+	inst = risaf_get_instance_from_region(address, length);
+	if (inst < 0) {
+		ERROR("RISAF: No instance found in DT\n");
+		return -EINVAL;
+	}
+
+	if ((instance != -1) && (inst != instance)) {
+		ERROR("RISAF%d: Region not located in expected address space\n", instance + 1);
+		return -EINVAL;
+	}
+
+	/* Get protreg configuration */
+	cuint = fdt_getprop(fdt, node, "st,protreg", &len);
+	if ((cuint == NULL) || (len != RISAF_REGION_PROTREG_SIZE)) {
+		ERROR("RISAF%d: No or bad st,protreg entry in DT\n", inst + 1);
+		return -EINVAL;
+	}
+
+	protreg = fdt32_to_cpu(*cuint);
+
+	/* Check if region max is reached for the current instance */
+	region_per_instance[inst]++;
+	if (region_per_instance[inst] > stm32_risaf_get_max_region(inst)) {
+		ERROR("RISAF%d: Too many entries in DT\n", inst + 1);
+		return -EINVAL;
+	}
+
+	if (check_region_boundaries(inst, address, length) != 0) {
+		ERROR("RISAF%d: Region %d exceeds limits\n", inst + 1, pdata->nregions);
+		return -EINVAL;
+	}
+
+	/* Register region configuration */
+	pdata->region[pdata->nregions].instance = inst;
+	pdata->region[pdata->nregions].cfg = protreg;
+	pdata->region[pdata->nregions].addr = address;
+	pdata->region[pdata->nregions].len = length;
+	pdata->nregions++;
+
+	if (check_region_overlap() != 0) {
+		return -EINVAL;
 	}
 
 	return 0;
 }
 
+/*
+ * From DT, retrieve base address, clock ID and all region information for each RISAF instance.
+ * Check boundaries for each region and overlap for each instance.
+ */
 static int risaf_parse_fdt(void)
 {
 	struct stm32mp2_risaf_platdata *pdata = &stm32mp2_risaf;
@@ -367,26 +460,31 @@ static int risaf_parse_fdt(void)
 		int inst_maxregions;
 		int i;
 		int len = 0;
-		const struct risaf_dt_id_attr *conf_list;
+		const fdt32_t *conf_list;
+		uint32_t granularity;
 
 		idx = stm32_risaf_get_instance(risaf_info.base);
-		if (idx < 0) {
+		if ((idx < 0) || (risaf_info.clock < 0)) {
 			continue;
 		}
 
-		conf_list = (const struct risaf_dt_id_attr *)fdt_getprop(fdt, node, "st,protreg",
-									 &len);
+		pdata->base[idx] = risaf_info.base;
+		pdata->clock[idx] = (unsigned long)risaf_info.clock;
+
+		/* Get IP region granularity */
+		clk_enable(pdata->clock[idx]);
+		granularity = mmio_read_32(pdata->base[idx] + _RISAF_HWCFGR);
+		clk_disable(pdata->clock[idx]);
+		granularity = BIT((granularity & _RISAF_HWCFGR_CFG3_MASK) >>
+				  _RISAF_HWCFGR_CFG3_SHIFT);
+		pdata->granularity[idx] = granularity;
+
+		conf_list = fdt_getprop(fdt, node, "memory-region", &len);
 		if (conf_list == NULL) {
-			INFO("RISAF%d: No configuration in DT, use default\n", idx + 1);
-			continue;
+			len = 0;
 		}
 
-		if ((len % RISAF_REGION_DT_SIZE) != 0) {
-			ERROR("RISAF%d: Wrongly formatted DT configuration\n", idx + 1);
-			return -EINVAL;
-		}
-
-		nregions = len / RISAF_REGION_DT_SIZE;
+		nregions = (unsigned int)len / sizeof(uint32_t);
 
 		inst_maxregions = stm32_risaf_get_max_region(idx);
 		if (inst_maxregions <= 0) {
@@ -395,47 +493,39 @@ static int risaf_parse_fdt(void)
 
 		if ((nregions > inst_maxregions) ||
 		    ((pdata->nregions + nregions) > RISAF_MAX_REGION)) {
-			ERROR("RISAF%d: Too many entries in DT configuration\n", idx + 1);
+			ERROR("RISAF%d: Too many entries in DT\n", idx + 1);
 			return -EINVAL;
 		}
 
 		for (i = 0; i < nregions; i++) {
-			pdata->region[pdata->nregions + i].instance = idx;
-			pdata->region[pdata->nregions + i].cfg =
-				fdt32_to_cpu(conf_list->id_attr[i * RISAF_REGION_DT_PARAM]);
-			pdata->region[pdata->nregions + i].addr =
-				fdt32_to_cpu(conf_list->id_attr[(i * RISAF_REGION_DT_PARAM) + 1U]);
-			pdata->region[pdata->nregions + i].len =
-				fdt32_to_cpu(conf_list->id_attr[(i * RISAF_REGION_DT_PARAM) + 2U]);
-		}
+			int pnode = 0;
 
-		pdata->nregions += nregions;
+			pnode = fdt_node_offset_by_phandle(fdt, fdt32_to_cpu(conf_list[i]));
+			if (pnode < 0) {
+				continue;
+			}
+
+			if (risaf_register_region(fdt, pnode, idx) != 0) {
+				ERROR("RISAF%d: Region %d error\n", idx + 1, pdata->nregions);
+				return -EINVAL;
+			}
+		}
 	}
 
 	return 0;
 }
 
-static uint32_t risaf_get_instance_mask(void)
-{
-	uint32_t inst_mask = 0U;
-	int idx;
-
-	/* Get all instances present in stm32mp2_risaf */
-	for (idx = 0; idx < RISAF_MAX_INSTANCE; idx++) {
-		if (stm32mp2_risaf.base[idx] != 0U) {
-			inst_mask |= BIT(idx);
-		}
-	}
-
-	return inst_mask;
-}
-
 static uintptr_t risaf_base[RISAF_MAX_INSTANCE];
+static unsigned long risaf_clock[RISAF_MAX_INSTANCE];
+static uint32_t risaf_granularity[RISAF_MAX_INSTANCE];
 static struct stm32mp2_risaf_region risaf_region[RISAF_MAX_REGION];
 
+/* Construct platform data structure */
 static int risaf_get_platdata(struct stm32mp2_risaf_platdata *pdata)
 {
 	pdata->base = risaf_base;
+	pdata->clock = risaf_clock;
+	pdata->granularity = risaf_granularity;
 	pdata->region = risaf_region;
 
 	return 0;
@@ -527,20 +617,6 @@ int stm32mp2_risaf_init(void)
 		return err;
 	}
 
-	err = risaf_get_base_from_fdt();
-	if (err != 0) {
-		return err;
-	}
-
-	stm32_risaf_preconf_process(risaf_get_instance_mask());
-
-	return err;
-}
-
-static int fconf_populate_risaf(uintptr_t config)
-{
-	int err;
-
 	err = risaf_parse_fdt();
 	if (err != 0) {
 		return err;
@@ -548,7 +624,50 @@ static int fconf_populate_risaf(uintptr_t config)
 
 	risaf_conf_protreg();
 
-	stm32_risaf_postconf_process(risaf_get_instance_mask());
+	return err;
+}
+
+static int risaf_parse_fwconfig(uintptr_t config)
+{
+	struct stm32mp2_risaf_platdata *pdata = &stm32mp2_risaf;
+	unsigned int i;
+	int node = -1;
+	int subnode;
+	const void *fdt = (const void *)config;
+	const char *compatible_str = "st,stm32mp2-mem-firewall";
+
+	node = fdt_node_offset_by_compatible(fdt, -1, compatible_str);
+	if (node < 0) {
+		ERROR("FCONF: Can't find %s compatible in dtb\n", compatible_str);
+		return node;
+	}
+
+	fdt_for_each_subnode(subnode, fdt, node) {
+		if (risaf_register_region((void *)fdt, subnode, -1) != 0) {
+			ERROR("RISAF: Region %d error\n", pdata->nregions);
+			return -EINVAL;
+		}
+	}
+
+	for (i = 0U; i < RISAF_MAX_INSTANCE; i++) {
+		if ((region_per_instance[i] == 0) && (stm32_risaf_get_max_region(i) != 0)) {
+			INFO("RISAF%u: No configuration in DT, use default\n", i + 1);
+		}
+	}
+
+	return 0;
+}
+
+static int fconf_populate_risaf(uintptr_t config)
+{
+	int err;
+
+	err = risaf_parse_fwconfig(config);
+	if (err != 0) {
+		return err;
+	}
+
+	risaf_conf_protreg();
 
 	return err;
 }
