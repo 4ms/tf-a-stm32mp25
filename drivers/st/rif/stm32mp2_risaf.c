@@ -258,10 +258,15 @@ static int risaf_configure_region(int instance, uint32_t region_id, uint32_t cfg
 	mask_msb = mask_lsb + ((hwcfgr & _RISAF_HWCFGR_CFG4_MASK) >> _RISAF_HWCFGR_CFG4_SHIFT) - 1U;
 	mask = GENMASK_32(mask_msb, mask_lsb);
 
+#if CONFIG_STM32MP25X_REVA
+	mmio_clrsetbits_32(base + _RISAF_REG_STARTR(region_id), mask, saddr & mask);
+	mmio_clrsetbits_32(base + _RISAF_REG_ENDR(region_id), mask, eaddr & mask);
+#else
 	mmio_clrsetbits_32(base + _RISAF_REG_STARTR(region_id), mask,
 			   (saddr - stm32_risaf_get_memory_base(instance)) & mask);
 	mmio_clrsetbits_32(base + _RISAF_REG_ENDR(region_id), mask,
 			   (eaddr - stm32_risaf_get_memory_base(instance)) & mask);
+#endif
 
 	mmio_clrsetbits_32(base + _RISAF_REG_CIDCFGR(region_id), _RISAF_REG_CIDCFGR_ALL_MASK,
 			   cid_cfg & _RISAF_REG_CIDCFGR_ALL_MASK);
