@@ -23,9 +23,16 @@ PKA_USE_NIST_P256	:=	1
 PKA_USE_BRAINPOOL_P256T1:=	1
 endif
 
+CONFIG_STM32MP25X_REVA	?=	1
+
 # STM32 image header version v2.2
 STM32_HEADER_VERSION_MAJOR:=	2
+ifeq ($(CONFIG_STM32MP25X_REVA),1)
+# STM32 image header version v2.0 for RevA
+STM32_HEADER_VERSION_MINOR:=	0
+else
 STM32_HEADER_VERSION_MINOR:=	2
+endif
 
 PKA_USE_NIST_P256	?=	0
 PKA_USE_BRAINPOOL_P256T1 ?=	0
@@ -109,6 +116,7 @@ endif
 # Enable flags for C files
 $(eval $(call assert_booleans,\
 	$(sort \
+		CONFIG_STM32MP25X_REVA \
 		PKA_USE_BRAINPOOL_P256T1 \
 		PKA_USE_NIST_P256 \
 		STM32MP_CRYPTO_ROM_LIB \
@@ -131,6 +139,7 @@ $(eval $(call assert_numerics,\
 
 $(eval $(call add_defines,\
 	$(sort \
+		CONFIG_STM32MP25X_REVA \
 		DWL_BUFFER_BASE \
 		PKA_USE_BRAINPOOL_P256T1 \
 		PKA_USE_NIST_P256 \
