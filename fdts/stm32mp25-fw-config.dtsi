@@ -53,4 +53,10 @@
 			id = <BL32_IMAGE_ID>;
 		};
 	};
+
+	st_mem_firewall: st-mem-firewall {
+		compatible = "st,stm32mp2-mem-firewall";
+		#address-cells = <2>;
+		#size-cells = <2>;
+	};
 };

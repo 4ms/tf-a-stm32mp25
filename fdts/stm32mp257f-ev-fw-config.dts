@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
 /*
- * Copyright (c) 2020-2021, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2020-2023, STMicroelectronics - All Rights Reserved
  */
 
 #define DDR_SIZE	0x80000000 /* 2GB */
 #include "stm32mp25-fw-config.dtsi"
+#include "stm32mp257f-ev-ca35tdcid-fw-config.dtsi"
