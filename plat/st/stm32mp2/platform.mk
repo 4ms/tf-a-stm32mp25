@@ -193,6 +193,7 @@ PLAT_BL_COMMON_SOURCES	+=	drivers/st/bsec/bsec3.c					\
 				drivers/st/iwdg/stm32_iwdg.c				\
 				drivers/st/reset/stm32mp2_reset.c			\
 				plat/st/stm32mp2/${ARCH}/stm32mp2_helper.S		\
+				plat/st/stm32mp2/stm32mp2_context.c			\
 				plat/st/stm32mp2/stm32mp2_syscfg.c			\
 				plat/st/stm32mp2/stm32mp2_pwr.c
 
