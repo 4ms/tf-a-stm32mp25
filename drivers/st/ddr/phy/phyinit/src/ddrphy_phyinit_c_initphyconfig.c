@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -449,14 +449,14 @@ static int txodtdrvstren_program(void)
 
 		odtstrenp_state = ddrphy_phyinit_mapdrvstren(
 							(int)userinputadvanced.odtimpedance[pstate],
-							odtstrenp);
+							ODTSTRENP);
 		if (odtstrenp_state < 0) {
 			return odtstrenp_state;
 		}
 
 		odtstrenn_state = ddrphy_phyinit_mapdrvstren(
 							(int)userinputadvanced.odtimpedance[pstate],
-							odtstrenn);
+							ODTSTRENN);
 		if (odtstrenn_state < 0) {
 			return odtstrenn_state;
 		}
@@ -510,14 +510,14 @@ static int tximpedancectrl1_program(void)
 
 		drvstrenfsdqp_state = ddrphy_phyinit_mapdrvstren(
 							(int)userinputadvanced.tximpedance[pstate],
-							drvstrenfsdqp);
+							DRVSTRENFSDQP);
 		if (drvstrenfsdqp_state < 0) {
 			return drvstrenfsdqp_state;
 		}
 
 		drvstrenfsdqn_state = ddrphy_phyinit_mapdrvstren(
 							(int)userinputadvanced.tximpedance[pstate],
-							drvstrenfsdqn);
+							DRVSTRENFSDQN);
 		if (drvstrenfsdqn_state < 0) {
 			return drvstrenfsdqn_state;
 		}
@@ -564,13 +564,13 @@ static int atximpedance_program(void)
 	uint16_t atximpedance;
 
 	adrvstrenp_state = ddrphy_phyinit_mapdrvstren((int)userinputadvanced.atximpedance,
-						      adrvstrenp);
+						      ADRVSTRENP);
 	if (adrvstrenp_state < 0) {
 		return adrvstrenp_state;
 	}
 
 	adrvstrenn_state = ddrphy_phyinit_mapdrvstren((int)userinputadvanced.atximpedance,
-						      adrvstrenn);
+						      ADRVSTRENN);
 	if (adrvstrenn_state < 0) {
 		return adrvstrenn_state;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -34,7 +34,7 @@ enum dimmtypes {
  * The following basic data structure must be set and completed correctly so
  * that the PhyInit software package can accurate program PHY registers.
  */
-typedef struct user_input_basic {
+struct user_input_basic {
 	int dramtype; /* DRAM Module Type */
 
 	/*
@@ -234,7 +234,7 @@ typedef struct user_input_basic {
 	 * - dfimode register is programed based on other parameters
 	 * - This exists for backward compatibility and no longer used.
 	 */
-} user_input_basic_t;
+};
 
 
 /* Structure for advanced (optional) user inputs
@@ -242,7 +242,7 @@ typedef struct user_input_basic {
  * If user does not enter a value for these parameters, a default recommended or
  * default value will be used
  */
-typedef struct user_input_advanced {
+struct user_input_advanced {
 	int lp4rxpreamblemode[NB_PS]; /* Selects between DRAM static read vs toggle read preamble */
 
 	/*
@@ -1028,7 +1028,7 @@ typedef struct user_input_advanced {
 					 * sequencectrl[13] = RFU, must be zero
 					 * sequencectrl[15-14] = RFU, must be zero
 					 */
-} user_input_advanced_t;
+};
 
 /*
  * Structure for mode register (mandatory) user inputs
@@ -1040,7 +1040,7 @@ typedef struct user_input_advanced {
  * - DDR4: mr0..6 are used (16-bits values)
  * - LPDDR4: mr1..4 and mr11..22 are used (8-bits values)
  */
-typedef struct user_input_mode_register {
+struct user_input_mode_register {
 	int mr0[NB_PS];
 	int mr1[NB_PS];
 	int mr2[NB_PS];
@@ -1053,7 +1053,7 @@ typedef struct user_input_mode_register {
 	int mr13[NB_PS];
 	int mr14[NB_PS];
 	int mr22[NB_PS];
-} user_input_mode_register_t;
+};
 
 /*
  * Structure for swizzle (mandatory) user inputs
@@ -1075,9 +1075,9 @@ typedef struct user_input_mode_register {
 #define NB_MAPCAATODFI_SWIZZLE		6
 #define NB_MAPCABTODFI_SWIZZLE		6
 #define NB_SWIZZLE	44
-typedef struct user_input_swizzle {
+struct user_input_swizzle {
 	int swizzle[NB_SWIZZLE];
-} user_input_swizzle_t;
+};
 
 #endif /* DDRPHY_PHYINIT_STRUCT_H */
 

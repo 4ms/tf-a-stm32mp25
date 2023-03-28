@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -21,7 +21,7 @@
  * offset.
  */
 int ddrphy_phyinit_storeincvfile(char *incv_file_name, int mem[],
-				 return_offset_lastaddr_t return_type)
+				 enum return_offset_lastaddr return_type)
 {
 	FILE *incvfile_ptr;
 	char *p;
@@ -64,7 +64,7 @@ int ddrphy_phyinit_storeincvfile(char *incv_file_name, int mem[],
 	}
 	fclose(incvfile_ptr);
 
-	if (return_type == return_lastaddr) {
+	if (return_type == RETURN_LASTADDR) {
 		offset = adr; /*return the last addr */
 	}
 

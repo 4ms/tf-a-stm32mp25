@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -12,7 +12,7 @@
  * Please refer to the Training Firmware App Note for futher information about
  * the usage for Message Block.
  */
-typedef struct _pmu_smb_ddr_1d_t {
+struct pmu_smb_ddr_1d {
 	uint8_t reserved00;		/*
 					 * Byte offset 0x00, CSR Addr 0x54000, Direction=In
 					 * reserved00[0:4] RFU, must be zero
@@ -2269,6 +2269,6 @@ typedef struct _pmu_smb_ddr_1d_t {
 					 *   0x1 = Do not reset DRAM during devinit
 					 *   0x0 = Reset DRAM during devinit
 					 */
-} __attribute__ ((packed)) __attribute__ ((aligned(2))) pmu_smb_ddr_1d_t;
+} __attribute__ ((packed)) __attribute__ ((aligned(2)));
 
 #endif /* MNPMUSRAMMSGBLOCK_DDR4_H */

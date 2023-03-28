@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -98,41 +98,44 @@
  */
 
 /* A structure used to SRAM memory address space. */
-typedef enum { return_offset, return_lastaddr } return_offset_lastaddr_t;
+enum return_offset_lastaddr {
+	RETURN_OFFSET,
+	RETURN_LASTADDR
+};
 
 /* A structure to store the sequence function runtime input variables. */
-typedef struct runtime_config {
+struct runtime_config {
 	bool	skip_train;	/* skip_train input parameter */
 	bool	reten;		/*
 				 * Retention Enable input parameter, instructs phyinit to issue
 				 * register reads during initialization to retention registers.
 				 */
-} runtime_config_t;
+};
 
 /* Enumeration of instructions for PhyInit Register Interface */
-typedef enum {
-	starttrack,	/* Start register tracking */
-	stoptrack,	/* Stop register tracking */
-	saveregs,	/* Save(read) tracked register values */
-	restoreregs,	/* Restore (write) saved register values */
-	dumpregs,	/* Write register address,value pairs to file */
-	importregs	/* Import register address,value pairs to file */
-} reginstr;
+enum reginstr {
+	STARTTRACK,	/* Start register tracking */
+	STOPTRACK,	/* Stop register tracking */
+	SAVEREGS,	/* Save(read) tracked register values */
+	RESTOREREGS,	/* Restore (write) saved register values */
+	DUMPREGS,	/* Write register address,value pairs to file */
+	IMPORTREGS	/* Import register address,value pairs to file */
+} ;
 
 /* Data structure to store register address, value pairs */
-typedef struct reg_addr_val {
+struct reg_addr_val {
 	uint32_t	address;	/* Register address */
 	uint16_t	value;		/* Register value */
-} reg_addr_val_t;
+};
 
 /* TargetCSR Target CSR for the impedance value for ddrphy_phyinit_mapdrvstren() */
 enum drvtype {
-	drvstrenfsdqp,
-	drvstrenfsdqn,
-	odtstrenp,
-	odtstrenn,
-	adrvstrenp,
-	adrvstrenn
+	DRVSTRENFSDQP,
+	DRVSTRENFSDQN,
+	ODTSTRENP,
+	ODTSTRENN,
+	ADRVSTRENP,
+	ADRVSTRENN
 };
 
 /*
@@ -162,12 +165,12 @@ int ddrphy_phyinit_mapdrvstren(int drvstren_ohm, enum drvtype targetcsr);
 void ddrphy_phyinit_storemsgblk(void *msgblkptr, int sizeofmsgblk, int mem[]);
 int ddrphy_phyinit_calcmb(void);
 int ddrphy_phyinit_storeincvfile(char *incv_file_name, int mem[],
-				 return_offset_lastaddr_t return_type);
+				 enum return_offset_lastaddr return_type);
 void ddrphy_phyinit_writeoutmem(uint32_t *mem, int mem_offset, int mem_size);
 void ddrphy_phyinit_writeoutmsgblk(uint16_t *mem, int mem_offset, int mem_size);
 int ddrphy_phyinit_isdbytedisabled(int dbytenumber);
 int ddrphy_phyinit_trackreg(uint32_t adr);
-int ddrphy_phyinit_reginterface(reginstr myreginstr, uint32_t adr, uint16_t dat);
+int ddrphy_phyinit_reginterface(enum reginstr myreginstr, uint32_t adr, uint16_t dat);
 
 extern void ddrphy_phyinit_usercustom_a_bringuppower(void);
 extern void ddrphy_phyinit_usercustom_b_startclockresetphy(void);

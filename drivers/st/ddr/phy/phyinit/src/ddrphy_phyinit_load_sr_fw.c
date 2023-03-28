@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -21,7 +21,7 @@ void ddrphy_phyinit_load_sr_fw(void)
 	int i;
 	int imem[SR_IMEM_SIZE];
 	int imem_offset = 0;
-	return_offset_lastaddr_t return_type = return_offset;
+	enum return_offset_lastaddr return_type = RETURN_OFFSET;
 
 	VERBOSE("Start of loading Universal Resident Retention IMEM\n");
 

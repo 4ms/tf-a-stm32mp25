@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -22,12 +22,12 @@
  *
  * @param[in] targetcsr Target CSR for the impedance value. on of following
  * enum drvtype:
- *   - drvstrenfsdqp
- *   - drvstrenfsdqn
- *   - odtstrenp
- *   - odtstrenn
- *   - adrvstrenp
- *   - adrvstrenn
+ *   - DRVSTRENFSDQP
+ *   - DRVSTRENFSDQN
+ *   - ODTSTRENP
+ *   - ODTSTRENN
+ *   - ADRVSTRENP
+ *   - ADRVSTRENN
  *
  * \return >=0 value on success, else negative.
  */
@@ -35,9 +35,7 @@ int ddrphy_phyinit_mapdrvstren(int drvstren_ohm, enum drvtype targetcsr)
 {
 	int stren_setting = -1;
 
-	if ((targetcsr == drvstrenfsdqp) || (targetcsr == drvstrenfsdqn)) {
-		/* drvstrenfsdqp or drvstrenfsdqn */
-
+	if ((targetcsr == DRVSTRENFSDQP) || (targetcsr == DRVSTRENFSDQN)) {
 		if (drvstren_ohm == 0) {
 			stren_setting = 0x00; /* High-impedance */
 		} else if (drvstren_ohm < 29) {
@@ -77,9 +75,7 @@ int ddrphy_phyinit_mapdrvstren(int drvstren_ohm, enum drvtype targetcsr)
 		} else {
 			stren_setting = 0x00; /* High-impedance */
 		}
-	} else if (targetcsr == odtstrenp) {
-		/* odtstrenp */
-
+	} else if (targetcsr == ODTSTRENP) {
 #if STM32MP_DDR3_TYPE
 		/*
 		 * DDR3 - P and N has the same impedance and non-zero
@@ -170,9 +166,7 @@ int ddrphy_phyinit_mapdrvstren(int drvstren_ohm, enum drvtype targetcsr)
 		/* LPDDR4 - P is high-Z */
 		stren_setting = 0x00; /* High-impedance */
 #endif /* STM32MP_LPDDR4_TYPE */
-	} else if (targetcsr == odtstrenn) {
-		/* odtstrenn */
-
+	} else if (targetcsr == ODTSTRENN) {
 #if STM32MP_DDR3_TYPE
 		/*
 		 * DDR3 - P and N has the same impedance and non-zero
@@ -262,9 +256,7 @@ int ddrphy_phyinit_mapdrvstren(int drvstren_ohm, enum drvtype targetcsr)
 			stren_setting = 0x00; /* High-impedance */
 		}
 #endif /* STM32MP_LPDDR4_TYPE */
-	} else if ((targetcsr == adrvstrenp) || (targetcsr == adrvstrenn)) {
-		/* adrvstrenp or adrvstrenn */
-
+	} else if ((targetcsr == ADRVSTRENP) || (targetcsr == ADRVSTRENN)) {
 		if (drvstren_ohm == 120) {
 			stren_setting = 0x00;
 		} else if (drvstren_ohm == 60) {

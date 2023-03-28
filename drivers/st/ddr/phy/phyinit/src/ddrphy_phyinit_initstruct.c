@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -447,7 +447,7 @@ void ddrphy_phyinit_initstruct(void)
 		mb_ddr_1d[myps].share2dvrefresult = share2dvrefresult;
 
 		/* Zero out struct contents */
-		memset((void *) &shdw_ddr_1d[myps], 0, sizeof(pmu_smb_ddr_1d_t));
+		memset((void *) &shdw_ddr_1d[myps], 0, sizeof(struct pmu_smb_ddr_1d));
 	} /* myps */
 
 	VERBOSE("%s End\n", __func__);

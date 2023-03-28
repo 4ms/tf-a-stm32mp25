@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -27,7 +27,7 @@
  */
 int ddrphy_phyinit_f_loaddmem(int pstate)
 {
-	pmu_smb_ddr_1d_t *msgblkptr;
+	struct pmu_smb_ddr_1d *msgblkptr;
 	int sizeofmsgblk;
 	uint16_t *ptr16;
 	uint32_t *ptr32;

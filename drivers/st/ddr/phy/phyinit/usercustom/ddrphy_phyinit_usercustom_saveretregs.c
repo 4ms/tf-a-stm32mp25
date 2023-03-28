@@ -390,7 +390,7 @@ int ddrphy_phyinit_usercustom_saveretregs(void)
 	 * --------------------------------------------------------------------------
 	 */
 
-	ret = ddrphy_phyinit_reginterface(saveregs, 0, 0);
+	ret = ddrphy_phyinit_reginterface(SAVEREGS, 0, 0);
 	if (ret != 0) {
 		return ret;
 	}
