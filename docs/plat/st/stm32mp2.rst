@@ -5,7 +5,7 @@ STM32MP2 is a microprocessor designed by STMicroelectronics
 based on Arm Cortex-A35.
 
 For TF-A common configuration of STM32 MPUs, please check
-:ref:`STM32 MPUs` page.
+:ref:`STM32 MPUs` page or `Github STM32 MPUs`_.
 
 STM32MP2 Versions
 -----------------
@@ -177,3 +177,4 @@ __________________
         --soc-fw build/stm32mp2/release/bl31.bin \
         build/stm32mp2/release/fip.bin
 
+.. _Github STM32 MPUs: https://github.com/STMicroelectronics/arm-trusted-firmware/tree/HEAD/docs/plat/st/stm32mpus.rst
