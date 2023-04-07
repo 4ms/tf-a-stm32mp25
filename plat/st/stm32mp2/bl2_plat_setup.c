@@ -36,7 +36,11 @@
 #include <stm32mp_common.h>
 #include <stm32mp_dt.h>
 
+#if CONFIG_STM32MP25X_REVA
+#define BOOT_CTX_ADDR	0x0e000000UL /* beginning of SYSRAM */
+#else
 #define BOOT_CTX_ADDR	0x0e000020UL
+#endif
 
 static void print_reset_reason(void)
 {
