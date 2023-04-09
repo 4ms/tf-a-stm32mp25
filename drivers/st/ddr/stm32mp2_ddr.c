@@ -381,7 +381,7 @@ void stm32mp2_ddr_init(struct stm32mp_ddr_priv *priv,
 
 	VERBOSE("name = %s\n", config->info.name);
 	VERBOSE("speed = %u kHz\n", config->info.speed);
-	VERBOSE("size  = 0x%x\n", config->info.size);
+	VERBOSE("size  = 0x%zx\n", config->info.size);
 	if (config->self_refresh) {
 		VERBOSE("sel-refresh exit (zdata = 0x%x)\n", config->zdata);
 	}

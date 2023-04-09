@@ -89,7 +89,7 @@ static int stm32mp2_ddr_setup(void)
 		ddrphy_phyinit_get_user_input_swizzle_base(),
 	};
 	int node;
-	uint32_t uret;
+	uintptr_t uret;
 	void *fdt;
 
 	const struct stm32mp_ddr_param param[] = {
@@ -144,8 +144,7 @@ static int stm32mp2_ddr_setup(void)
 
 	priv->info.size = config.info.size;
 
-	VERBOSE("%s : ram size(%x, %x)\n", __func__,
-		(uint32_t)priv->info.base, (uint32_t)priv->info.size);
+	VERBOSE("%s : ram size(%lx, %lx)\n", __func__, priv->info.base, priv->info.size);
 
 	if (stm32mp_map_ddr_non_cacheable() != 0) {
 		panic();
@@ -153,35 +152,36 @@ static int stm32mp2_ddr_setup(void)
 
 	if (config.self_refresh) {
 		uret = stm32mp_ddr_test_rw_access();
-		if (uret != 0U) {
-			ERROR("DDR rw test: Can't access memory @ 0x%x\n",
-			      uret);
+		if (uret != 0UL) {
+			ERROR("DDR rw test: Can't access memory @ 0x%lx\n", uret);
 			panic();
 		}
 
 		/* TODO Restore area overwritten by training */
 		//stm32_restore_ddr_training_area();
 	} else {
+		size_t retsize;
+
 		uret = stm32mp_ddr_test_data_bus();
-		if (uret != 0U) {
-			ERROR("DDR data bus test: can't access memory @ 0x%x\n",
-			      uret);
+		if (uret != 0UL) {
+			ERROR("DDR data bus test: can't access memory @ 0x%lx\n", uret);
 			panic();
 		}
 
 		uret = stm32mp_ddr_test_addr_bus(config.info.size);
-		if (uret != 0U) {
-			ERROR("DDR addr bus test: can't access memory @ 0x%x\n",
-			      uret);
+		if (uret != 0UL) {
+			ERROR("DDR addr bus test: can't access memory @ 0x%lx\n", uret);
 			panic();
 		}
 
-		uret = stm32mp_ddr_check_size();
-		if (uret < config.info.size) {
-			ERROR("DDR size: 0x%x does not match DT config: 0x%x\n",
-			      uret, config.info.size);
+		retsize = stm32mp_ddr_check_size();
+		if (retsize < config.info.size) {
+			ERROR("DDR size: 0x%zx does not match DT config: 0x%zx\n",
+			      retsize, config.info.size);
 			panic();
 		}
+
+		INFO("Memory size = 0x%zx (%zu MB)\n", retsize, retsize / (1024U * 1024U));
 	}
 
 	/*
