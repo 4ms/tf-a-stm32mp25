@@ -276,7 +276,7 @@ skip_console_init:
 
 	fconf_populate("TB_FW", STM32MP_DTB_BASE);
 
-#if STM32MP_DDR_FIP_IO_STORAGE
+#if STM32MP_DDR_FIP_IO_STORAGE || TRUSTED_BOARD_BOOT
 	/*
 	 * RISAB3 setup (dedicated for SRAM1)
 	 *
@@ -285,18 +285,7 @@ skip_console_init:
 	 * DDR firmwares are saved there before being loaded in DDRPHY memory.
 	 */
 	mmio_write_32(RISAB3_BASE + RISAB_CR, RISAB_CR_SRWIAD);
-#endif
-#if STM32MP_USB_PROGRAMMER || TRUSTED_BOARD_BOOT
-	/* Enabling SRAM2 clock is not needed as it is a critical clock */
-	/*
-	 * RISAB4 setup (dedicated for SRAM2)
-	 *
-	 * Allow secure read/writes data accesses to non-secure
-	 * blocks or pages, all RISAB registers are writable.
-	 * Secure execution is still illegal. DDR FIP is saved here.
-	 */
-	mmio_write_32(RISAB4_BASE + RISAB_CR, RISAB_CR_SRWIAD);
-
+#endif /* STM32MP_DDR_FIP_IO_STORAGE || TRUSTED_BOARD_BOOT */
 #if STM32MP_USB_PROGRAMMER
 	/*
 	 * Set USB3DR Peripheriphal accesses to Secure/Privilege only
@@ -309,7 +298,6 @@ skip_console_init:
 	 */
 	mmio_write_32(RIFSC_BASE + _RIFSC_RIMC_ATTR(RIMU_USB3DR), RIFSC_USB_BOOT_USBDR_RIMC_CONF);
 #endif /* STM32MP_USB_PROGRAMMER */
-#endif /* STM32MP_USB_PROGRAMMER || TRUSTED_BOARD_BOOT */
 
 	/*
 	 * RISAB5 setup (dedicated for RETRAM)

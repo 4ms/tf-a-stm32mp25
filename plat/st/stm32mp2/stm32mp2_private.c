@@ -17,7 +17,7 @@
 
 #if STM32MP_DDR_FIP_IO_STORAGE && defined(IMAGE_BL2)
 /* Map the whole SRAM1 as secure, required to load DDR FW from FIP */
-#define SRAM1_MAP_SIZE	SRAM1_SIZE
+#define SRAM1_MAP_SIZE	SRAM1_SIZE_FOR_TFA
 #else
 /* Map the beginning of SRAM1 as secure */
 #define SRAM1_MAP_SIZE	STM32MP_SEC_SRAM1_SIZE
@@ -45,13 +45,6 @@
 					MT_SECURE | \
 					MT_EXECUTE_NEVER)
 #endif
-
-#define MAP_SRAM2	MAP_REGION_FLAT(SRAM2_BASE, \
-					SRAM2_SIZE, \
-					MT_MEMORY | \
-					MT_RW | \
-					MT_SECURE | \
-					MT_EXECUTE_NEVER)
 
 /* Non-secure SYSRAM is used a uncached memory for SCMI message transfer */
 #define MAP_NS_SYSRAM	MAP_REGION_FLAT(STM32MP_NS_SYSRAM_BASE, \
@@ -84,9 +77,6 @@ static const mmap_region_t stm32mp2_mmap[] = {
 	MAP_SYSRAM,
 #endif
 	MAP_SRAM1,
-#if STM32MP_USB_PROGRAMMER || TRUSTED_BOARD_BOOT
-	MAP_SRAM2,
-#endif
 	MAP_DEVICE,
 	{0}
 };

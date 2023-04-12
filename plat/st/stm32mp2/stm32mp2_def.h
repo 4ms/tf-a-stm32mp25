@@ -67,9 +67,7 @@
 #define STM32MP_SYSRAM_BASE		U(0x0E000000)
 #define STM32MP_SYSRAM_SIZE		U(0x00040000)
 #define SRAM1_BASE			U(0x0E040000)
-#define SRAM1_SIZE			U(0x00020000)
-#define SRAM2_BASE			U(0x0E060000)
-#define SRAM2_SIZE			U(0x00020000)
+#define SRAM1_SIZE_FOR_TFA		U(0x00010000)
 #define RETRAM_BASE			U(0x0E080000)
 #define RETRAM_SIZE			U(0x00020000)
 #define STM32MP_BACKUP_RAM_BASE		U(0x42000000)
@@ -164,7 +162,7 @@ enum ddr_type {
 					STM32MP_BL2_RW_BASE
 
 #define STM32MP_MBEDTLS_HEAP_SIZE	U(0x2000)
-#define STM32MP_MBEDTLS_HEAP_BASE	(SRAM2_BASE + SRAM2_SIZE - \
+#define STM32MP_MBEDTLS_HEAP_BASE	(SRAM1_BASE + SRAM1_SIZE_FOR_TFA - \
 					 STM32MP_MBEDTLS_HEAP_SIZE)
 
 /* BL2 and BL32/sp_min require 4 tables */
@@ -174,9 +172,7 @@ enum ddr_type {
  * MAX_MMAP_REGIONS is usually:
  * BL stm32mp2_mmap size + mmap regions in *_plat_arch_setup
  */
-#if STM32MP_USB_PROGRAMMER
-#define MAX_MMAP_REGIONS		8
-#elif defined(IMAGE_BL31)
+#if STM32MP_USB_PROGRAMMER || defined(IMAGE_BL31)
 #define MAX_MMAP_REGIONS		7
 #else
 #define MAX_MMAP_REGIONS		6

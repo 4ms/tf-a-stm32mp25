@@ -15,7 +15,6 @@ DTB_FILE_NAME		?=	stm32mp257f-ev.dtb
 
 STM32MP25		:=	1
 
-# Will use SRAM2 as mbedtls heap
 STM32MP_USE_EXTERNAL_HEAP :=	1
 
 ifeq (${TRUSTED_BOARD_BOOT},1)
