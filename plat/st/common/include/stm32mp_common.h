@@ -89,6 +89,8 @@ static inline void stm32mp_setup_early_console(void)
 }
 #endif
 
+uintptr_t stm32_get_header_address(void);
+
 bool stm32mp_skip_boot_device_after_standby(void);
 bool stm32mp_is_wakeup_from_standby(void);
 

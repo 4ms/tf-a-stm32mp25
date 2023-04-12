@@ -95,7 +95,7 @@ static int get_rotpk_hash(void *cookie, uint8_t *hash, size_t len)
 	uint32_t pk_idx = 0U;
 	uint8_t calc_hash[BOOT_API_SHA256_DIGEST_SIZE_IN_BYTES];
 	uint8_t otp_hash[BOOT_API_SHA256_DIGEST_SIZE_IN_BYTES];
-	boot_api_image_header_t *hdr = (boot_api_image_header_t *)STM32MP_HEADER_BASE;
+	boot_api_image_header_t *hdr = (boot_api_image_header_t *)stm32_get_header_address();
 	boot_extension_header_t *ext_header = (boot_extension_header_t *)hdr->ext_header;
 	boot_ext_header_params_authentication_t *param;
 
