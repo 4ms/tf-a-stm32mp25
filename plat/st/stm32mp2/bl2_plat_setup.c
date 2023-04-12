@@ -146,6 +146,10 @@ void bl2_el3_early_platform_setup(u_register_t arg0 __unused,
 	stm32mp_setup_early_console();
 
 	stm32mp_save_boot_ctx_address(BOOT_CTX_ADDR);
+
+#if STM32MP_USB_PROGRAMMER && TRUSTED_BOARD_BOOT
+	stm32_save_header(STM32MP_HEADER_BASE);
+#endif
 }
 
 void bl2_platform_setup(void)
