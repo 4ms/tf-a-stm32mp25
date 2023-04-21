@@ -27,8 +27,10 @@
 		/delete-node/ memory-controller@48200000;
 #endif
 #if !STM32MP_EMMC && !STM32MP_SDMMC
-		/delete-node/ mmc@48220000;
-		/delete-node/ mmc@48230000;
+		rifsc@42080000 {
+			/delete-node/ mmc@48220000;
+			/delete-node/ mmc@48230000;
+		};
 #endif
 	};
 
