@@ -96,8 +96,13 @@
 /*******************************************************************************
  * Platform specific page table and MMU setup constants
  ******************************************************************************/
+#if CONFIG_STM32MP25X_REVA
+#define PLAT_PHY_ADDR_SPACE_SIZE	(ULL(1) << 32)
+#define PLAT_VIRT_ADDR_SPACE_SIZE	(ULL(1) << 32)
+#else /* CONFIG_STM32MP25X_REVA */
 #define PLAT_PHY_ADDR_SPACE_SIZE	(ULL(1) << 33)
 #define PLAT_VIRT_ADDR_SPACE_SIZE	(ULL(1) << 33)
+#endif /* CONFIG_STM32MP25X_REVA */
 
 /*******************************************************************************
  * Declarations and constants to access the mailboxes safely. Each mailbox is
