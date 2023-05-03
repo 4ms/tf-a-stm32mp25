@@ -39,14 +39,26 @@
  *             size / order need to be aligned with binding
  *             modification NOT ALLOWED !!!
  */
+#if CONFIG_STM32MP25X_REVA
+#define DDRCTL_REG_REG_SIZE	46	/* st,ctl-reg */
+#else /* CONFIG_STM32MP25X_REVA */
 #define DDRCTL_REG_REG_SIZE	48	/* st,ctl-reg */
+#endif /* CONFIG_STM32MP25X_REVA */
 #define DDRCTL_REG_TIMING_SIZE	20	/* st,ctl-timing */
 #define DDRCTL_REG_MAP_SIZE	12	/* st,ctl-map */
+#if CONFIG_STM32MP25X_REVA
+#if STM32MP_DDR_DUAL_AXI_PORT
+#define DDRCTL_REG_PERF_SIZE	19	/* st,ctl-perf */
+#else
+#define DDRCTL_REG_PERF_SIZE	12	/* st,ctl-perf */
+#endif
+#else /* CONFIG_STM32MP25X_REVA */
 #if STM32MP_DDR_DUAL_AXI_PORT
 #define DDRCTL_REG_PERF_SIZE	21	/* st,ctl-perf */
 #else
 #define DDRCTL_REG_PERF_SIZE	14	/* st,ctl-perf */
 #endif
+#endif /* CONFIG_STM32MP25X_REVA */
 
 #define DDRPHY_REG_REG_SIZE	0	/* st,phy-reg */
 #define	DDRPHY_REG_TIMING_SIZE	0	/* st,phy-timing */
@@ -78,7 +90,9 @@ static const struct stm32mp_ddr_reg_desc ddr_reg[DDRCTL_REG_REG_SIZE] = {
 	DDRCTL_REG_REG(init7),
 	DDRCTL_REG_REG(dimmctl),
 	DDRCTL_REG_REG(rankctl),
+#if !CONFIG_STM32MP25X_REVA
 	DDRCTL_REG_REG(rankctl1),
+#endif /* !CONFIG_STM32MP25X_REVA */
 	DDRCTL_REG_REG(zqctl0),
 	DDRCTL_REG_REG(zqctl1),
 	DDRCTL_REG_REG(zqctl2),
@@ -98,7 +112,9 @@ static const struct stm32mp_ddr_reg_desc ddr_reg[DDRCTL_REG_REG_SIZE] = {
 	DDRCTL_REG_REG(dbg1),
 	DDRCTL_REG_REG(dbgcmd),
 	DDRCTL_REG_REG(swctl),
+#if !CONFIG_STM32MP25X_REVA
 	DDRCTL_REG_REG(swctlstatic),
+#endif /* !CONFIG_STM32MP25X_REVA */
 	DDRCTL_REG_REG(poisoncfg),
 	DDRCTL_REG_REG(pccfg),
 };
@@ -150,8 +166,10 @@ static const struct stm32mp_ddr_reg_desc ddr_perf[DDRCTL_REG_PERF_SIZE] = {
 	DDRCTL_REG_PERF(perfhpr1),
 	DDRCTL_REG_PERF(perflpr1),
 	DDRCTL_REG_PERF(perfwr1),
+#if !CONFIG_STM32MP25X_REVA
 	DDRCTL_REG_PERF(sched3),
 	DDRCTL_REG_PERF(sched4),
+#endif /* !CONFIG_STM32MP25X_REVA */
 	DDRCTL_REG_PERF(pcfgr_0),
 	DDRCTL_REG_PERF(pcfgw_0),
 	DDRCTL_REG_PERF(pctrl_0),
