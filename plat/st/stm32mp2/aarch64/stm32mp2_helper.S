@@ -199,6 +199,12 @@ func plat_report_exception
 	mrs	x4, elr_el3
 	bl	asm_print_hex
 
+	adr	x4, far_el3_str
+	bl	asm_print_str
+
+	mrs	x4, far_el3
+	bl	asm_print_hex
+
 	mov	x30, x8
 	ret
 endfunc plat_report_exception
@@ -210,4 +216,6 @@ esr_el3_str:
 	.asciz "\nESR_EL3: "
 elr_el3_str:
 	.asciz "\nELR_EL3: "
+far_el3_str:
+	.asciz "\nFAR_EL3: "
 #endif /* IMAGE_BL2 */
