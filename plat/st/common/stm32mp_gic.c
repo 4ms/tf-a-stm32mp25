@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2022, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2016-2023, Arm Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -45,25 +45,23 @@ void stm32mp_gic_init(void)
 	int node;
 	void *fdt;
 	const fdt32_t *cuint;
-	struct dt_node_info dt_gic;
 
 	if (fdt_get_address(&fdt) == 0) {
 		panic();
 	}
 
-	node = dt_get_node(&dt_gic, -1, "arm,cortex-a7-gic");
+	node = fdt_node_offset_by_compatible(fdt, -1, "arm,cortex-a7-gic");
 	if (node < 0) {
 		panic();
 	}
-
-	platform_gic_data.gicd_base = dt_gic.base;
 
 	cuint = fdt_getprop(fdt, node, "reg", NULL);
 	if (cuint == NULL) {
 		panic();
 	}
 
-	platform_gic_data.gicc_base = fdt32_to_cpu(*(cuint + 2));
+	platform_gic_data.gicd_base = fdt32_to_cpu(cuint[0]);
+	platform_gic_data.gicc_base = fdt32_to_cpu(cuint[2]);
 
 	cuint = fdt_getprop(fdt, node, "#interrupt-cells", NULL);
 	if (cuint == NULL) {
