@@ -60,8 +60,15 @@ void stm32mp_gic_init(void)
 		panic();
 	}
 
+#ifdef __aarch64__
+	platform_gic_data.gicd_base = (uintptr_t)fdt32_to_cpu(cuint[0]) << 32;
+	platform_gic_data.gicd_base |= fdt32_to_cpu(cuint[1]);
+	platform_gic_data.gicc_base = (uintptr_t)fdt32_to_cpu(cuint[4]) << 32;
+	platform_gic_data.gicc_base |= fdt32_to_cpu(cuint[5]);
+#else /* __aarch64__ */
 	platform_gic_data.gicd_base = fdt32_to_cpu(cuint[0]);
 	platform_gic_data.gicc_base = fdt32_to_cpu(cuint[2]);
+#endif /* __aarch64__ */
 
 	cuint = fdt_getprop(fdt, node, "#interrupt-cells", NULL);
 	if (cuint == NULL) {
