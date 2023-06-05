@@ -7,16 +7,6 @@
 
 #include <platform_def.h>
 
-#ifndef DDR_SIZE
-#error "DDR_SIZE is not defined"
-#endif
-
-#define DDR_SEC_BASE	(STM32MP_DDR_BASE + 0x02000000)
-#define DDR_SEC_SIZE	0x02000000
-#define DDR_NS_BASE	(DDR_SEC_BASE + DDR_SEC_SIZE)
-#define DDR_NS_SIZE	(STM32MP_DDR_BASE + DDR_SIZE - DDR_NS_BASE)
-#define SOC_FW_CFG_BASE	(DDR_SEC_BASE - STM32MP_SOC_FW_CONFIG_MAX_SIZE)
-
 /dts-v1/;
 
 / {
@@ -42,19 +32,15 @@
 		};
 
 		soc_fw-config {
-			load-address = <0x0 SOC_FW_CFG_BASE>;
-			max-size = <STM32MP_SOC_FW_CONFIG_MAX_SIZE>;
 			id = <SOC_FW_CONFIG_ID>;
 		};
 
 		tos_fw {
-			load-address = <0x0 DDR_SEC_BASE>;
-			max-size = <DDR_SEC_SIZE>;
 			id = <BL32_IMAGE_ID>;
 		};
 	};
 
-	st_mem_firewall: st-mem-firewall {
+	st-mem-firewall {
 		compatible = "st,stm32mp2-mem-firewall";
 		#address-cells = <2>;
 		#size-cells = <2>;
