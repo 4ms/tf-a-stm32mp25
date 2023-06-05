@@ -237,6 +237,32 @@ int stm32_lock_enc_key_otp(void)
 	return 0;
 }
 
+int stm32_get_uid_otp(uint32_t uid[])
+{
+	uint8_t i;
+	uint32_t otp;
+	uint32_t len;
+
+	if (stm32_get_otp_index(UID_OTP, &otp, &len) != 0) {
+		ERROR("BSEC: Get UID_OTP number Error\n");
+		return -1;
+	}
+
+	if ((len / __WORD_BIT) != UID_WORD_NB) {
+		ERROR("BSEC: Get UID_OTP length Error\n");
+		return -1;
+	}
+
+	for (i = 0U; i < UID_WORD_NB; i++) {
+		if (bsec_shadow_read_otp(&uid[i], i + otp) != BSEC_OK) {
+			ERROR("BSEC: UID%u Error\n", i);
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 #if  defined(IMAGE_BL2)
 static void reset_uart(uint32_t reset)
 {
