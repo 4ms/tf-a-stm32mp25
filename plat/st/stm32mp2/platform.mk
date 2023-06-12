@@ -11,7 +11,7 @@ ENABLE_PIE		:=	1
 PROGRAMMABLE_RESET_ADDRESS := 1
 
 # Default Device tree
-DTB_FILE_NAME		?=	stm32mp257f-ev.dtb
+DTB_FILE_NAME		?=	stm32mp257f-ev1.dtb
 
 STM32MP25		:=	1
 

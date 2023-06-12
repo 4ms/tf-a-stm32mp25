@@ -92,7 +92,7 @@ ______
 
     cd <u-boot_directory>
     make stm32mp25_defconfig
-    make DEVICE_TREE=stm32mp257f-ev all
+    make DEVICE_TREE=stm32mp257f-ev1 all
 
 OP-TEE
 ______
@@ -102,7 +102,7 @@ ______
     cd <optee_directory>
     make CROSS_COMPILE64=aarch64-none-elf- CROSS_COMPILE32=arm-none-eabi-
         ARCH=arm PLATFORM=stm32mp2 \
-        CFG_EMBED_DTB_SOURCE_FILE=stm32mp257f-ev.dts
+        CFG_EMBED_DTB_SOURCE_FILE=stm32mp257f-ev1.dts
 
 TF-A BL2
 ________
@@ -112,7 +112,7 @@ To build TF-A BL2 with its STM32 header for SD-card boot:
 
     make CROSS_COMPILE=aarch64-none-elf- PLAT=stm32mp2 \
         STM32MP_DDR4_TYPE=1 SPD=opteed \
-        DTB_FILE_NAME=stm32mp257f-ev.dtb STM32MP_SDMMC=1
+        DTB_FILE_NAME=stm32mp257f-ev1.dtb STM32MP_SDMMC=1
 
 For other boot devices, you have to replace STM32MP_SDMMC in the previous command
 with the desired device flag.
@@ -125,7 +125,7 @@ ___
 
     make CROSS_COMPILE=aarch64-none-elf- PLAT=stm32mp2 \
         STM32MP_DDR4_TYPE=1 SPD=opteed \
-        DTB_FILE_NAME=stm32mp257f-ev.dtb \
+        DTB_FILE_NAME=stm32mp257f-ev1.dtb \
         BL33=<u-boot_directory>/u-boot-nodtb.bin \
         BL33_CFG=<u-boot_directory>/u-boot.dtb \
         BL32=<optee_directory>/tee-header_v2.bin \
@@ -150,9 +150,9 @@ __________________
         --nt-fw-cert build/stm32mp2/release/nt_fw_content.crt \
         --nt-fw-key-cert build/stm32mp2/release/nt_fw_key.crt \
         --hw-config <u-boot_directory>/u-boot.dtb \
-        --fw-config build/stm32mp2/release/fdts/stm32mp257f-ev-fw-config.dtb \
+        --fw-config build/stm32mp2/release/fdts/stm32mp257f-ev1-fw-config.dtb \
         --stm32mp-cfg-cert build/stm32mp2/release/stm32mp_cfg_cert.crt \
-        --soc-fw-config build/stm32mp2/release/fdts/stm32mp257f-ev-bl31.dtb \
+        --soc-fw-config build/stm32mp2/release/fdts/stm32mp257f-ev1-bl31.dtb \
         --soc-fw build/stm32mp2/release/bl31.bin \
         --soc-fw-cert build/stm32mp2/release/soc_fw_content.crt \
         --soc-fw-key-cert build/stm32mp2/release/soc_fw_key.crt \
@@ -163,8 +163,8 @@ __________________
         --tos-fw-extra1 <optee_directory>/tee-pager_v2.bin \
         --nt-fw <u-boot_directory>/u-boot-nodtb.bin \
         --hw-config <u-boot_directory>/u-boot.dtb \
-        --fw-config build/stm32mp2/release/fdts/stm32mp257f-ev-fw-config.dtb \
-        --soc-fw-config build/stm32mp2/release/fdts/stm32mp257f-ev-bl31.dtb \
+        --fw-config build/stm32mp2/release/fdts/stm32mp257f-ev1-fw-config.dtb \
+        --soc-fw-config build/stm32mp2/release/fdts/stm32mp257f-ev1-bl31.dtb \
         --tos-fw-cert build/stm32mp2/release/tos_fw_content.crt \
         --tos-fw-key-cert build/stm32mp2/release/tos_fw_key.crt \
         --nt-fw-cert build/stm32mp2/release/nt_fw_content.crt \
