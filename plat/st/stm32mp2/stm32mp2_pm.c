@@ -10,6 +10,7 @@
 #include <arch_helpers.h>
 #include <bl31/interrupt_mgmt.h>
 #include <common/debug.h>
+#include <common/fdt_wrappers.h>
 #include <drivers/arm/gic_common.h>
 #include <drivers/arm/gicv2.h>
 #include <drivers/st/bsec3_reg.h>
@@ -108,6 +109,11 @@ const unsigned int stm32mp_pm_idle_states[] = {
 	PWRSTATE_LPLV_STOP2,
 	0U, /* sentinel */
 };
+
+#define PM_IDLE_STATES_SIZE ARRAY_SIZE(stm32mp_pm_idle_states)
+
+/* The supported low power mode on the board, including STANDBY */
+unsigned int stm32mp_supported_pwr_states[PM_IDLE_STATES_SIZE + 1U];
 
 /*******************************************************************************
  * STM32MP2 handler called when a CPU is about to enter standby.
@@ -488,6 +494,17 @@ static int stm32_validate_power_state(unsigned int power_state,
 		return PSCI_E_INVALID_PARAMS;
 	}
 
+	/* search if board restrict the number of supported modes */
+	for (i = 0U; stm32mp_supported_pwr_states[i] != 0U; i++) {
+		if (power_state == stm32mp_supported_pwr_states[i]) {
+			break;
+		}
+	}
+	if (stm32mp_supported_pwr_states[i] == 0U) {
+		ERROR("PSCI power state not supported %x\n", power_state);
+		return PSCI_E_INVALID_PARAMS;
+	}
+
 	i = 0U;
 	state_id = psci_get_pstate_id(power_state);
 
@@ -640,7 +657,7 @@ static int stm32_parse_domain_idle_state(void)
 }
 
 /*******************************************************************************
- * Initialize STM32MP2 for PM support: RCC, PWR
+ * Export the platform specific power ops.
  ******************************************************************************/
 int plat_setup_psci_ops(uintptr_t sec_entrypoint,
 			const plat_psci_ops_t **psci_ops)
@@ -649,15 +666,6 @@ int plat_setup_psci_ops(uintptr_t sec_entrypoint,
 	uintptr_t rcc_base = stm32mp_rcc_base();
 	uint32_t lsmcu;
 	uint32_t lpcfg_d2 = 0U;
-
-	/* Program secondary CPU entry points. */
-	mmio_write_32(A35SSC_BASE + CA35SS_SYSCFG_VBAR_CR, sec_entrypoint);
-
-	/* core 0 can't be turned OFF, emulate it with a WFE loop */
-	stm32mp_core0_go = 0U;
-
-	/* Save boot entry point for STOP2 exit */
-	mmio_write_32(BSEC_BASE + BSEC_SCRATCHR0, sec_entrypoint);
 
 	/* RCC init: DDR is shared by default */
 	mmio_setbits_32(rcc_base + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRSHR);
