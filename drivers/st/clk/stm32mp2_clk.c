@@ -1150,21 +1150,6 @@ enum clksrc_id {
 	CLKSRC_NB
 };
 
-#ifdef IMAGE_BL2
-static void stm32mp2_clk_muxsel_on_hsi(struct stm32_clk_priv *priv)
-{
-
-	mmio_clrbits_32(priv->base + RCC_MUXSELCFGR,
-			RCC_MUXSELCFGR_MUXSEL0_MASK |
-			RCC_MUXSELCFGR_MUXSEL1_MASK |
-			RCC_MUXSELCFGR_MUXSEL2_MASK |
-			RCC_MUXSELCFGR_MUXSEL3_MASK |
-			RCC_MUXSELCFGR_MUXSEL4_MASK |
-			RCC_MUXSELCFGR_MUXSEL5_MASK |
-			RCC_MUXSELCFGR_MUXSEL6_MASK |
-			RCC_MUXSELCFGR_MUXSEL7_MASK);
-}
-
 static void stm32mp2_a35_ss_on_hsi(void)
 {
 	uintptr_t a35_ss_address = A35SSC_BASE;
@@ -1190,6 +1175,21 @@ static void stm32mp2_a35_ss_on_hsi(void)
 	}
 
 	mmio_clrbits_32(pll_enable_reg, A35_SS_PLL_ENABLE_NRESET_SWPLL_FF);
+}
+
+#ifdef IMAGE_BL2
+static void stm32mp2_clk_muxsel_on_hsi(struct stm32_clk_priv *priv)
+{
+
+	mmio_clrbits_32(priv->base + RCC_MUXSELCFGR,
+			RCC_MUXSELCFGR_MUXSEL0_MASK |
+			RCC_MUXSELCFGR_MUXSEL1_MASK |
+			RCC_MUXSELCFGR_MUXSEL2_MASK |
+			RCC_MUXSELCFGR_MUXSEL3_MASK |
+			RCC_MUXSELCFGR_MUXSEL4_MASK |
+			RCC_MUXSELCFGR_MUXSEL5_MASK |
+			RCC_MUXSELCFGR_MUXSEL6_MASK |
+			RCC_MUXSELCFGR_MUXSEL7_MASK);
 }
 
 static void stm32mp2_clk_xbar_on_hsi(struct stm32_clk_priv *priv)
@@ -2193,4 +2193,20 @@ int stm32mp2_clk_init(void)
 #endif
 
 	return 0;
+}
+
+int stm32mp2_pll1_disable(void)
+{
+#ifdef IMAGE_BL2
+	return -EPERM;
+#else
+	uintptr_t a35_ss_address = A35SSC_BASE;
+	uintptr_t pll_enable_reg = a35_ss_address + A35_SS_PLL_ENABLE;
+
+	stm32mp2_a35_ss_on_hsi();
+
+	mmio_clrbits_32(pll_enable_reg, A35_SS_PLL_ENABLE_PD);
+
+	return 0;
+#endif
 }

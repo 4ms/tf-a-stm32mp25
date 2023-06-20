@@ -39,5 +39,6 @@ enum pll_csg {
 };
 
 int stm32mp2_clk_init(void);
+int stm32mp2_pll1_disable(void);
 
 #endif /* STM32MP2_CLK_H */
