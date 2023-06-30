@@ -213,22 +213,6 @@ enum ddr_type {
 /* Define maximum page size for NAND devices */
 #define PLATFORM_MTD_MAX_PAGE_SIZE	U(0x1000)
 
-/*
- * Only used for MTD devices that need some backup blocks.
- * Must define a maximum size for a partition.
- */
-#define PLATFORM_MTD_MAX_PART_SIZE	U(0x00400000)
-
-/*******************************************************************************
- * STM32MP2 RAW partition offset for MTD devices
- ******************************************************************************/
-#ifndef STM32MP_NOR_FIP_OFFSET
-#define STM32MP_NOR_FIP_OFFSET		U(0x00080000)
-#endif
-#ifndef STM32MP_NAND_FIP_OFFSET
-#define STM32MP_NAND_FIP_OFFSET		U(0x00200000)
-#endif
-
 /*******************************************************************************
  * STM32MP2 device/io map related constants (used for MMU)
  ******************************************************************************/

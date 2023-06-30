@@ -17,6 +17,9 @@
 #define STM32MP_CHIP_SEC_CLOSED		U(0x34D9CCC5)
 #define STM32MP_CHIP_SEC_OPEN		U(0xA764D182)
 
+/* FWU configuration (max supported value is 15) */
+#define FWU_MAX_TRIAL_REBOOT		U(3)
+
 /* Functions to save and get boot context address given by ROM code */
 void stm32mp_save_boot_ctx_address(uintptr_t address);
 uintptr_t stm32mp_get_boot_ctx_address(void);

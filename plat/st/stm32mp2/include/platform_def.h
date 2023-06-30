@@ -21,8 +21,6 @@
 /* Size of cacheable stacks */
 #define PLATFORM_STACK_SIZE		0xC00
 
-#define FIP_IMAGE_NAME			"fip"
-
 #define STM32MP_PRIMARY_CPU		U(0x0)
 #define STM32MP_SECONDARY_CPU		U(0x1)
 
