@@ -19,6 +19,7 @@ int stm32mp2_syscfg_dlyb_init(uint8_t bank, bool bypass_mode,
 			      uint16_t period_ps);
 int stm32mp2_syscfg_dlyb_find_tap(uint8_t bank, int (*check_transfer)(void),
 				  bool rx_only);
+void stm32mp2_syscfg_dlyb_stop(uint8_t bank);
 
 /* IO compensation identifiers */
 enum syscfg_io_ids {

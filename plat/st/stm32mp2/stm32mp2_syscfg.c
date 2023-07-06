@@ -221,6 +221,11 @@ static int stm32_syscfg_dlyb_set_tap(uint8_t bank, uint8_t tap, bool rx_tap)
 	return 0;
 }
 
+void stm32mp2_syscfg_dlyb_stop(uint8_t bank)
+{
+	mmio_write_32(SYSCFG_BASE + syscfg_dlybos_cr_offset[bank], 0x0);
+}
+
 int stm32mp2_syscfg_dlyb_find_tap(uint8_t bank, int (*check_transfer)(void),
 				  bool rx_only)
 {
