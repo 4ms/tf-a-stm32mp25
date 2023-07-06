@@ -500,6 +500,7 @@ static int stm32_ospi_claim_bus(unsigned int cs)
 		unsigned int bus_freq = clk_get_rate(stm32_ospi.clock_id) /
 					(prescaler + 1);
 
+		stm32mp2_syscfg_dlyb_stop(stm32_ospi.bank);
 		calibration_done = true;
 
 		/* Calibration needed above 50 MHz */
@@ -507,6 +508,8 @@ static int stm32_ospi_claim_bus(unsigned int cs)
 			if (stm32_ospi_calibration(bus_freq) != 0) {
 				WARN("Set flash frequency to a safe value (%u Hz)\n",
 				     _DLYB_FREQ_50MHZ);
+
+				stm32mp2_syscfg_dlyb_stop(stm32_ospi.bank);
 
 				return stm32_ospi_set_speed(_DLYB_FREQ_50MHZ);
 			}
