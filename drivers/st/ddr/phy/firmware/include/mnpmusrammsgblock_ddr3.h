@@ -142,13 +142,14 @@ struct pmu_smb_ddr_1d {
 					 */
 	uint8_t bpznresval;		/*
 					 * Byte offset 0x09, CSR Addr 0x54004, Direction=In
-					 * Must be programmed to match the precision resistor
-					 * connected to Phy BP_ZN
+					 * Overwrite the value of precision resistor connected to
+					 * Phy BP_ZN
 					 *   0x00 = Do not program. Use current CSR value.
-					 *   0xf0 = 240 Ohm (recommended value)
+					 *   0xf0 = 240 Ohm
 					 *   0x78 = 120 Ohm
 					 *   0x28 = 40 Ohm
 					 *   All other values are reserved.
+					 * It is recommended to set this to 0x00.
 					 */
 	uint8_t phyodtimpedance;	/*
 					 * Byte offset 0x0a, CSR Addr 0x54005, Direction=In
@@ -831,8 +832,14 @@ struct pmu_smb_ddr_1d {
 					 * pstate
 					 */
 	uint8_t reserved64;		/*
-					 * Byte offset 0x64, CSR Addr 0x54032, Direction=N/A
-					 * This field is reserved and must be programmed to 0x00.
+					 * Byte offset 0x64, CSR Addr 0x54032, Direction=In
+					 * Reserved64[0] = protect memory reset
+					 *   0x0 = dfi_reset_n cannot control CP_MEMRESET_L to
+					 *	   devices after training. (Default value)
+					 *   0x1 = dfi_reset_n can control CP_MEMRESET_L to
+					 *	   devices after training.
+					 *
+					 * Reserved64[7:1] RFU, must be zero
 					 */
 	uint8_t reserved65;		/*
 					 * Byte offset 0x65, CSR Addr 0x54032, Direction=N/A

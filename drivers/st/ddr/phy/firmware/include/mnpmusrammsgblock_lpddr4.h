@@ -135,13 +135,14 @@ struct pmu_smb_ddr_1d {
 					 */
 	uint8_t bpznresval;		/*
 					 * Byte offset 0x09, CSR Addr 0x54004, Direction=In
-					 * Must be programmed to match the precision resistor
-					 * connected to Phy BP_ZN
+					 * Overwrite the value of precision resistor connected to
+					 * Phy BP_ZN
 					 *   0x00 = Do not program. Use current CSR value.
-					 *   0xf0 = 240 Ohm (recommended value)
+					 *   0xf0 = 240 Ohm
 					 *   0x78 = 120 Ohm
 					 *   0x28 = 40 Ohm
 					 *   All other values are reserved.
+					 * It is recommended to set this to 0x00.
 					 */
 	uint8_t phyodtimpedance;	/*
 					 * Byte offset 0x0a, CSR Addr 0x54005, Direction=In
@@ -385,23 +386,27 @@ struct pmu_smb_ddr_1d {
 					 * register values for DRAM partial array self-refresh
 					 * features if desired.
 					 *
-					 *   0x0 = Use mr<0:17>_a0 for rank 0 channel A
-					 *	   Use mr<0:17>_b0 for rank 0 channel B
-					 *	   Use mr<0:17>_a1 for rank 1 channel A
-					 *	   Use mr<0:17>_b1 for rank 1 channel B
+					 *   0x0 = Use mr<1:4, 11:14, 16:17, 22, 24>_a0 for rank 0
+					 *	   channel A
+					 *	   Use mr<1:4, 11:14, 16:17, 22, 24>_b0 for rank 0
+					 *	   channel B
+					 *	   Use mr<1:4, 11:14, 16:17, 22, 24>_a1 for rank 1
+					 *	   channel A
+					 *	   Use mr<1:4, 11:14, 16:17, 22, 24>_b1 for rank 1
+					 *	   channel B
 					 *
-					 *   0x1 = Use mr<0:17>_a0 setting for all channels/ranks
+					 *   0x1 = Use mr<1:4, 11:14, 16:17, 22, 24>_a0 setting for
+					 *	   all channels/ranks
 					 *
 					 * It is recommended in most LPDDR4 system configurations
 					 * to set this to 1.
-					 *
-					 * Note: When set to 0, only mode registers associated with
-					 * Vref CA, Vref DQ, and DRAM partial array self-refresh may
-					 * differ between ranks and channels.
+					 * It is recommended in LPDDR4x system configurations to
+					 * set this to 0.
 					 */
 	uint8_t lp4quickboot;		/*
 					 * Byte offset 0x19, CSR Addr 0x5400c, Direction=In
-					 * Enable Quickboot.
+					 * Enable Quickboot. It must be set to 0x0 since Quickboot
+					 * is only supported in dedicated Quickboot firmware.
 					 */
 	uint8_t reserved1a;		/*
 					 * Byte offset 0x1a, CSR Addr 0x5400d, Direction=In
@@ -436,7 +441,11 @@ struct pmu_smb_ddr_1d {
 					 *  WARNING: catrainopt[0] must be set to the same value in
 					 *  1D and 2D training.
 					 *
-					 * [1-7] RFU must be zero
+					 * [1] Train terminated Rank only
+					 *   1 = Only train terminated rank in CA training
+					 *   0 = Train all ranks in CA training
+					 *
+					 * [2-7] RFU must be zero
 					 */
 	uint8_t x8mode;			/*
 					 * Byte offset 0x1c, CSR Addr 0x5400e, Direction=In

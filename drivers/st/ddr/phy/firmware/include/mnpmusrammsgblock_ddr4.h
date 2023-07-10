@@ -149,14 +149,14 @@ struct pmu_smb_ddr_1d {
 					 */
 	uint8_t bpznresval;		/*
 					 * Byte offset 0x09, CSR Addr 0x54004, Direction=In
-					 * Must be programmed to match the precision resistor
-					 * connected to Phy BP_ZN
+					 * Overwrite the value of precision resistor connected to
+					 * Phy BP_ZN
 					 *   0x00 = Do not program. Use current CSR value.
-					 *   0xf0 = 240 Ohm (recommended value)
+					 *   0xf0 = 240 Ohm
 					 *   0x78 = 120 Ohm
 					 *   0x28 = 40 Ohm
 					 *   All other values are reserved.
-					 *
+					 * It is recommended to set this to 0x00.
 					 */
 	uint8_t phyodtimpedance;	/*
 					 * Byte offset 0x0a, CSR Addr 0x54005, Direction=In
