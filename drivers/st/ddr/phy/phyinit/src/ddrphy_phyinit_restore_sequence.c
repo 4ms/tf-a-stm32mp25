@@ -66,13 +66,8 @@ int ddrphy_phyinit_restore_sequence(void)
 	/*
 	 * -# Write the UcclkHclkEnables CSR to disable the appropriate clocks after all reads done.
 	 */
-#if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
 	/* Disabling Ucclk (PMU) and Hclk (training hardware) */
 	mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (TDRTUB | CSR_UCCLKHCLKENABLES_ADDR)), 0x0U);
-#elif STM32MP_LPDDR4_TYPE
-	/* Disabling Ucclk (PMU) */
-	mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (TDRTUB | CSR_UCCLKHCLKENABLES_ADDR)), 0x2U);
-#endif /* STM32MP_LPDDR4_TYPE */
 
 	/*
 	 * -# Write the MicroContMuxSel CSR to 0x1 to isolate the internal CSRs during mission mode.

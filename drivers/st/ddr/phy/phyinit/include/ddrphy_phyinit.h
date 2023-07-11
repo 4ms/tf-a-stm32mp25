@@ -9,7 +9,7 @@
 
 #include <ddrphy_phyinit_usercustom.h>
 
-#define DDRPHY_PHYINIT_RID 202006
+#define DDRPHY_PHYINIT_RID 20220100
 
 /* Global Structures : instantiated in ddrphy_globals.c */
 extern struct runtime_config runtimeconfig;

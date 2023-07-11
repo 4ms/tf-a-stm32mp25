@@ -950,9 +950,6 @@ struct user_input_advanced {
 					 *     the instance in Acs4AnibDis registers. see register
 					 *     description for details.
 					 *
-					 * \note This feature is BETA and untested. Future PhyInit
-					 *       version will fully enable this feature.
-					 *
 					 * Value | Description
 					 * ----- | ---
 					 *   0x1 | Enable

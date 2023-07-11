@@ -403,13 +403,8 @@ int ddrphy_phyinit_usercustom_saveretregs(void)
 	 * --------------------------------------------------------------------------
 	 */
 
-#if STM32MP_DDR4_TYPE
 	/* Disabling Ucclk (PMU) and Hclk (training hardware) */
 	mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (TDRTUB | CSR_UCCLKHCLKENABLES_ADDR)), 0x0U);
-#elif STM32MP_LPDDR4_TYPE
-	/* Disabling Ucclk (PMU) */
-	mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (TDRTUB | CSR_UCCLKHCLKENABLES_ADDR)), 0x2U);
-#endif /* STM32MP_LPDDR4_TYPE */
 
 	mmio_write_16((uintptr_t)(DDRPHYC_BASE + 4 * (TAPBONLY | CSR_MICROCONTMUXSEL_ADDR)), 0x1U);
 

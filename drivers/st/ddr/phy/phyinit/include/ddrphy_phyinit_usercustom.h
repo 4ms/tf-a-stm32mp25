@@ -49,13 +49,13 @@
 #endif /* STM32MP_LPDDR4_TYPE */
 
 #if STM32MP_DDR3_TYPE
-#define IMEM_SIZE			0x4b94
+#define IMEM_SIZE			0x4c28
 #define DMEM_SIZE			0x6c8
 #elif STM32MP_DDR4_TYPE
-#define IMEM_SIZE			0x6ac8
+#define IMEM_SIZE			0x6d24
 #define DMEM_SIZE			0x6cc
 #elif STM32MP_LPDDR4_TYPE
-#define IMEM_SIZE			0x7ec6
+#define IMEM_SIZE			0x7e50
 #define DMEM_SIZE			0x67c
 #endif
 #define IMEM_ST_ADDR			0x50000
