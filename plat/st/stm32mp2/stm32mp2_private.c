@@ -9,6 +9,7 @@
 
 #include <arch_helpers.h>
 #include <drivers/arm/gicv2.h>
+#include <drivers/st/stm32_iwdg.h>
 #include <lib/mmio.h>
 #include <lib/xlat_tables/xlat_tables_v2.h>
 #include <plat/common/platform.h>
@@ -415,6 +416,86 @@ bool stm32mp_is_auth_supported(void)
 
 	return supported;
 }
+
+uint32_t stm32_iwdg_get_instance(uintptr_t base)
+{
+	uint32_t instance = UINT32_MAX;
+
+	switch (base) {
+	case IWDG1_BASE:
+		instance = IWDG1_INST;
+		break;
+	case IWDG2_BASE:
+		instance = IWDG2_INST;
+		break;
+	default:
+		break;
+	}
+
+	if (instance == UINT32_MAX) {
+		panic();
+	}
+
+	return instance;
+}
+
+uint32_t stm32_iwdg_get_otp_config(uint32_t iwdg_inst)
+{
+	uint32_t iwdg_cfg = 0U;
+	uint32_t otp_value;
+
+	if (stm32_get_otp_value(HCONF1_OTP, &otp_value) != 0U) {
+		panic();
+	}
+
+	if ((otp_value & BIT(iwdg_inst + HCONF1_OTP_IWDG_HW_POS)) != 0U) {
+		iwdg_cfg |= IWDG_HW_ENABLED;
+	}
+
+	if ((otp_value & BIT(iwdg_inst + HCONF1_OTP_IWDG_FZ_STOP_POS)) != 0U) {
+		iwdg_cfg |= IWDG_DISABLE_ON_STOP;
+	}
+
+	if ((otp_value & BIT(iwdg_inst + HCONF1_OTP_IWDG_FZ_STANDBY_POS)) != 0U) {
+		iwdg_cfg |= IWDG_DISABLE_ON_STANDBY;
+	}
+
+	return iwdg_cfg;
+}
+
+#if defined(IMAGE_BL2)
+uint32_t stm32_iwdg_shadow_update(uint32_t iwdg_inst, uint32_t flags)
+{
+	uint32_t otp_value;
+	uint32_t otp_idx;
+	uint32_t result;
+
+	if (stm32_get_otp_index(HCONF1_OTP, &otp_idx, NULL) != 0U) {
+		panic();
+	}
+
+	if (stm32_get_otp_value_from_idx(otp_idx, &otp_value) != 0U) {
+		panic();
+	}
+
+	if ((flags & IWDG_DISABLE_ON_STOP) != 0U) {
+		otp_value |= BIT(iwdg_inst + HCONF1_OTP_IWDG_FZ_STOP_POS);
+	}
+
+	if ((flags & IWDG_DISABLE_ON_STANDBY) != 0U) {
+		otp_value |= BIT(iwdg_inst + HCONF1_OTP_IWDG_FZ_STANDBY_POS);
+	}
+
+	result = bsec_write_otp(otp_value, otp_idx);
+	if (result != BSEC_OK) {
+		return result;
+	}
+
+	/* Do not sticky lock OTP_IWDG (read and write) */
+
+	return BSEC_OK;
+}
+#endif
 
 bool stm32mp_skip_boot_device_after_standby(void)
 {

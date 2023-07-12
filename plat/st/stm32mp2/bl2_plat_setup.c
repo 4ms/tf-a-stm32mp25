@@ -19,6 +19,7 @@
 #include <drivers/st/regulator.h>
 #include <drivers/st/regulator_fixed.h>
 #include <drivers/st/stm32_console.h>
+#include <drivers/st/stm32_iwdg.h>
 #include <drivers/st/stm32_rng.h>
 #include <drivers/st/stm32mp_pmic2.h>
 #include <drivers/st/stm32mp_reset.h>
@@ -233,6 +234,12 @@ void bl2_el3_plat_arch_setup(void)
 	if (stm32mp2_clk_init() < 0) {
 		panic();
 	}
+
+	if (stm32_iwdg_init() < 0) {
+		panic();
+	}
+
+	stm32_iwdg_refresh();
 
 	stm32_save_boot_info(boot_context);
 
