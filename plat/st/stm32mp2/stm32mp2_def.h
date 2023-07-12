@@ -310,7 +310,7 @@ enum ddr_type {
 /* OTP labels */
 #define PART_NUMBER_OTP			"part_number_otp"
 #define PACKAGE_OTP			"package_otp"
-#define HW2_OTP				"hw2_otp"
+#define HCONF1_OTP			"otp124"
 #define NAND_OTP			"otp16"
 #define NAND2_OTP			"otp20"
 #define BOARD_ID_OTP			"board_id"
@@ -325,9 +325,9 @@ enum ddr_type {
 #define PACKAGE_OTP_PKG_SHIFT		0
 
 /* IWDG OTP */
-#define HW2_OTP_IWDG_HW_POS		U(0)
-#define HW2_OTP_IWDG_FZ_STOP_POS	U(1)
-#define HW2_OTP_IWDG_FZ_STANDBY_POS	U(2)
+#define HCONF1_OTP_IWDG_HW_POS		U(0)
+#define HCONF1_OTP_IWDG_FZ_STOP_POS	U(1)
+#define HCONF1_OTP_IWDG_FZ_STANDBY_POS	U(2)
 
 /* NAND OTP */
 /* NAND parameter storage flag */
