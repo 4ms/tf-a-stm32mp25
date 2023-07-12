@@ -197,6 +197,51 @@ static void stm32mp2_disable_rcc_wakeup_irq(uintptr_t rcc_base)
 	mmio_clrbits_32(rcc_base + RCC_C1CIESETR, RCC_C1CIESETR_WKUPIE);
 }
 
+#if CONFIG_STM32MP25X_REVA
+/*
+ * M33 firmware: so.s = set DEESLEEP bit in SCR and WFI
+ -------------------------
+.cpu cortex-m33
+.thumb
+.globl _start
+_start:
+.word 0x0E080100
+.word reset
+.word loop
+.word loop
+.thumb_func
+loop: b loop
+.thumb_func
+reset:
+    ldr R1, =0xE000ED10
+    mov R0, #0x4
+    str R0, [R1]
+loop_wfi:
+    wfi
+    b loop_wfi
+ -------------------------
+ * compiled with command
+ *   arm-none-eabi-as so.s -o so.o
+ *   arm-none-eabi-ld -Ttext=0x0A080000 so.o -o so.elf
+ *   arm-none-eabi-objdump -D so.elf > so.list
+ *   arm-none-eabi-objcopy so.elf -O binary so.bin
+ *
+ */
+static const uint16_t retram_firmware[] = {
+	0x0100, 0x0e08, /* stack */
+	0x0013,	0x0a08, /* reset */
+	0x0011,	0x0a08, /* loop */
+	0x0011,	0x0a08, /* loop */
+	0xe7fe,		/* a080010: b.n a080010 <loop> */
+	0x4902,		/* a080012: ldr r1, [pc, #8] */
+	0x2004,		/* a080014: movs r0, #4 to set DEESLEEP bit in SCR */
+	0x6008,		/* a080016: str	r0, [r1, #0]*/
+	0xbf30,		/* a080018: wfi */
+	0xe7fd,		/* 0a08001a: b.n a080018 <loop_wfi> */
+	0xed10, 0xe000	/* 0a08001c: System Control Register (SRC) address */
+};
+#endif
+
 static int stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 {
 	uintptr_t pwr_base = stm32mp_pwr_base();
@@ -222,6 +267,24 @@ static int stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 	/* force Hold Boot and reset of CPU2 = Cortex M33 */
 	mmio_clrbits_32(rcc_base + RCC_CPUBOOTCR, RCC_CPUBOOTCR_BOOT_CPU2);
 	mmio_setbits_32(rcc_base + RCC_C2RSTCSETR, RCC_C2RSTCSETR_C2RST);
+
+#if CONFIG_STM32MP25X_REVA
+	/* Code for infinite loop in RETRAM for Cortex M33 */
+	if (stm32mp_map_retram() != 0) {
+		panic();
+	}
+	/* write in RETRAM the M33 firmware */
+	memcpy((void *)RETRAM_BASE, &retram_firmware, sizeof(retram_firmware));
+
+	if (stm32mp_unmap_retram() != 0) {
+		panic();
+	}
+	/* Unblock the HW automaton by M33 running and resetting again */
+	mmio_setbits_32(rcc_base + RCC_CPUBOOTCR, RCC_CPUBOOTCR_BOOT_CPU2);
+	mmio_setbits_32(rcc_base + RCC_C2RSTCSETR, RCC_C2RSTCSETR_C2RST);
+	mmio_clrbits_32(rcc_base + RCC_CPUBOOTCR, RCC_CPUBOOTCR_BOOT_CPU2);
+	mmio_setbits_32(rcc_base + RCC_C2RSTCSETR, RCC_C2RSTCSETR_C2RST);
+#endif
 
 	/* Switch to Software Self-Refresh mode */
 	if (stateid == PWRSTATE_STANDBY) {

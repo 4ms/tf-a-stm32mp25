@@ -176,7 +176,9 @@ enum ddr_type {
  * MAX_MMAP_REGIONS is usually:
  * BL stm32mp2_mmap size + mmap regions in *_plat_arch_setup
  */
-#if STM32MP_USB_PROGRAMMER || defined(IMAGE_BL31)
+#if defined(IMAGE_BL31) && CONFIG_STM32MP25X_REVA
+#define MAX_MMAP_REGIONS		8    /* RETRAM dynamic map */
+#elif STM32MP_USB_PROGRAMMER || defined(IMAGE_BL31)
 #define MAX_MMAP_REGIONS		7
 #else
 #define MAX_MMAP_REGIONS		6
