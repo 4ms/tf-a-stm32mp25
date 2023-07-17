@@ -337,7 +337,8 @@ static int sr_hsr_set(void)
 {
 	uintptr_t ddrctrl_base = stm32mp_ddrctrl_base();
 
-	mmio_write_32(stm32mp_rcc_base() + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRCKMOD_HSR);
+	mmio_clrsetbits_32(stm32mp_rcc_base() + RCC_DDRITFCFGR,
+			   RCC_DDRITFCFGR_DDRCKMOD_MASK, RCC_DDRITFCFGR_DDRCKMOD_HSR);
 
 	/*
 	 * manage quasi-dynamic registers modification
