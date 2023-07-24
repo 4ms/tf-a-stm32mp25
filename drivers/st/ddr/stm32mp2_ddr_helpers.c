@@ -246,7 +246,7 @@ static int sr_ssr_set(void)
 	return 0;
 }
 
-static int ssr_entry(bool standby)
+static int sr_ssr_entry(bool standby)
 {
 	uintptr_t ddrctrl_base = stm32mp_ddrctrl_base();
 	uintptr_t rcc_base = stm32mp_rcc_base();
@@ -289,16 +289,6 @@ static int ssr_entry(bool standby)
 	mmio_setbits_32(rcc_base + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRPHYDLP);
 
 	return 0;
-}
-
-static int sr_ssr_entry(void)
-{
-	return ssr_entry(false);
-}
-
-static int stdby_sr_ssr_entry(void)
-{
-	return ssr_entry(true);
 }
 
 static int sr_ssr_exit(void)
@@ -359,21 +349,11 @@ static int sr_hsr_set(void)
 	return 0;
 }
 
-static int hsr_entry(bool standby __unused)
+static int sr_hsr_entry(void)
 {
 	mmio_write_32(stm32mp_rcc_base() + RCC_DDRCPCFGR, RCC_DDRCPCFGR_DDRCPLPEN);
 
 	return sr_entry_loop(); /* read_data should be equal to 0x223 */
-}
-
-static int sr_hsr_entry(void)
-{
-	return hsr_entry(false);
-}
-
-static int stdby_sr_hsr_entry(void)
-{
-	return hsr_entry(true);
 }
 
 static int sr_hsr_exit(void)
@@ -393,7 +373,7 @@ static int sr_asr_set(void)
 	return 0;
 }
 
-static int asr_entry(bool standby __unused)
+static int sr_asr_entry(void)
 {
 	/*
 	 * Automatically enter into self refresh when there is no ddr traffic
@@ -401,16 +381,6 @@ static int asr_entry(bool standby __unused)
 	 * Default value is 0x20 (unit: Multiples of 32 DFI clock cycles).
 	 */
 	return sr_entry_loop();
-}
-
-static int sr_asr_entry(void)
-{
-	return asr_entry(false);
-}
-
-static int stdby_sr_asr_entry(void)
-{
-	return asr_entry(true);
 }
 
 static int sr_asr_exit(void)
@@ -425,13 +395,13 @@ uint32_t ddr_get_io_calibration_val(void)
 	return 0U;
 }
 
-int ddr_sr_entry(void)
+int ddr_sr_entry(bool standby)
 {
 	int ret = -EINVAL;
 
 	switch (saved_ddr_sr_mode) {
 	case DDR_SSR_MODE:
-		ret = sr_ssr_entry();
+		ret = sr_ssr_entry(standby);
 		break;
 	case DDR_HSR_MODE:
 		ret = sr_hsr_entry();
@@ -459,27 +429,6 @@ int ddr_sr_exit(void)
 		break;
 	case DDR_ASR_MODE:
 		ret = sr_asr_exit();
-		break;
-	default:
-		break;
-	}
-
-	return ret;
-}
-
-int ddr_standby_sr_entry(void)
-{
-	int ret = -EINVAL;
-
-	switch (saved_ddr_sr_mode) {
-	case DDR_SSR_MODE:
-		ret = stdby_sr_ssr_entry();
-		break;
-	case DDR_HSR_MODE:
-		ret = stdby_sr_hsr_entry();
-		break;
-	case DDR_ASR_MODE:
-		ret = stdby_sr_asr_entry();
 		break;
 	default:
 		break;
