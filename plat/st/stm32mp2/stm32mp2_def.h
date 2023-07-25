@@ -383,7 +383,11 @@ enum ddr_type {
 #define UID_WORD_NB			U(3)
 
 /* Lifecycle OTP */
+#if CONFIG_STM32MP25X_REVA
+#define SECURE_BOOT_CLOSED_SECURE	BIT_32(0)
+#else
 #define SECURE_BOOT_CLOSED_SECURE	GENMASK_32(3, 0)
+#endif
 
 /*******************************************************************************
  * STM32MP2 TAMP
