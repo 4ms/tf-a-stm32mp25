@@ -15,6 +15,7 @@
 #include <plat/common/platform.h>
 
 #include <platform_def.h>
+#include <stm32mp2_context.h>
 
 #if STM32MP_DDR_FIP_IO_STORAGE && defined(IMAGE_BL2)
 /* Map the whole SRAM1 as secure, required to load DDR FW from FIP */
@@ -504,8 +505,23 @@ bool stm32mp_skip_boot_device_after_standby(void)
 
 bool stm32mp_is_wakeup_from_standby(void)
 {
-	/* TODO add source code to determine if platform is waking up from standby mode */
-	return false;
+	static int standby = -1;
+	uint32_t rstsr;
+
+	if (standby == -1) {
+		rstsr = mmio_read_32(stm32mp_rcc_base() + RCC_C1BOOTRSTSCLRR);
+
+		if ((rstsr & RCC_C1BOOTRSTSCLRR_PADRSTF) != 0U) {
+			return false;
+		}
+		if (stm32_pm_context_is_valid()) {
+			standby = 1;
+		} else {
+			standby = 0;
+		}
+	}
+
+	return standby == 1;
 }
 
 int stm32_risaf_get_instance(uintptr_t base)
