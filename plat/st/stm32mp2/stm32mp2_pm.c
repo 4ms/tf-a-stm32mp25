@@ -299,6 +299,9 @@ static int stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 		panic();
 	}
 
+	/* Disable DDRSHR to avoid STANDBY/STOP exit issue */
+	mmio_clrbits_32(rcc_base + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRSHR);
+
 	/* Perform the PWR configuration for the requested mode */
 	switch (stateid) {
 	case PWRSTATE_STOP1:
@@ -430,6 +433,9 @@ static void stm32_pwr_domain_suspend_finish(const psci_power_state_t
 
 	mmio_write_32(rcc_base + RCC_C1SREQCLRR,
 		      core_id == 0U ? RCC_C1SREQCLRR_STPREQ_P0 : RCC_C1SREQCLRR_STPREQ_P1);
+
+	/* Restore DDRSHR after STANDBY/STOP exit issue */
+	mmio_setbits_32(rcc_base + RCC_DDRITFCFGR, RCC_DDRITFCFGR_DDRSHR);
 
 	/* Perform the common system specific operations */
 	if (target_state->pwr_domain_state[LVL_D1_LPLV] == STM32MP_LOCAL_STATE_OFF) {
