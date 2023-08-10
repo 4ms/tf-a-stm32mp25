@@ -7,13 +7,16 @@
 #include <assert.h>
 #include <stdint.h>
 
+#include <bl31/bl31.h>
 #include <common/bl_common.h>
+#include <common/runtime_svc.h>
 #include <drivers/generic_delay_timer.h>
 #include <drivers/st/stm32_console.h>
 #include <lib/xlat_tables/xlat_tables_v2.h>
 #include <plat/common/platform.h>
 
 #include <platform_def.h>
+#include <stm32mp2_context.h>
 
 static entry_point_info_t bl32_image_ep_info;
 static entry_point_info_t bl33_image_ep_info;
@@ -106,6 +109,19 @@ void bl31_plat_arch_setup(void)
 
 	stm32mp_gic_init();
 
+	if (stm32mp_is_wakeup_from_standby()) {
+		/* Initialize the runtime services e.g. PSCI. */
+		runtime_svc_init();
+
+		stm32_pm_context_restore();
+
+		/* Jump manually to BL31 warm entry point, with MMU disabled. */
+		dsbsy();
+		flush_dcache_range(STM32MP_SYSRAM_BASE, STM32MP_SYSRAM_SIZE);
+		disable_mmu_el3();
+		bl31_warm_entrypoint();
+		panic();
+	}
 }
 
 void bl31_platform_setup(void)
