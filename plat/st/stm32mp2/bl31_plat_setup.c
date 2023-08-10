@@ -102,13 +102,14 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 
 void bl31_plat_arch_setup(void)
 {
+	generic_delay_timer_init();
+
+	stm32mp_gic_init();
+
 }
 
 void bl31_platform_setup(void)
 {
-	generic_delay_timer_init();
-
-	stm32mp_gic_init();
 }
 
 entry_point_info_t *bl31_plat_get_next_image_ep_info(unsigned int type)
