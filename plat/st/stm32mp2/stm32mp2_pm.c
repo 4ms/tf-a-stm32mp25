@@ -23,6 +23,7 @@
 #include <plat/common/platform.h>
 
 #include <platform_def.h>
+#include <stm32mp2_context.h>
 
 #define CA35SS_SYSCFG_VBAR_CR	0x2084U
 
@@ -482,6 +483,12 @@ static void __dead2 stm32_pwr_domain_pwr_down_wfi(const psci_power_state_t
 	/* Request STOP for current core */
 	mmio_write_32(rcc_base + RCC_C1SREQSETR,
 		      core_id == 0U ? RCC_C1SREQSETR_STPREQ_P0 : RCC_C1SREQSETR_STPREQ_P1);
+
+	if (((mmio_read_32(rcc_base + RCC_C1SREQSETR) &
+	      RCC_C1SREQSETR_STPREQ_MASK) == RCC_C1SREQSETR_STPREQ_MASK)) {
+		/* Save the context when all the core are requested to stop */
+		stm32_pm_context_save(target_state);
+	}
 
 	/*
 	 * Synchronize on memory accesses and instruction flow before
