@@ -45,6 +45,16 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 
 	configure_mmu();
 
+	if (dt_open_and_check(arg1) < 0) {
+		panic();
+	}
+
+	if (stm32mp2_clk_init() < 0) {
+		panic();
+	}
+
+	(void)stm32mp_uart_console_setup();
+
 	assert(params_from_bl2 != NULL);
 	assert(params_from_bl2->h.type == PARAM_BL_PARAMS);
 	assert(params_from_bl2->h.version >= VERSION_2);
@@ -79,16 +89,6 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 
 		bl_params = bl_params->next_params_info;
 	}
-
-	if (dt_open_and_check(arg1) < 0) {
-		panic();
-	}
-
-	if (stm32mp2_clk_init() < 0) {
-		panic();
-	}
-
-	(void)stm32mp_uart_console_setup();
 
 	/*
 	 * This stm32mp_get_soc_name() call is mandatory here to store SoC part number,
