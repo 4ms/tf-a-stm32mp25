@@ -1776,7 +1776,7 @@ static const struct stm32_clk_ops clk_stm32_pll_ops = {
 	.clock_cfg	= &(struct stm32_pll_cfg) {\
 		.pll_id = _pll_id,\
 	},\
-	.ops = &clk_stm32_pll_ops,\
+	.ops = STM32_PLL_OPS,\
 }
 
 struct clk_stm32_composite_cfg {
@@ -1833,8 +1833,31 @@ static const struct stm32_clk_ops clk_stm32_composite_ops = {
 		.gate_id	= (_gate_id),\
 		.div_id	= (_div_id),\
 	},\
-	.ops = &clk_stm32_composite_ops,\
+	.ops = STM32_COMPOSITE_OPS,\
 }
+
+enum {
+	STM32_PLL_OPS = STM32_LAST_OPS,
+	STM32_COMPOSITE_OPS,
+
+	MP13_LAST_OPS
+};
+
+const struct stm32_clk_ops *ops_array_mp13[MP13_LAST_OPS] = {
+	[NO_OPS] =  NULL,
+	[FIXED_FACTOR_OPS] = &clk_fixed_factor_ops,
+	[GATE_OPS] = &clk_gate_ops,
+	[STM32_MUX_OPS] = &clk_mux_ops,
+	[STM32_DIVIDER_OPS] = &clk_stm32_divider_ops,
+	[STM32_GATE_OPS] = &clk_stm32_gate_ops,
+	[STM32_TIMER_OPS] = &clk_timer_ops,
+	[STM32_FIXED_RATE_OPS] = &clk_stm32_fixed_rate_ops,
+	[STM32_OSC_OPS] = &clk_stm32_osc_ops,
+	[STM32_OSC_NOGATE_OPS] = &clk_stm32_osc_nogate_ops,
+
+	[STM32_PLL_OPS] = &clk_stm32_pll_ops,
+	[STM32_COMPOSITE_OPS] = &clk_stm32_composite_ops
+};
 
 static const struct clk_stm32 stm32mp13_clk[CK_LAST] = {
 	/* ROOT CLOCKS */
@@ -1995,6 +2018,7 @@ static struct stm32_clk_priv stm32mp13_clock_data = {
 	.nb_osci_data	= ARRAY_SIZE(stm32mp13_osc_data),
 	.gate_refcounts	= refcounts_mp13,
 	.pdata		= &stm32mp13_clock_pdata,
+	.ops_array	= ops_array_mp13,
 };
 
 static int stm32mp1_init_clock_tree(void)

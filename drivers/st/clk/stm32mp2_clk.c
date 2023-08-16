@@ -793,7 +793,7 @@ static const struct stm32_clk_ops clk_stm32_pll_ops = {
 	.clock_cfg	= &(struct stm32_pll_cfg) {\
 		.pll_id	= _pll_id,\
 	},\
-	.ops		= &clk_stm32_pll_ops,\
+	.ops		= STM32_PLL_OPS,\
 }
 
 static unsigned long clk_get_pll1_fvco(unsigned long refclk)
@@ -841,7 +841,7 @@ static const struct stm32_clk_ops clk_stm32_pll1_ops = {
 	.clock_cfg	= &(struct stm32_pll_cfg) {\
 		.pll_id	= _pll_id,\
 	},\
-	.ops		= &clk_stm32_pll1_ops,\
+	.ops		= STM32_PLL1_OPS,\
 }
 
 struct stm32_clk_flexgen_cfg {
@@ -951,7 +951,7 @@ static const struct stm32_clk_ops clk_stm32_flexgen_ops = {
 	.clock_cfg	= &(struct stm32_clk_flexgen_cfg) {\
 		.id	= _id,\
 	},\
-	.ops = &clk_stm32_flexgen_ops,\
+	.ops = STM32_FLEXGEN_OPS,\
 }
 
 #define RCC_0_MHZ	UL(0)
@@ -1014,7 +1014,7 @@ static const struct stm32_clk_ops clk_stm32_osc_msi_ops = {
 		.clock_cfg	= &(struct stm32_osc_cfg){\
 			.osc_id = (_osc_id),\
 		},\
-		.ops		= &clk_stm32_osc_msi_ops,\
+		.ops		= STM32_OSC_MSI_OPS,\
 	}
 
 static const struct stm32_clk_ops clk_stm32_rtc_ops = {
@@ -1030,8 +1030,37 @@ static const struct stm32_clk_ops clk_stm32_rtc_ops = {
 	.clock_cfg	= &(struct clk_stm32_gate_cfg) {\
 		.id	= (_gate_id),\
 	},\
-	.ops = &clk_stm32_rtc_ops,\
+	.ops = STM32_RTC_OPS,\
 }
+
+enum {
+	STM32_PLL_OPS = STM32_LAST_OPS,
+	STM32_PLL1_OPS,
+	STM32_FLEXGEN_OPS,
+	STM32_OSC_MSI_OPS,
+	STM32_RTC_OPS,
+
+	MP25_LAST_OPS
+};
+
+const struct stm32_clk_ops *ops_array_mp25[MP25_LAST_OPS] = {
+	[NO_OPS] =  NULL,
+	[FIXED_FACTOR_OPS] = &clk_fixed_factor_ops,
+	[GATE_OPS] = &clk_gate_ops,
+	[STM32_MUX_OPS] = &clk_mux_ops,
+	[STM32_DIVIDER_OPS] = &clk_stm32_divider_ops,
+	[STM32_GATE_OPS] = &clk_stm32_gate_ops,
+	[STM32_TIMER_OPS] = &clk_timer_ops,
+	[STM32_FIXED_RATE_OPS] = &clk_stm32_fixed_rate_ops,
+	[STM32_OSC_OPS] = &clk_stm32_osc_ops,
+	[STM32_OSC_NOGATE_OPS] = &clk_stm32_osc_nogate_ops,
+
+	[STM32_PLL_OPS] = &clk_stm32_pll_ops,
+	[STM32_PLL1_OPS] = &clk_stm32_pll1_ops,
+	[STM32_FLEXGEN_OPS] = &clk_stm32_flexgen_ops,
+	[STM32_OSC_MSI_OPS] = &clk_stm32_osc_msi_ops,
+	[STM32_RTC_OPS] = &clk_stm32_rtc_ops
+};
 
 static const struct clk_stm32 stm32mp25_clk[CK_LAST] = {
 	CLK_FIXED_RATE(_CK_0_MHZ, _NO_ID, RCC_0_MHZ),
@@ -2299,7 +2328,8 @@ static struct stm32_clk_priv stm32mp25_clock_data = {
 	.osci_data	= stm32mp25_osc_data,
 	.nb_osci_data	= ARRAY_SIZE(stm32mp25_osc_data),
 	.gate_refcounts	= refcounts_mp25,
-	.pdata		= &stm32mp25_pdata
+	.pdata		= &stm32mp25_pdata,
+	.ops_array	= ops_array_mp25,
 };
 
 int stm32mp2_clk_init(void)
