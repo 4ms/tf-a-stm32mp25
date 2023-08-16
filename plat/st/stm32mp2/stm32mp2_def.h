@@ -147,7 +147,7 @@ enum ddr_type {
 #define STM32MP_BL2_RO_SIZE		U(0x00018000)	/* 96 KB */
 
 #if TRUSTED_BOARD_BOOT
-#define STM32MP_BL2_SIZE		U(0x0002F000)	/* 188 KB for BL2 */
+#define STM32MP_BL2_SIZE		U(0x0002E000)	/* 184 KB for BL2 */
 #else
 #define STM32MP_BL2_SIZE		U(0x0002A000)	/* 168 KB for BL2 */
 #endif
