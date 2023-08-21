@@ -889,7 +889,7 @@ static bool pll4_bootrom;
 #endif
 
 /* RCC clock device driver private */
-static unsigned int refcounts_mp13[CK_LAST];
+static uint8_t refcounts_mp13[CK_LAST];
 
 static const struct stm32_clk_pll *clk_st32_pll_data(unsigned int idx);
 

@@ -73,7 +73,7 @@ struct stm32_clk_priv {
 	const uint32_t nb_div;
 	struct clk_oscillator_data *osci_data;
 	const uint32_t nb_osci_data;
-	uint32_t *gate_refcounts;
+	uint8_t *gate_refcounts;
 	void *pdata;
 };
 
