@@ -21,23 +21,23 @@ struct gate_cfg {
 };
 
 struct clk_div_table {
-	unsigned int val;
-	unsigned int div;
+	uint16_t val;
+	uint16_t div;
 };
 
 struct div_cfg {
+	const struct clk_div_table *table;
 	uint16_t offset;
 	uint8_t shift;
 	uint8_t width;
 	uint8_t flags;
 	uint8_t bitrdy;
-	const struct clk_div_table *table;
 };
 
 struct parent_cfg {
-	uint8_t num_parents;
 	const uint16_t *id_parents;
 	struct mux_cfg *mux;
+	uint8_t num_parents;
 };
 
 struct stm32_clk_priv;
@@ -97,13 +97,14 @@ struct stm32_clk_drive {
 
 struct clk_oscillator_data {
 	const char *name;
-	uint16_t id_clk;
-	unsigned long frequency;
-	uint16_t gate_id;
-	uint16_t gate_rdy_id;
 	struct stm32_clk_bypass *bypass;
 	struct stm32_clk_css *css;
 	struct stm32_clk_drive *drive;
+	unsigned long frequency;
+	uint16_t id_clk;
+	uint16_t gate_id;
+	uint16_t gate_rdy_id;
+
 };
 
 struct clk_fixed_rate {
@@ -218,7 +219,7 @@ void clk_stm32_display_clock_info(void);
 #endif
 
 struct clk_stm32_div_cfg {
-	int id;
+	uint8_t id;
 };
 
 #define STM32_DIV(idx, _binding, _parent, _flags, _div_id) \
@@ -233,7 +234,7 @@ struct clk_stm32_div_cfg {
 	}
 
 struct clk_stm32_gate_cfg {
-	int id;
+	uint8_t id;
 };
 
 #define STM32_GATE(idx, _binding, _parent, _flags, _gate_id) \
@@ -248,8 +249,8 @@ struct clk_stm32_gate_cfg {
 	}
 
 struct fixed_factor_cfg {
-	unsigned int mult;
-	unsigned int div;
+	uint8_t mult;
+	uint8_t div;
 };
 
 unsigned long fixed_factor_recalc_rate(struct stm32_clk_priv *priv,
@@ -355,7 +356,7 @@ int clk_stm32_osc_gate_enable(struct stm32_clk_priv *priv, int id);
 void clk_stm32_osc_gate_disable(struct stm32_clk_priv *priv, int id);
 
 struct stm32_osc_cfg {
-	int osc_id;
+	uint8_t osc_id;
 };
 
 #define CLK_OSC(idx, _idx, _parent, _osc_id) \
