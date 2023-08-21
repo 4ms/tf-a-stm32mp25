@@ -1694,7 +1694,7 @@ static const struct stm32_clk_pll *clk_st32_pll_data(unsigned int idx)
 }
 
 struct stm32_pll_cfg {
-	int pll_id;
+	uint8_t pll_id;
 };
 
 static unsigned long clk_stm32_pll_recalc_rate(struct stm32_clk_priv *priv,  int id,
@@ -1780,8 +1780,8 @@ static const struct stm32_clk_ops clk_stm32_pll_ops = {
 }
 
 struct clk_stm32_composite_cfg {
-	int gate_id;
-	int div_id;
+	uint8_t gate_id;
+	uint8_t div_id;
 };
 
 static unsigned long clk_stm32_composite_recalc_rate(struct stm32_clk_priv *priv,
