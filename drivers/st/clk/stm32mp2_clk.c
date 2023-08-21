@@ -25,19 +25,19 @@
 
 struct stm32_osci_dt_cfg {
 	unsigned long freq;
+	uint32_t drive;
 	bool bypass;
 	bool digbyp;
 	bool css;
-	uint32_t drive;
 };
 
 struct stm32_pll_dt_cfg {
-	bool enabled;
+	uint32_t src;
+	uint32_t frac;
 	uint32_t cfg[PLLCFG_NB];
 	uint32_t csg[PLLCSG_NB];
-	uint32_t frac;
 	bool csg_enabled;
-	uint32_t src;
+	bool enabled;
 };
 
 struct stm32_clk_platdata {
@@ -502,7 +502,7 @@ static unsigned long clk_get_pll_fvco(struct stm32_clk_priv *priv,
 }
 
 struct stm32_pll_cfg {
-	int pll_id;
+	uint16_t pll_id;
 };
 
 static bool _clk_stm32_pll_is_enabled(struct stm32_clk_priv *priv, const struct stm32_clk_pll *pll)
@@ -707,7 +707,7 @@ static const struct stm32_clk_ops clk_stm32_pll1_ops = {
 }
 
 struct stm32_clk_flexgen_cfg {
-	int id;
+	uint8_t id;
 };
 
 static unsigned long clk_flexgen_recalc(struct stm32_clk_priv *priv, int idx,
