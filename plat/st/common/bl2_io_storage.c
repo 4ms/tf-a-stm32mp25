@@ -13,6 +13,9 @@
 #include <drivers/auth/auth_mod.h>
 #include <drivers/fwu/fwu.h>
 #include <drivers/fwu/fwu_metadata.h>
+#if STM32MP_HYPERFLASH
+#include <drivers/hyperflash.h>
+#endif
 #include <drivers/io/io_block.h>
 #include <drivers/io/io_driver.h>
 #include <drivers/io/io_encrypted.h>
@@ -113,6 +116,17 @@ static io_mtd_dev_spec_t spi_nand_dev_spec = {
 };
 #endif
 
+#if STM32MP_HYPERFLASH
+static io_mtd_dev_spec_t hyperflash_dev_spec = {
+	.ops = {
+		.init = hyperflash_init,
+		.read = hyperflash_read,
+	},
+};
+
+static const io_dev_connector_t *hyperflash_dev_con;
+#endif
+
 #if STM32MP_SPI_NAND || STM32MP_SPI_NOR
 static const io_dev_connector_t *spi_dev_con;
 #endif
@@ -208,6 +222,11 @@ static void print_boot_device(boot_api_context_t *boot_context)
 	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_NAND_SPI:
 		INFO("Using SPI NAND\n");
 		break;
+#if STM32MP_HYPERFLASH
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_HYPERFLASH_OSPI:
+		INFO("Using HYPERFLASH\n");
+		break;
+#endif
 	case BOOT_API_CTX_BOOT_INTERFACE_SEL_SERIAL_UART:
 		INFO("Using UART\n");
 		break;
@@ -371,6 +390,25 @@ static void boot_spi_nand(boot_api_context_t *boot_context)
 }
 #endif /* STM32MP_SPI_NAND */
 
+#if STM32MP_HYPERFLASH
+static void boot_hyperflash(boot_api_context_t *boot_context)
+{
+	int io_result __maybe_unused = 0;
+
+	io_result = stm32_ospi_init();
+	assert(io_result == 0);
+
+	io_result = register_io_dev_mtd(&hyperflash_dev_con);
+	assert(io_result == 0);
+
+	/* Open connections to device */
+	io_result = io_dev_open(hyperflash_dev_con,
+				(uintptr_t)&hyperflash_dev_spec,
+				&storage_dev_handle);
+	assert(io_result == 0);
+}
+#endif /* STM32MP_HYPERFLASH */
+
 #if STM32MP_UART_PROGRAMMER || STM32MP_USB_PROGRAMMER
 static void mmap_io_setup(void)
 {
@@ -473,6 +511,12 @@ void stm32mp_io_setup(void)
 	case BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_NAND_SPI:
 		dmbsy();
 		boot_spi_nand(boot_context);
+		break;
+#endif
+#if STM32MP_HYPERFLASH
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_HYPERFLASH_OSPI:
+		dmbsy();
+		boot_hyperflash(boot_context);
 		break;
 #endif
 #if STM32MP_UART_PROGRAMMER || STM32MP_USB_PROGRAMMER
@@ -581,6 +625,19 @@ int bl2_plat_handle_pre_image_load(unsigned int image_id)
  */
 #if !PSA_FWU_SUPPORT
 		image_block_spec.offset = STM32MP_NOR_FIP_OFFSET;
+#endif
+		break;
+#endif
+
+#if STM32MP_HYPERFLASH
+	case BOOT_API_CTX_BOOT_INTERFACE_SEL_HYPERFLASH_OSPI:
+/*
+ * With FWU Multi Bank feature enabled, the selection of
+ * the image to boot will be done by fwu_init calling the
+ * platform hook, plat_fwu_set_images_source.
+ */
+#if !PSA_FWU_SUPPORT
+		image_block_spec.offset = STM32MP_HYPERFLASH_FIP_OFFSET;
 #endif
 		break;
 #endif
@@ -818,6 +875,16 @@ void plat_fwu_set_images_source(const struct fwu_metadata *metadata)
 			panic();
 		}
 #endif
+#if STM32MP_HYPERFLASH
+		if (guidcmp(img_uuid, &STM32MP_HYPERFLASH_FIP_A_GUID) == 0) {
+			image_spec->offset = STM32MP_HYPERFLASH_FIP_A_OFFSET;
+		} else if (guidcmp(img_uuid, &STM32MP_HYPERFLASH_FIP_B_GUID) == 0) {
+			image_spec->offset = STM32MP_HYPERFLASH_FIP_B_OFFSET;
+		} else {
+			ERROR("Invalid uuid mentioned in metadata\n");
+			panic();
+		}
+#endif
 	}
 }
 
@@ -865,6 +932,16 @@ static int plat_set_image_source(unsigned int image_id,
 		spec->offset = STM32MP_NAND_METADATA1_OFFSET;
 	} else {
 		spec->offset = STM32MP_NAND_METADATA2_OFFSET;
+	}
+
+	spec->length = sizeof(struct fwu_metadata);
+#endif
+
+#if STM32MP_HYPERFLASH
+	if (image_id == FWU_METADATA_IMAGE_ID) {
+		spec->offset = STM32MP_HYPERFLASH_METADATA1_OFFSET;
+	} else {
+		spec->offset = STM32MP_HYPERFLASH_METADATA2_OFFSET;
 	}
 
 	spec->length = sizeof(struct fwu_metadata);
