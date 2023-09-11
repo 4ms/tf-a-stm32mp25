@@ -89,6 +89,53 @@ static int pmic_ddr_power_init(enum ddr_type ddr_type)
 	if (status != 0) {
 		return status;
 	}
+#elif STM32MP_LPDDR4_TYPE
+	int status;
+	struct rdev *vdd1_ddr, *vdd2_ddr;
+
+	/*
+	 * DDR power on sequence is:
+	 * enable VDD1_DDR
+	 * wait 2ms
+	 * enable VDD2_DDR
+	 */
+
+	/*
+	 * FIXME: to be replaced by regulator_get_by_supply_name(... "vdd1_ddr")
+	 * vdd1-supply = <&vdd1_ddr>; in the device-tree
+	 */
+	/* vdd1_ddr */
+	vdd1_ddr = regulator_get_by_name("ldo3");
+	if (vdd1_ddr == NULL) {
+		return -ENOENT;
+	}
+	status = regulator_set_min_voltage(vdd1_ddr);
+	if (status != 0) {
+		return status;
+	}
+
+	/* vdd2_ddr */
+	vdd2_ddr = regulator_get_by_name("buck6");
+	if (vdd2_ddr == NULL) {
+		return -ENOENT;
+	}
+	status = regulator_set_min_voltage(vdd2_ddr);
+	if (status != 0) {
+		return status;
+	}
+
+	status = regulator_enable(vdd1_ddr);
+	if (status != 0) {
+		return status;
+	}
+
+	/* could be set via enable_ramp_delay on vdd1_ddr */
+	udelay(2000);
+
+	status = regulator_enable(vdd2_ddr);
+	if (status != 0) {
+		return status;
+	}
 #else
 	ERROR("DDR type no supported with PMIC\n");
 	panic();
