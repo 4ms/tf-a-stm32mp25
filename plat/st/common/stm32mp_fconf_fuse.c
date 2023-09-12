@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2021-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -46,7 +46,7 @@ static int fconf_populate_stm32mp_fuse_provisioning(uintptr_t config)
 		}
 
 		phandle = fdt32_to_cpu(*cuint);
-		rc = bsec_get_otp_by_phandle(fdt, phandle, &otp_id, &otp_len);
+		rc = dt_get_otp_by_phandle(phandle, &otp_id, &otp_len);
 		if (rc != 0) {
 			WARN("Phandle not found\n");
 			panic();

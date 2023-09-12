@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2017-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -43,8 +43,6 @@
 #define BSEC_HARDWARE_KEY		BIT(8)
 
 uint32_t bsec_probe(void);
-int bsec_get_otp_by_phandle(const void *fdt, const uint32_t phandle,
-			    uint32_t *otp_id, uint32_t *otp_len);
 
 uint32_t bsec_read_otp(uint32_t *val, uint32_t otp);
 uint32_t bsec_shadow_read_otp(uint32_t *otp_value, uint32_t word);
