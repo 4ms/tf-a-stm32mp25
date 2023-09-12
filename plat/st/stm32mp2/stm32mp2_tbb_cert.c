@@ -47,7 +47,8 @@ static ext_t stm32mp2_tbb_ext[] = {
 		.sn = "DDR Firmware Hash",
 		.ln = "DDR Firmware hash (SHA256)",
 		.asn1_type = V_ASN1_OCTET_STRING,
-		.type = EXT_TYPE_HASH
+		.type = EXT_TYPE_HASH,
+		.optional = 1
 	}
 };
 
