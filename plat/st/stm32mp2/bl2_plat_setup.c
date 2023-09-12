@@ -178,13 +178,39 @@ void bl2_platform_setup(void)
 	}
 }
 
+static void reset_backup_domain(void)
+{
+	uintptr_t pwr_base = stm32mp_pwr_base();
+	uintptr_t rcc_base = stm32mp_rcc_base();
+
+	/*
+	 * Disable the backup domain write protection.
+	 * The protection is enable at each reset by hardware
+	 * and must be disabled by software.
+	 */
+	mmio_setbits_32(pwr_base + PWR_BDCR1, PWR_BDCR1_DBD3P);
+
+	while ((mmio_read_32(pwr_base + PWR_BDCR1) & PWR_BDCR1_DBD3P) == 0U) {
+		;
+	}
+
+	/* Reset backup domain on cold boot cases */
+	if ((mmio_read_32(rcc_base + RCC_BDCR) & RCC_BDCR_RTCSRC_MASK) == 0U) {
+		mmio_setbits_32(rcc_base + RCC_BDCR, RCC_BDCR_VSWRST);
+
+		while ((mmio_read_32(rcc_base + RCC_BDCR) & RCC_BDCR_VSWRST) == 0U) {
+			;
+		}
+
+		mmio_clrbits_32(rcc_base + RCC_BDCR, RCC_BDCR_VSWRST);
+	}
+}
+
 void bl2_el3_plat_arch_setup(void)
 {
 	const char *board_model;
 	boot_api_context_t *boot_context =
 		(boot_api_context_t *)stm32mp_get_boot_ctx_address();
-	uintptr_t pwr_base;
-	uintptr_t rcc_base;
 
 	if (bsec_probe() != 0) {
 		panic();
@@ -205,31 +231,7 @@ void bl2_el3_plat_arch_setup(void)
 		panic();
 	}
 
-	pwr_base = stm32mp_pwr_base();
-	rcc_base = stm32mp_rcc_base();
-
-	/*
-	 * Disable the backup domain write protection.
-	 * The protection is enable at each reset by hardware
-	 * and must be disabled by software.
-	 */
-	mmio_setbits_32(pwr_base + PWR_BDCR1, PWR_BDCR1_DBD3P);
-
-	while ((mmio_read_32(pwr_base + PWR_BDCR1) & PWR_BDCR1_DBD3P) == 0U) {
-		;
-	}
-
-	/* Reset backup domain on cold boot cases */
-	if ((mmio_read_32(rcc_base + RCC_BDCR) & RCC_BDCR_RTCSRC_MASK) == 0U) {
-		mmio_setbits_32(rcc_base + RCC_BDCR, RCC_BDCR_VSWRST);
-
-		while ((mmio_read_32(rcc_base + RCC_BDCR) & RCC_BDCR_VSWRST) ==
-		       0U) {
-			;
-		}
-
-		mmio_clrbits_32(rcc_base + RCC_BDCR, RCC_BDCR_VSWRST);
-	}
+	reset_backup_domain();
 
 	if (stm32mp2_clk_init() < 0) {
 		panic();
