@@ -21,7 +21,7 @@ static entry_point_info_t bl33_image_ep_info;
 void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 				u_register_t arg2, u_register_t arg3)
 {
-	bl_params_t *params_from_bl2 = (bl_params_t *)arg0;
+	bl_params_t *params_from_bl2;
 	char name[STM32_SOC_NAME_SIZE];
 
 	stm32mp_setup_early_console();
@@ -55,6 +55,8 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 
 	(void)stm32mp_uart_console_setup();
 
+	assert(arg0 != 0UL);
+	params_from_bl2 = (bl_params_t *)arg0;
 	assert(params_from_bl2 != NULL);
 	assert(params_from_bl2->h.type == PARAM_BL_PARAMS);
 	assert(params_from_bl2->h.version >= VERSION_2);
