@@ -26,6 +26,9 @@
 
 #define CA35SS_SYSCFG_VBAR_CR	0x2084U
 
+#define RAMCFG_RETRAMCR		0x180U
+#define SRAMHWERDIS		BIT(12)
+
 /* GIC interrupt number */
 #define RCC_WAKEUP_IRQn		254
 
@@ -679,6 +682,13 @@ int plat_setup_psci_ops(uintptr_t sec_entrypoint,
 	/* PWR register init */
 	mmio_write_32(pwr_base + PWR_CPU1CR, 0U);
 	mmio_write_32(pwr_base + PWR_CPU2CR, 0U);
+
+	/* Maintain BKPSRAM & RETRAM content in Standby */
+	mmio_write_32(pwr_base + PWR_CR9, PWR_CR9_BKPRBSEN);
+	mmio_write_32(pwr_base + PWR_CR10, PWR_CR10_RETRBSEN_STANDBY);
+
+	/* Prevent RETRAM erase */
+	mmio_write_32(RAMCFG_BASE + RAMCFG_RETRAMCR, SRAMHWERDIS);
 
 	/*
 	 * if PWR_D1CR_LPCFG_D1 is set to 0,
