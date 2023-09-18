@@ -736,10 +736,9 @@ static int stm32_parse_domain_idle_state(void)
 }
 
 /*******************************************************************************
- * Export the platform specific power ops.
+ * Initialize STM32MP2 for PM support: RCC, PWR
  ******************************************************************************/
-int plat_setup_psci_ops(uintptr_t sec_entrypoint,
-			const plat_psci_ops_t **psci_ops)
+static void stm32_pm_init(void)
 {
 	uintptr_t pwr_base = stm32mp_pwr_base();
 	uintptr_t rcc_base = stm32mp_rcc_base();
