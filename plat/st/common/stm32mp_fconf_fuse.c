@@ -72,7 +72,7 @@ static int fconf_populate_stm32mp_fuse_provisioning(uintptr_t config)
 			uint32_t otp_val;
 			bool check_state;
 
-			if (bsec_read_sw_lock(otp_id + i, &check_state) != BSEC_OK) {
+			if (stm32_otp_read_sw_lock(otp_id + i, &check_state) != BSEC_OK) {
 				panic();
 			}
 
@@ -83,7 +83,7 @@ static int fconf_populate_stm32mp_fuse_provisioning(uintptr_t config)
 
 			shadow_val = fdt32_to_cpu(*cuint++);
 
-			if (bsec_shadow_read_otp(&otp_val, otp_id + i) != BSEC_OK) {
+			if (stm32_otp_shadow_read(&otp_val, otp_id + i) != BSEC_OK) {
 				panic();
 			}
 
@@ -91,7 +91,7 @@ static int fconf_populate_stm32mp_fuse_provisioning(uintptr_t config)
 				INFO("Override the OTP %u initial value\n", otp_id);
 			}
 
-			if (bsec_write_otp(otp_val | shadow_val, otp_id + i) != BSEC_OK) {
+			if (stm32_otp_write(otp_val | shadow_val, otp_id + i) != BSEC_OK) {
 				panic();
 			}
 		}

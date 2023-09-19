@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2022-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -8,7 +8,6 @@
 #include <string.h>
 
 #include <common/debug.h>
-#include <drivers/st/bsec.h>
 #include <drivers/st/usb_dwc3.h>
 #include <drivers/usb_device.h>
 

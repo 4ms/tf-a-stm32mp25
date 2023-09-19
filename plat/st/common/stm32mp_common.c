@@ -203,9 +203,9 @@ int stm32_get_otp_value_from_idx(const uint32_t otp_idx, uint32_t *otp_val)
 	assert(otp_val != NULL);
 
 #if defined(IMAGE_BL2)
-	ret = bsec_shadow_read_otp(otp_val, otp_idx);
+	ret = stm32_otp_shadow_read(otp_val, otp_idx);
 #elif defined(IMAGE_BL31) || defined(IMAGE_BL32)
-	ret = bsec_read_otp(otp_val, otp_idx);
+	ret = stm32_otp_read(otp_val, otp_idx);
 #else
 #error "Not supported"
 #endif
@@ -228,13 +228,13 @@ int stm32_lock_enc_key_otp(void)
 	}
 
 	for (i = 0U; i < otp_len / CHAR_BIT / sizeof(uint32_t); i++) {
-		uint32_t ret = bsec_write_otp(0U, otp_idx + i);
+		uint32_t ret = stm32_otp_write(0U, otp_idx + i);
 
 		if (ret != BSEC_OK) {
 			return -1;
 		}
 
-		ret = bsec_set_sr_lock(otp_idx + i);
+		ret = stm32_otp_set_sr_lock(otp_idx + i);
 		if (ret != BSEC_OK) {
 			return -1;
 		}
@@ -260,7 +260,7 @@ int stm32_get_uid_otp(uint32_t uid[])
 	}
 
 	for (i = 0U; i < UID_WORD_NB; i++) {
-		if (bsec_shadow_read_otp(&uid[i], i + otp) != BSEC_OK) {
+		if (stm32_otp_shadow_read(&uid[i], i + otp) != BSEC_OK) {
 			ERROR("BSEC: UID%u Error\n", i);
 			return -1;
 		}

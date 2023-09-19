@@ -387,7 +387,7 @@ uint32_t stm32mp_check_closed_device(void)
 		panic();
 	}
 
-	if (!bsec_mode_is_closed_device() ||
+	if (!stm32_otp_is_closed_device() ||
 	    ((otp_val & SECURE_BOOT_CLOSED_SECURE) == 0U)) {
 		status = STM32MP_CHIP_SEC_OPEN;
 	}
@@ -487,7 +487,7 @@ uint32_t stm32_iwdg_shadow_update(uint32_t iwdg_inst, uint32_t flags)
 		otp_value |= BIT(iwdg_inst + HCONF1_OTP_IWDG_FZ_STANDBY_POS);
 	}
 
-	result = bsec_write_otp(otp_value, otp_idx);
+	result = stm32_otp_write(otp_value, otp_idx);
 	if (result != BSEC_OK) {
 		return result;
 	}

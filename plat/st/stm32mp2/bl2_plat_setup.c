@@ -213,7 +213,7 @@ void bl2_el3_plat_arch_setup(void)
 	boot_api_context_t *boot_context =
 		(boot_api_context_t *)stm32mp_get_boot_ctx_address();
 
-	if (bsec_probe() != 0) {
+	if (stm32_otp_probe() != 0) {
 		panic();
 	}
 
