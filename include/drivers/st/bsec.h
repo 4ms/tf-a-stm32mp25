@@ -45,7 +45,7 @@
 uint32_t bsec_probe(void);
 
 uint32_t bsec_read_otp(uint32_t *val, uint32_t otp);
-uint32_t bsec_shadow_read_otp(uint32_t *otp_value, uint32_t word);
+uint32_t bsec_shadow_read_otp(uint32_t *val, uint32_t otp);
 uint32_t bsec_write_otp(uint32_t val, uint32_t otp);
 uint32_t bsec_program_otp(uint32_t val, uint32_t otp);
 

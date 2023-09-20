@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2022-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -487,18 +487,18 @@ uint32_t bsec_get_secure_state(void)
 
 /*
  * bsec_shadow_read_otp: Load OTP from SAFMEM and provide its value
- * value: read value.
+ * val: read value.
  * otp: OTP number.
  * return value: BSEC_OK if no error.
  */
-uint32_t bsec_shadow_read_otp(uint32_t *value, uint32_t otp)
+uint32_t bsec_shadow_read_otp(uint32_t *val, uint32_t otp)
 {
-	assert(value != NULL);
+	assert(val != NULL);
 	if (otp > STM32MP2_OTP_MAX_ID) {
 		panic();
 	}
 
-	*value = 0U;
+	*val = 0U;
 
 	if (is_bsec_write_locked()) {
 		return BSEC_WRITE_LOCKED;
@@ -513,7 +513,7 @@ uint32_t bsec_shadow_read_otp(uint32_t *value, uint32_t otp)
 		}
 	}
 
-	*value = mmio_read_32(BSEC_BASE + BSEC_FVR(otp));
+	*val = mmio_read_32(BSEC_BASE + BSEC_FVR(otp));
 
 	return BSEC_OK;
 }

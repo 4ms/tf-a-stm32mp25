@@ -768,23 +768,23 @@ static uint32_t bsec_power_safmem(bool power)
 
 /*
  * bsec_shadow_read_otp: Load OTP from SAFMEM and provide its value.
- * otp_value: read value.
- * word: OTP number.
+ * val: read value.
+ * otp: OTP number.
  * return value: BSEC_OK if no error.
  */
-uint32_t bsec_shadow_read_otp(uint32_t *otp_value, uint32_t word)
+uint32_t bsec_shadow_read_otp(uint32_t *val, uint32_t otp)
 {
 	uint32_t result;
 
-	result = bsec_shadow_register(word);
+	result = bsec_shadow_register(otp);
 	if (result != BSEC_OK) {
-		ERROR("BSEC: %u Shadowing Error %u\n", word, result);
+		ERROR("BSEC: %u Shadowing Error %u\n", otp, result);
 		return result;
 	}
 
-	result = bsec_read_otp(otp_value, word);
+	result = bsec_read_otp(val, otp);
 	if (result != BSEC_OK) {
-		ERROR("BSEC: %u Read Error %u\n", word, result);
+		ERROR("BSEC: %u Read Error %u\n", otp, result);
 	}
 
 	return result;
