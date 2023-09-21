@@ -310,6 +310,9 @@ static int stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 		write_scr_el3(read_scr_el3() | SCR_IRQ_BIT | SCR_FIQ_BIT); /* TBC */
 
 		mmio_write_32(pwr_base + PWR_CPU1CR, 0U);
+#if CONFIG_STM32MP25X_REVA
+		dmbsy();
+#endif
 		mmio_write_32(pwr_base + PWR_CPU2CR, 0U);
 		stm32mp2_enable_rcc_wakeup_irq(rcc_base);
 		break;
@@ -317,6 +320,9 @@ static int stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 	case PWRSTATE_LP_STOP1:
 		VERBOSE("enter LP_STOP1\n");
 		mmio_write_32(pwr_base + PWR_CPU1CR, PWR_CPU1CR_LPDS_D1);
+#if CONFIG_STM32MP25X_REVA
+		dmbsy();
+#endif
 		mmio_write_32(pwr_base + PWR_CPU2CR, PWR_CPU2CR_LPDS_D2);
 		stm32mp2_enable_rcc_wakeup_irq(rcc_base);
 		break;
@@ -324,6 +330,9 @@ static int stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 	case PWRSTATE_LPLV_STOP1:
 		VERBOSE("enter LPLV_STOP1\n");
 		mmio_write_32(pwr_base + PWR_CPU1CR, PWR_CPU1CR_LPDS_D1 | PWR_CPU1CR_LVDS_D1);
+#if CONFIG_STM32MP25X_REVA
+		dmbsy();
+#endif
 		mmio_write_32(pwr_base + PWR_CPU2CR, PWR_CPU2CR_LPDS_D2 | PWR_CPU2CR_LVDS_D2);
 		stm32mp2_enable_rcc_wakeup_irq(rcc_base);
 		break;
@@ -331,6 +340,9 @@ static int stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 	case PWRSTATE_STOP2:
 		VERBOSE("enter STOP2\n");
 		mmio_write_32(pwr_base + PWR_CPU1CR, PWR_CPU1CR_PDDS_D1);
+#if CONFIG_STM32MP25X_REVA
+		dmbsy();
+#endif
 		mmio_write_32(pwr_base + PWR_CPU2CR, 0U);
 
 		stm32mp_gic_cpuif_disable();
@@ -341,6 +353,9 @@ static int stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 	case PWRSTATE_LP_STOP2:
 		VERBOSE("enter LP_STOP2\n");
 		mmio_write_32(pwr_base + PWR_CPU1CR, PWR_CPU1CR_PDDS_D1 | PWR_CPU1CR_LPDS_D1);
+#if CONFIG_STM32MP25X_REVA
+		dmbsy();
+#endif
 		mmio_write_32(pwr_base + PWR_CPU2CR, PWR_CPU2CR_LPDS_D2);
 
 		stm32mp_gic_cpuif_disable();
@@ -352,6 +367,9 @@ static int stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 		VERBOSE("enter LPLV_STOP2\n");
 		mmio_write_32(pwr_base + PWR_CPU1CR,
 			      PWR_CPU1CR_PDDS_D1 | PWR_CPU1CR_LPDS_D1 | PWR_CPU1CR_LVDS_D1);
+#if CONFIG_STM32MP25X_REVA
+		dmbsy();
+#endif
 		mmio_write_32(pwr_base + PWR_CPU2CR, PWR_CPU2CR_LPDS_D2 | PWR_CPU2CR_LVDS_D2);
 
 		stm32mp_gic_cpuif_disable();
@@ -362,6 +380,9 @@ static int stm32_pwr_domain_suspend(const psci_power_state_t *target_state)
 	case PWRSTATE_STANDBY:
 		VERBOSE("enter STANDBY\n");
 		mmio_write_32(pwr_base + PWR_CPU1CR, PWR_CPU1CR_PDDS_D1 | PWR_CPU1CR_PDDS_D2);
+#if CONFIG_STM32MP25X_REVA
+		dmbsy();
+#endif
 		mmio_write_32(pwr_base + PWR_CPU2CR, PWR_CPU2CR_PDDS_D2);
 
 		stm32mp_gic_cpuif_disable();
