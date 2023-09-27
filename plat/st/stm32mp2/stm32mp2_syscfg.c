@@ -490,6 +490,13 @@ int stm32mp2_syscfg_dlyb_init(uint8_t bank, bool bypass_mode,
  */
 void stm32mp2_syscfg_set_icn_qos(void)
 {
+#if CONFIG_STM32MP25X_REVA
+#if !STM32MP_LPDDR4_TYPE
+	mmio_write_32(SYSCFG_BASE + SYSCFG_ICNQPCR1, U(0xBBB66637));
+	mmio_write_32(SYSCFG_BASE + SYSCFG_ICNQPCR2, U(0x844ED95A));
+	INFO("ICN QOS priorities configured\n");
+#endif
+#else
 /*
  *	Reset values, un-comment and change if required
  *
@@ -507,4 +514,5 @@ void stm32mp2_syscfg_set_icn_qos(void)
  *	mmio_write_32(SYSCFG_BASE + SYSCFG_ICNDCMIPPBWLCR, U(0x00005002));
  *	mmio_write_32(SYSCFG_BASE + SYSCFG_ICNVDEBWLCR, U(0x00003502));
  */
+#endif
 }
