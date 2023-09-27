@@ -2343,6 +2343,8 @@ void usb_dwc3_init_driver(struct usb_handle *usb_core_handle, struct pcd_handle 
 		dwc3_handle->OUT_ep[i].phy_epnum = __HAL_PCD_EPADDR_TO_PHYEPNUM(i);
 
 		dwc3_handle->OUT_ep[i].intr_num = PCD_DEV_EVENTS_INTR;
+
+		dwc3_handle->OUT_ep[i].bounce_buf = dwc3_handle->bounce_bufs[i].bounce_buf;
 	}
 
 #define PHYS_AREA	STM32MP_USB_DWC3_BASE

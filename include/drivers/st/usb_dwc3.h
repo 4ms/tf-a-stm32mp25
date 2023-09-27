@@ -169,16 +169,8 @@ typedef struct {
 	uint8_t flags;            /* Endpoint state flags condition */
 	uint8_t phy_epnum;        /* physical EP number 0 - 31 */
 	uint8_t intr_num;         /* Interrupt number to get events for this EP */
-#ifdef CACHED_MEMORY // Needed only for cached (__KERNEL__) environment
-    /* Added to shield the cache line (8 words) intersection with other members of structure */
-	uint32_t dummy3[CACHE_LINE_SIZE];
-#endif
 	/* to be used for receiving packet < EP-Max-Packet-Size */
-	uint8_t bounce_buf[USB3_MAX_PACKET_SIZE];
-#ifdef CACHED_MEMORY // Needed only for cached (__KERNEL__) environment
-	/* Added to shield the cache line (8 words) intersection with other members of structure */
-	uint32_t dummy4[CACHE_LINE_SIZE];
-#endif
+	uint8_t *bounce_buf;
 	/* Transmission FIFO number. Number between Min_Data = 1 and Max_Data = 15 */
 	uint8_t tx_fifo_num;
 	uint8_t resc_idx;       /* Resource index */
@@ -188,6 +180,10 @@ typedef struct {
 	/* length of destination buffer, used for receive case, where bounce_buf is used */
 	uint32_t xfer_dest_len;
 } usb_dwc3_endpoint_t;
+
+typedef struct {
+	uint8_t bounce_buf[USB3_MAX_PACKET_SIZE];  /* Event Buffer area */
+} usb_dwc3_endpoint_bouncebuf_t __aligned(CACHE_LINE_SIZE);
 
 /* Aligned to make EvtBuffer start address evtbuffer-size aligned */
 typedef struct {
@@ -219,9 +215,10 @@ typedef enum {
 
 typedef struct {
 	/*
-	 * Kept at top to avoid struct size wastage since EvtBufferArea
-	 * needs to be USB_DWC3_EVENT_BUFFER_SIZE aligned
+	 * Kept at top to avoid struct size wastage since bounce_buf
+	 * needs to be CACHE_LINE_SIZE aligned
 	 */
+	usb_dwc3_endpoint_bouncebuf_t bounce_bufs[USB_DWC3_NUM_OUT_EP];
 	PCD_intbuffersdef intbuffers;
 	usb_dwc3_global_t *usb_global;
 	usb_dwc3_device_t *usb_device;
