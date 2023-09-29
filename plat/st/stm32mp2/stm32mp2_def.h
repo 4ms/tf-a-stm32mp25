@@ -209,7 +209,7 @@ enum ddr_type {
 #define STM32MP_BL33_MAX_SIZE		U(0x400000)
 #define STM32MP_HW_CONFIG_BASE		(STM32MP_BL33_BASE + \
 					STM32MP_BL33_MAX_SIZE)
-#define STM32MP_HW_CONFIG_MAX_SIZE	U(0x20000)
+#define STM32MP_HW_CONFIG_MAX_SIZE	U(0x40000)
 #define STM32MP_SOC_FW_CONFIG_MAX_SIZE	U(0x10000) /* 64kB for BL31 DT */
 
 /* Define maximum page size for NAND devices */
