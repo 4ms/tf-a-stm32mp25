@@ -203,7 +203,9 @@ BL2_SOURCES		+=	drivers/st/crypto/stm32_hash.c				\
 				plat/st/stm32mp2/bl2_plat_setup.c			\
 				plat/st/stm32mp2/plat_ddr.c
 
-BL2_SOURCES		+=	drivers/st/rif/stm32mp2_risaf.c
+BL2_SOURCES		+=	drivers/st/rif/stm32_rifsc.c \
+				drivers/st/rif/stm32mp2_risaf.c
+
 
 ifeq (${TRUSTED_BOARD_BOOT},1)
 BL2_SOURCES		+=	drivers/st/crypto/stm32_pka.c

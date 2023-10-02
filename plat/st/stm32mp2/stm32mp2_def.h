@@ -517,6 +517,9 @@ static inline uintptr_t tamp_bkpr(uint32_t idx)
  * RIFSC IDs
  ******************************************************************************/
 #define STM32MP25_RIFSC_USB3DR_ID	U(66)
+#define STM32MP25_RIFSC_RNG_ID		U(92)
+#define STM32MP25_RIFSC_PKA_ID		U(93)
+#define STM32MP25_RIFSC_SAES_ID		U(94)
 
 #define STM32MP25_RIMU_USB3DR		U(4)
 
