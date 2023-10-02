@@ -514,16 +514,14 @@ static inline uintptr_t tamp_bkpr(uint32_t idx)
 #define RISAF_KEY_SIZE_IN_BYTES		U(16)
 
 /*******************************************************************************
- * USB boot RIFSC specific configurations
+ * RIFSC IDs
  ******************************************************************************/
-#define RIMU_USB3DR			U(4)
-#define RISUP_USB3DR			U(66)
+#define STM32MP25_RIFSC_USB3DR_ID	U(66)
 
-/*
- * Protection for USB3-IP Peripheriphal: accessible form Secure/Priv
- */
-#define RIFSC_USB3DR_PRIV		BIT(RISUP_USB3DR / U(32))
-#define RIFSC_USB3DR_SEC		BIT(RISUP_USB3DR / U(32))
+#define STM32MP25_RIMU_USB3DR		U(4)
+
+#define RIFSC_USB3DR_PRIV		BIT(STM32MP25_RIFSC_USB3DR_ID / U(32))
+#define RIFSC_USB3DR_SEC		BIT(STM32MP25_RIFSC_USB3DR_ID / U(32))
 
 /*
  * USB3DR Secure/Priv Master (DMA) access
