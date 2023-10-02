@@ -14,6 +14,12 @@ CRASH_REPORTING		:=	1
 ENABLE_PIE		:=	1
 PROGRAMMABLE_RESET_ADDRESS := 1
 
+# Do not enable SPE (not supported on Arm v8.0).
+ENABLE_SPE_FOR_LOWER_ELS :=	0
+
+# Do not enable SVE (not supported on Arm v8.0).
+ENABLE_SVE_FOR_NS	:=	0
+
 # Enable PSCI v1.0 extended state ID format
 PSCI_EXTENDED_STATE_ID	:= 1
 PSCI_OS_INIT_MODE	:= 1
