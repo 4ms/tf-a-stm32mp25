@@ -525,5 +525,6 @@ void bl2_el3_plat_prepare_exit(void)
 	flush_dcache_range(BSS_START, BSS_END - BSS_START);
 	flush_dcache_range(DATA_START, DATA_END - DATA_START);
 
+	stm32mp_io_exit();
 	stm32mp2_security_setup();
 }
