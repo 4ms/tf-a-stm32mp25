@@ -218,6 +218,12 @@ void bl2_el3_plat_arch_setup(void)
 	boot_api_context_t *boot_context =
 		(boot_api_context_t *)stm32mp_get_boot_ctx_address();
 
+#if CONFIG_STM32MP25X_REVA
+	/* Clear ROM code generated IACs for low power mode */
+	mmio_write_32(IAC_BASE + IAC_ICR(IAC_RIFSC / 32), BIT(IAC_RIFSC % 32));
+	mmio_write_32(IAC_BASE + IAC_ICR(IAC_BSEC / 32), BIT(IAC_BSEC % 32));
+#endif
+
 	if (stm32_otp_probe() != 0) {
 		panic();
 	}
