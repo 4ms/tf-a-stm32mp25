@@ -42,8 +42,8 @@
 };
 
 &bsec {
-	board_id: board_id@3fc {
-		reg = <0x3fc 0x4>;
+	board_id: board_id@3d8 {
+		reg = <0x3d8 0x4>;
 	};
 };
 
