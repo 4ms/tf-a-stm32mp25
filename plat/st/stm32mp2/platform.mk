@@ -13,6 +13,7 @@ include plat/st/common/common.mk
 CRASH_REPORTING		:=	1
 ENABLE_PIE		:=	1
 PROGRAMMABLE_RESET_ADDRESS := 1
+BL2_IN_XIP_MEM		:=	1
 
 # Do not enable SPE (not supported on Arm v8.0).
 ENABLE_SPE_FOR_LOWER_ELS :=	0
