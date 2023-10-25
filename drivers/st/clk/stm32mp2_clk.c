@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2018-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: GPL-2.0+ OR BSD-3-Clause
  */
@@ -1043,7 +1043,7 @@ enum {
 	MP25_LAST_OPS
 };
 
-const struct stm32_clk_ops *ops_array_mp25[MP25_LAST_OPS] = {
+static const struct stm32_clk_ops *ops_array_mp25[MP25_LAST_OPS] = {
 	[NO_OPS] =  NULL,
 	[FIXED_FACTOR_OPS] = &clk_fixed_factor_ops,
 	[GATE_OPS] = &clk_gate_ops,
