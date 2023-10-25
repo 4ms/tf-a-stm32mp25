@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2022-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: GPL-2.0+ OR BSD-3-Clause
  */
@@ -145,6 +145,9 @@ struct clk_gate_cfg {
 
 #define MASK_WIDTH_SHIFT(_width, _shift) \
 	GENMASK(((_width) + (_shift) - 1U), (_shift))
+
+void clk_stm32_rcc_regs_lock(void);
+void clk_stm32_rcc_regs_unlock(void);
 
 int clk_stm32_init(struct stm32_clk_priv *priv, uintptr_t base);
 void clk_stm32_enable_critical_clocks(void);
