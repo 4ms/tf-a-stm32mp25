@@ -26,6 +26,7 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 {
 	bl_params_t *params_from_bl2;
 	char name[STM32_SOC_NAME_SIZE];
+	int ret;
 
 	stm32mp_setup_early_console();
 
@@ -48,11 +49,15 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
 
 	configure_mmu();
 
-	if (dt_open_and_check(arg1) < 0) {
+	ret = dt_open_and_check(arg1);
+	if (ret < 0) {
+		EARLY_ERROR("%s: failed to open DT (%d)\n", __func__, ret);
 		panic();
 	}
 
-	if (stm32mp2_clk_init() < 0) {
+	ret = stm32mp2_clk_init();
+	if (ret < 0) {
+		EARLY_ERROR("%s: failed init clocks (%d)\n", __func__, ret);
 		panic();
 	}
 
