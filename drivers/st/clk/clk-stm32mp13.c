@@ -1843,7 +1843,7 @@ enum {
 	MP13_LAST_OPS
 };
 
-const struct stm32_clk_ops *ops_array_mp13[MP13_LAST_OPS] = {
+static const struct stm32_clk_ops *ops_array_mp13[MP13_LAST_OPS] = {
 	[NO_OPS] =  NULL,
 	[FIXED_FACTOR_OPS] = &clk_fixed_factor_ops,
 	[GATE_OPS] = &clk_gate_ops,
