@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2022-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: GPL-2.0+ OR BSD-3-Clause
  */
@@ -224,7 +224,7 @@ const struct clk_stm32 *_clk_get(struct stm32_clk_priv *priv, int id)
 	return NULL;
 }
 
-const struct stm32_clk_ops *_clk_get_ops(struct stm32_clk_priv *priv, int id)
+static const struct stm32_clk_ops *_clk_get_ops(struct stm32_clk_priv *priv, int id)
 {
 	const struct clk_stm32 *clk = _clk_get(priv, id);
 
