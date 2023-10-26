@@ -482,6 +482,7 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 		}
 #endif
 		mmap_remove_dynamic_region(DTB_BASE, DTB_LIMIT - DTB_BASE);
+		inv_dcache_range(DTB_BASE, DTB_LIMIT - DTB_BASE);
 
 		break;
 
