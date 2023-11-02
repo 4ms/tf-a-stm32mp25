@@ -187,9 +187,11 @@ static bool is_bsec_write_locked(void)
  */
 uint32_t bsec_probe(void)
 {
-	if ((bsec_get_version() != BSEC_IP_VERSION_1_0) ||
-	    (bsec_get_id() != BSEC_IP_ID_3)) {
-		ERROR("BSEC probe wrong IP version/ID\n");
+	uint32_t version = bsec_get_version();
+	uint32_t id = bsec_get_id();
+
+	if ((version != BSEC_IP_VERSION_1_0) || (id != BSEC_IP_ID_3)) {
+		EARLY_ERROR("%s: version = 0x%x, id = 0x%x\n", __func__, version, id);
 		panic();
 	}
 
