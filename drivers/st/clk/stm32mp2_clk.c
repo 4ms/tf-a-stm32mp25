@@ -1336,7 +1336,7 @@ static void stm32mp2_a35_ss_on_hsi(void)
 	while ((mmio_read_32(chgclkreq_reg) & A35_SS_CHGCLKREQ_ARM_CHGCLKACK) !=
 	       A35_SS_CHGCLKREQ_ARM_CHGCLKACK) {
 		if (timeout_elapsed(timeout)) {
-			ERROR("Cannot switch A35 to bypass clock\n");
+			EARLY_ERROR("Cannot switch A35 to bypass clock\n");
 			panic();
 		}
 	}
@@ -1384,8 +1384,8 @@ static int stm32mp2_a35_pll1_start(void)
 	/* Wait PLL lock */
 	while ((mmio_read_32(pll_enable_reg) & A35_SS_PLL_ENABLE_LOCKP) == 0U) {
 		if (timeout_elapsed(timeout)) {
-			ERROR("PLL1 start failed @ 0x%lx: 0x%x\n",
-			      pll_enable_reg, mmio_read_32(pll_enable_reg));
+			EARLY_ERROR("PLL1 start failed @ 0x%lx: 0x%x\n",
+				    pll_enable_reg, mmio_read_32(pll_enable_reg));
 			return -ETIMEDOUT;
 		}
 	}
@@ -1400,8 +1400,8 @@ static int stm32mp2_a35_pll1_start(void)
 	timeout = timeout_init_us(CLKSRC_TIMEOUT);
 	while ((mmio_read_32(chgclkreq_reg) & A35_SS_CHGCLKREQ_ARM_CHGCLKACK) != 0U) {
 		if (timeout_elapsed(timeout)) {
-			ERROR("CA35SS switch to PLL1 failed @ 0x%lx: 0x%x\n",
-			      chgclkreq_reg, mmio_read_32(chgclkreq_reg));
+			EARLY_ERROR("CA35SS switch to PLL1 failed @ 0x%lx: 0x%x\n",
+				    chgclkreq_reg, mmio_read_32(chgclkreq_reg));
 			return -ETIMEDOUT;
 		}
 	}
@@ -1572,7 +1572,7 @@ static int _clk_stm32_pll1_init(struct stm32_clk_priv *priv, int pll_idx,
 	 * always be less than 1.2 GHz
 	 */
 	if (refclk < PLL_REFCLK_MIN) {
-		ERROR("%s: %d\n", __func__, __LINE__);
+		EARLY_ERROR("%s: %d\n", __func__, __LINE__);
 		panic();
 	}
 
@@ -1596,7 +1596,7 @@ static int clk_stm32_pll_wait_mux_ready(struct stm32_clk_priv *priv,
 	while ((mmio_read_32(pllxcfgr1) & RCC_PLLxCFGR1_CKREFST) !=
 	       RCC_PLLxCFGR1_CKREFST) {
 		if (timeout_elapsed(timeout)) {
-			ERROR("PLL%d ref clock not started\n", pll->clk_id);
+			EARLY_ERROR("PLL%d ref clock not started\n", pll->clk_id);
 			return -ETIMEDOUT;
 		}
 	}
@@ -1697,7 +1697,7 @@ static int wait_predivsr(uint16_t channel)
 	timeout = timeout_init_us(CLKDIV_TIMEOUT);
 	while ((mmio_read_32(previvsr) & channel_bit) != 0U) {
 		if (timeout_elapsed(timeout)) {
-			ERROR("Pre divider status: %x\n",
+			EARLY_ERROR("Pre divider status: %x\n",
 			      mmio_read_32(previvsr));
 			return -ETIMEDOUT;
 		}
@@ -1725,7 +1725,7 @@ static int wait_findivsr(uint16_t channel)
 	timeout = timeout_init_us(CLKDIV_TIMEOUT);
 	while ((mmio_read_32(finvivsr) & channel_bit) != 0U) {
 		if (timeout_elapsed(timeout)) {
-			ERROR("Final divider status: %x\n",
+			EARLY_ERROR("Final divider status: %x\n",
 			      mmio_read_32(finvivsr));
 			return -ETIMEDOUT;
 		}
@@ -1744,7 +1744,7 @@ static int wait_xbar_sts(uint16_t channel)
 	timeout = timeout_init_us(CLKDIV_TIMEOUT);
 	while ((mmio_read_32(xbar_cfgr) & RCC_XBAR0CFGR_XBAR0STS) != 0U) {
 		if (timeout_elapsed(timeout)) {
-			ERROR("XBAR%uCFGR: %x\n", channel,
+			EARLY_ERROR("XBAR%uCFGR: %x\n", channel,
 			      mmio_read_32(xbar_cfgr));
 			return -ETIMEDOUT;
 		}
@@ -1906,7 +1906,8 @@ static void stm32_enable_oscillator_msi(struct stm32_clk_priv *priv)
 
 	err = clk_stm32_osc_msi_set_rate(priv, _CK_MSI, osci->freq, 0);
 	if (err != 0) {
-		ERROR("Invalid rate %lu MHz for MSI ! (4 or 16 only)\n", osci->freq / 1000000U);
+		EARLY_ERROR("Invalid rate %lu MHz for MSI ! (4 or 16 only)\n",
+			    osci->freq / 1000000U);
 		panic();
 	}
 
@@ -1992,7 +1993,7 @@ static int stm32_clk_configure(struct stm32_clk_priv *priv, uint32_t val)
 		break;
 
 	default:
-		ERROR("%s: cmd unknown ! : 0x%x\n", __func__, val);
+		EARLY_ERROR("%s: cmd unknown ! : 0x%x\n", __func__, val);
 		break;
 	}
 

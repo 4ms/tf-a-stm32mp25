@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2022, STMicroelectronics - All Rights Reserved
+ * Copyright (C) 2018-2023, STMicroelectronics - All Rights Reserved
  *
  * SPDX-License-Identifier: GPL-2.0+ OR BSD-3-Clause
  */
@@ -1616,7 +1616,7 @@ static void stm32mp1_lse_enable(bool bypass, bool digbyp, uint32_t lsedrv)
 static void stm32mp1_lse_wait(void)
 {
 	if (stm32mp1_osc_wait(true, RCC_BDCR, RCC_BDCR_LSERDY) != 0) {
-		VERBOSE("%s: failed\n", __func__);
+		EARLY_ERROR("%s: failed\n", __func__);
 	}
 }
 
@@ -1625,7 +1625,7 @@ static void stm32mp1_lsi_set(bool enable)
 	stm32mp1_ls_osc_set(enable, RCC_RDLSICR, RCC_RDLSICR_LSION);
 
 	if (stm32mp1_osc_wait(enable, RCC_RDLSICR, RCC_RDLSICR_LSIRDY) != 0) {
-		VERBOSE("%s: failed\n", __func__);
+		EARLY_ERROR("%s: failed\n", __func__);
 	}
 }
 
@@ -1643,7 +1643,7 @@ static void stm32mp1_hse_enable(bool bypass, bool digbyp, bool css)
 
 	stm32mp1_hs_ocs_set(true, RCC_OCENR_HSEON);
 	if (stm32mp1_osc_wait(true, RCC_OCRDYR, RCC_OCRDYR_HSERDY) != 0) {
-		VERBOSE("%s: failed\n", __func__);
+		EARLY_ERROR("%s: failed\n", __func__);
 	}
 
 	if (css) {
@@ -1662,7 +1662,7 @@ static void stm32mp1_csi_set(bool enable)
 {
 	stm32mp1_hs_ocs_set(enable, RCC_OCENR_CSION);
 	if (stm32mp1_osc_wait(enable, RCC_OCRDYR, RCC_OCRDYR_CSIRDY) != 0) {
-		VERBOSE("%s: failed\n", __func__);
+		EARLY_ERROR("%s: failed\n", __func__);
 	}
 }
 
@@ -1670,7 +1670,7 @@ static void stm32mp1_hsi_set(bool enable)
 {
 	stm32mp1_hs_ocs_set(enable, RCC_OCENR_HSION);
 	if (stm32mp1_osc_wait(enable, RCC_OCRDYR, RCC_OCRDYR_HSIRDY) != 0) {
-		VERBOSE("%s: failed\n", __func__);
+		EARLY_ERROR("%s: failed\n", __func__);
 	}
 }
 
@@ -1710,7 +1710,7 @@ static int stm32mp1_hsidiv(unsigned long hsifreq)
 	}
 
 	if (hsidiv == 4U) {
-		ERROR("Invalid clk-hsi frequency\n");
+		EARLY_ERROR("Invalid clk-hsi frequency\n");
 		return -1;
 	}
 
@@ -1812,8 +1812,8 @@ static int stm32mp1_pll_output(enum stm32mp1_pll_id pll_id, uint32_t output)
 	/* Wait PLL lock */
 	while ((mmio_read_32(pllxcr) & RCC_PLLNCR_PLLRDY) == 0U) {
 		if (timeout_elapsed(timeout)) {
-			ERROR("PLL%u start failed @ 0x%lx: 0x%x\n",
-			      pll_id, pllxcr, mmio_read_32(pllxcr));
+			EARLY_ERROR("PLL%u start failed @ 0x%lx: 0x%x\n",
+				    pll_id, pllxcr, mmio_read_32(pllxcr));
 			return -ETIMEDOUT;
 		}
 	}
@@ -1841,8 +1841,8 @@ static int stm32mp1_pll_stop(enum stm32mp1_pll_id pll_id)
 	/* Wait PLL stopped */
 	while ((mmio_read_32(pllxcr) & RCC_PLLNCR_PLLRDY) != 0U) {
 		if (timeout_elapsed(timeout)) {
-			ERROR("PLL%u stop failed @ 0x%lx: 0x%x\n",
-			      pll_id, pllxcr, mmio_read_32(pllxcr));
+			EARLY_ERROR("PLL%u stop failed @ 0x%lx: 0x%x\n",
+				    pll_id, pllxcr, mmio_read_32(pllxcr));
 			return -ETIMEDOUT;
 		}
 	}
@@ -2376,8 +2376,8 @@ int stm32mp1_clk_init(uint32_t pll1_freq_khz)
 			       usbreg_mask;
 		usbreg_bootrom &= usbreg_mask;
 		if (usbreg_bootrom != usbreg_value) {
-			VERBOSE("forbidden new USB clk path\n");
-			VERBOSE("vs bootrom on USB boot\n");
+			EARLY_ERROR("forbidden new USB clk path\n");
+			EARLY_ERROR("vs bootrom on USB boot\n");
 			return -FDT_ERR_BADVALUE;
 		}
 	}
