@@ -284,6 +284,10 @@ static void set_gpio(uint32_t bank, uint32_t pin, uint32_t mode, uint32_t type,
 
 	clk_disable(clock);
 
+#if STM32MP25
+	set_gpio_secure_cfg(bank, pin, true);
+#endif
+
 	if (status == DT_SECURE) {
 		stm32mp_register_secure_gpio(bank, pin);
 #if !IMAGE_BL2
