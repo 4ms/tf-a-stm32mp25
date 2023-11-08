@@ -161,7 +161,7 @@ enum ddr_type {
 					 (STM32MP_PARAM_LOAD_SIZE +	\
 					  STM32MP_HEADER_SIZE))
 
-#define STM32MP_BL31_SIZE		U(0x0001C000)	/* 112 KB for BL31 */
+#define STM32MP_BL31_SIZE		U(0x0001D000)	/* 116 KB for BL31 */
 
 #define STM32MP_BL2_RO_SIZE		U(0x00018000)	/* 96 KB */
 
