@@ -529,5 +529,16 @@ void stm32mp2_syscfg_set_icn_qos(void)
  *	mmio_write_32(SYSCFG_BASE + SYSCFG_ICNDCMIPPBWLCR, U(0x00005002));
  *	mmio_write_32(SYSCFG_BASE + SYSCFG_ICNVDEBWLCR, U(0x00003502));
  */
+
+	/* Enable BW regulator */
+	mmio_write_32(SYSCFG_BASE + SYSCFG_ICNE2EBWRCR, U(0x00000051));
+
+	/* Disable GPU BW limiter */
+	mmio_write_32(SYSCFG_BASE + SYSCFG_ICNGPUBWLCR, U(0x00004009));
+
+#if STM32MP_DDR4_TYPE || STM32MP_LPDDR4_TYPE
+	/* Change value of CPU BW limiter */
+	mmio_write_32(SYSCFG_BASE + SYSCFG_ICNCPU1BWLCR, U(0x00005002));
+#endif
 #endif
 }
