@@ -496,7 +496,8 @@ Common build options
    through feature specific build flags are supported by the PE or not by
    validating them either at boot phase or at runtime based on the value
    possessed by the feature flag (0 to 2) and report error messages at an early
-   stage.
+   stage. This flag will also enable errata ordering checking for ``DEBUG``
+   builds.
 
    This prevents and benefits us from EL3 runtime exceptions during context save
    and restore routines guarded by these build flags. Henceforth validating them
@@ -629,7 +630,7 @@ Common build options
    +---------------------------+------------------------------------+
    |         KEY_ALG           |        Possible key sizes          |
    +===========================+====================================+
-   |           rsa             | 1024 , 2048 (default), 3072, 4096* |
+   |           rsa             | 1024 , 2048 (default), 3072, 4096  |
    +---------------------------+------------------------------------+
    |          ecdsa            |            unavailable             |
    +---------------------------+------------------------------------+
@@ -637,10 +638,6 @@ Common build options
    +---------------------------+------------------------------------+
    |  ecdsa-brainpool-twisted  |            unavailable             |
    +---------------------------+------------------------------------+
-
-
-   * Only 2048 bits size is available with CryptoCell 712 SBROM release 1.
-     Only 3072 bits size is available with CryptoCell 712 SBROM release 2.
 
 -  ``HASH_ALG``: This build flag enables the user to select the secure hash
    algorithm. It accepts 3 values: ``sha256``, ``sha384`` and ``sha512``.
@@ -1086,6 +1083,13 @@ Common build options
   be skipped and non-zero otherwise. By default, this option is disabled which
   means platform hook won't be checked and CMOs will always be performed when
   related functions are called.
+
+- ``ERRATA_ABI_SUPPORT``: Boolean option to enable support for Errata management
+  firmware interface for the BL31 image. By default its disabled (``0``).
+
+- ``ERRATA_NON_ARM_INTERCONNECT``: Boolean option to enable support for the
+  errata mitigation for platforms with a non-arm interconnect using the errata
+  ABI. By default its disabled (``0``).
 
 GICv3 driver options
 --------------------

@@ -9,7 +9,7 @@
 #
 VERSION_MAJOR			:= 2
 VERSION_MINOR			:= 8
-VERSION_PATCH			:= 6
+VERSION_PATCH			:= 12
 VERSION				:= ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
 
 # Default goal is build all images
@@ -41,10 +41,6 @@ PLAT				:= ${DEFAULT_PLAT}
 
 CHECKCODE_ARGS		:=	--no-patch
 # Do not check the coding style on imported library files or documentation files
-INC_ARM_DIRS_TO_CHECK	:=	$(sort $(filter-out                     \
-					include/drivers/arm/cryptocell,	\
-					$(wildcard include/drivers/arm/*)))
-INC_ARM_DIRS_TO_CHECK	+=	include/drivers/arm/cryptocell/*.h
 INC_DRV_DIRS_TO_CHECK	:=	$(sort $(filter-out			\
 					include/drivers/arm,		\
 					$(wildcard include/drivers/*)))
@@ -668,16 +664,23 @@ endif
 	BL32_LDFLAGS	+=	$(PIE_LDFLAGS)
 endif
 
-ifeq (${ARCH},aarch64)
+BL1_CPPFLAGS  += -DREPORT_ERRATA=${DEBUG}
+BL31_CPPFLAGS += -DREPORT_ERRATA=${DEBUG}
+BL32_CPPFLAGS += -DREPORT_ERRATA=${DEBUG}
+
 BL1_CPPFLAGS += -DIMAGE_AT_EL3
 ifeq ($(BL2_AT_EL3),1)
 BL2_CPPFLAGS += -DIMAGE_AT_EL3
 else
 BL2_CPPFLAGS += -DIMAGE_AT_EL1
 endif
+
+ifeq (${ARCH},aarch64)
 BL2U_CPPFLAGS += -DIMAGE_AT_EL1
 BL31_CPPFLAGS += -DIMAGE_AT_EL3
 BL32_CPPFLAGS += -DIMAGE_AT_EL1
+else
+BL32_CPPFLAGS += -DIMAGE_AT_EL3
 endif
 
 # Include the CPU specific operations makefile, which provides default
@@ -1124,6 +1127,8 @@ $(eval $(call assert_booleans,\
         SIMICS_BUILD \
         FEATURE_DETECTION \
 	TRNG_SUPPORT \
+	ERRATA_ABI_SUPPORT \
+	ERRATA_NON_ARM_INTERCONNECT \
 	CONDITIONAL_CMO \
 )))
 
@@ -1244,6 +1249,8 @@ $(eval $(call add_defines,\
         TRUSTED_BOARD_BOOT \
         CRYPTO_SUPPORT \
         TRNG_SUPPORT \
+        ERRATA_ABI_SUPPORT \
+	ERRATA_NON_ARM_INTERCONNECT \
         USE_COHERENT_MEM \
         USE_DEBUGFS \
         ARM_IO_IN_DTB \
