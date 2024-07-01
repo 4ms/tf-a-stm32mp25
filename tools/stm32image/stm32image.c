@@ -4,7 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#if defined(__linux__)
 #include <asm/byteorder.h>
+#else
+#include "byteorder.h"
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
