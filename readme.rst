@@ -9,6 +9,23 @@ export CROSS_COMPILE=/path/to/arm-gnu-toolchain-12.3.rel1-darwin-arm64-aarch64-n
 make PLAT=stm32mp2 DTB_FILE_NAME=stm32mp257f-ev1.dtb STM32MP_SDMMC=1 SPD=opteed STM32MP_DDR4_TYPE=1
 ```
 
+To build fiptool:
+
+```
+cd tf-a-stm32mp25
+make fiptool
+```
+
+On some macOS systems, you may need to do this:
+
+```
+cd tf-a-stm32mp25
+OPENSSL_DIR=/opt/homebrew/opt/openssl@1.1 HOSTCCFLAGS="-I/opt/homebrew/opt/openssl@1.1/include" make fiptool
+```
+
+The file `make_helpers/defaults.mk` has been modified to allow overriding the default location
+of OPENSSL_DIR.
+
 Trusted Firmware-A
 ==================
 
