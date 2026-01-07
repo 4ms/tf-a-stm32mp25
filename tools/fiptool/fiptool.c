@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #include <sys/mount.h>
 #endif
 #include <sys/types.h>
