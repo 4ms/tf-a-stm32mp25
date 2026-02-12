@@ -188,33 +188,19 @@ void bl2_el3_early_platform_setup(u_register_t arg0 __unused,
 				  u_register_t arg2 __unused,
 				  u_register_t arg3 __unused)
 {
-	stm32mp_setup_early_console();
+	stm32mp_setup_early_console(); //nop
 
-#if STM32MP_M33_TDCID
-	/* Synchronisation point between TF-A and TF-M */
-	notify_cpu2();
-#endif
+	iac_dump(); //nop (debug only)
 
-	iac_dump();
+	stm32mp_save_boot_ctx_address(BOOT_CTX_ADDR); //save boot interface from struct at 0x0e000020
 
-#if STM32MP_UART_PROGRAMMER || STM32MP_USB_PROGRAMMER
-	/*
-	 * fixup: clean IAC that may be caused by bootrom. They are
-	 * irrelevant in programmer mode.
-	 */
-	clean_iac();
-#endif
-
-	stm32mp_save_boot_ctx_address(BOOT_CTX_ADDR);
-
-	stm32_save_header();
+	stm32_save_header();//nop
 }
 
 void bl2_platform_setup(void)
 {
 	int ret;
 
-#if !STM32MP_M33_TDCID
 	ret = stm32mp2_ddr_probe();
 	if (ret != 0) {
 		ERROR("DDR probe: error %d\n", ret);
@@ -224,7 +210,6 @@ void bl2_platform_setup(void)
 	if (stm32mp2_risaf_init() < 0) {
 		panic();
 	}
-#endif
 
 	/* Map DDR for binary load, now with cacheable attribute */
 	ret = mmap_add_dynamic_region(STM32MP_DDR_BASE, STM32MP_DDR_BASE,
@@ -234,13 +219,10 @@ void bl2_platform_setup(void)
 		panic();
 	}
 
-#if !STM32MP_M33_TDCID
 	/* Set QOS ICN priority */
 	stm32mp_syscfg_set_icn_qos();
-#endif
 }
 
-#if !STM32MP_M33_TDCID
 static void handle_potential_tamper(uint32_t bit_off)
 {
 	/* Fixme: Add implementation specific logic here */
@@ -298,19 +280,11 @@ static void reset_backup_domain(void)
 	 * The protection is enable at each reset by hardware
 	 * and must be disabled by software.
 	 */
-#if STM32MP21
-	mmio_setbits_32(pwr_base + PWR_BDCR, PWR_BDCR_DBP);
-
-	while ((mmio_read_32(pwr_base + PWR_BDCR) & PWR_BDCR_DBP) == 0U) {
-		;
-	}
-#else /* STM32MP21 */
 	mmio_setbits_32(pwr_base + PWR_BDCR1, PWR_BDCR1_DBD3P);
 
 	while ((mmio_read_32(pwr_base + PWR_BDCR1) & PWR_BDCR1_DBD3P) == 0U) {
 		;
 	}
-#endif /* STM32MP21 */
 
 	/* Reset backup domain on cold boot cases or when LSE tamper occurred */
 	if ((mmio_read_32(rcc_base + RCC_BDCR) & RCC_BDCR_RTCCKEN) == 0U) {
@@ -323,11 +297,9 @@ static void reset_backup_domain(void)
 		mmio_clrbits_32(rcc_base + RCC_BDCR, RCC_BDCR_VSWRST);
 	}
 }
-#endif /* !STM32MP_M33_TDCID */
 
 static void check_tamper_event(bool lse_tamper_occured)
 {
-#if !STM32MP_M33_TDCID
 	uint32_t sr;
 
 	/*
@@ -379,51 +351,13 @@ static void check_tamper_event(bool lse_tamper_occured)
 		}
 		ERROR("\n");
 	}
-#endif
 }
 
-static void authentication_check(boot_api_context_t *boot_context)
-{
-#if TRUSTED_BOARD_BOOT && DYN_DISABLE_AUTH && !STM32MP21
-	bool auth = false;
-
-	if (boot_context->auth_status == BOOT_API_CTX_AUTH_FAILED) {
-		goto end;
-	}
-
-	if (stm32mp_check_closed_device() != STM32MP_CHIP_SEC_CLOSED) {
-		void *pk_ptr = NULL;
-		unsigned int len = 0U;
-		unsigned int flags = 0U;
-		int rc;
-
-		if (stm32_hash_register() != 0) {
-			ERROR("%s: HASH register fail\n", __func__);
-			return;
-		}
-
-		rc = plat_get_rotpk_info(NULL, &pk_ptr, &len, &flags);
-		if ((rc != -EINVAL) && ((flags & ROTPK_NOT_DEPLOYED) == 0)) {
-			auth = true;
-		}
-	} else {
-		auth = true;
-	}
-end:
-	NOTICE("Bootrom authentication %s\n", auth ? "succeeded" : "failed");
-
-#endif /* TRUSTED_BOARD_BOOT && DYN_DISABLE_AUTH && !STM32MP21 */
-}
 
 void bl2_el3_plat_arch_setup(void)
 {
 	const char *board_model;
-	boot_api_context_t *boot_context =
-		(boot_api_context_t *)stm32mp_get_boot_ctx_address();
-	bool serial_uart_interface __unused =
-				(boot_context->boot_interface_selected ==
-				 BOOT_API_CTX_BOOT_INTERFACE_SEL_SERIAL_UART);
-	uintptr_t uart_prog_addr __unused;
+	boot_api_context_t *boot_context = (boot_api_context_t *)stm32mp_get_boot_ctx_address();
 	bool lse_tamper_occured = false;
 
 	if (stm32_otp_probe() != 0) {
@@ -440,7 +374,6 @@ void bl2_el3_plat_arch_setup(void)
 		panic();
 	}
 
-#if !STM32MP_M33_TDCID
 	lse_tamper_occured = lse_tamper_detection();
 
 	reset_backup_domain();
@@ -450,14 +383,11 @@ void bl2_el3_plat_arch_setup(void)
 	 * and so before stm32mp2_clk_init().
 	 */
 	ddr_sub_system_clk_init();
-#endif
 
 	if (stm32mp2_clk_init() < 0) {
 		panic();
 	}
 
-#if STM32MP_DDR_FIP_IO_STORAGE || TRUSTED_BOARD_BOOT
-#if !STM32MP_M33_TDCID
 	/*
 	 * RISAB3 setup (dedicated for SRAM1)
 	 *
@@ -466,37 +396,16 @@ void bl2_el3_plat_arch_setup(void)
 	 * DDR firmwares are saved there before being loaded in DDRPHY memory.
 	 */
 	mmio_write_32(RISAB3_BASE + RISAB_CR, RISAB_CR_SRWIAD);
-#endif
-#endif /* STM32MP_DDR_FIP_IO_STORAGE || TRUSTED_BOARD_BOOT */
 
 	if (stm32_tamp_nvram_init() < 0) {
 		panic();
 	}
-
-#if STM32MP_UART_PROGRAMMER
-	uart_prog_addr = get_uart_address(boot_context->boot_interface_instance);
-
-	/* Disable programmer UART before changing clock tree */
-	if (serial_uart_interface) {
-		stm32_uart_stop(uart_prog_addr);
-	}
-#endif
 
 	if (stm32_iwdg_init() < 0) {
 		panic();
 	}
 
 	stm32_iwdg_refresh();
-
-#if STM32MP_M33_TDCID
-	/*
-	 * boot interface instance must be forced to 2 in case of eMMC
-	 * single boot device to avoid a ROM issue when M33 is TDCID.
-	 */
-	if (boot_context->boot_interface_selected == BOOT_API_CTX_BOOT_INTERFACE_SEL_FLASH_EMMC) {
-		boot_context->boot_interface_instance = 2U;
-	}
-#endif
 
 	if (stm32_save_boot_info(boot_context) != 0) {
 		panic();
@@ -522,26 +431,16 @@ void bl2_el3_plat_arch_setup(void)
 
 	print_reset_reason();
 
-	if (boot_context->auth_status != BOOT_API_CTX_AUTH_NO) {
-		authentication_check(boot_context);
-	}
+	// if (boot_context->auth_status != BOOT_API_CTX_AUTH_NO) {
+	// 	authentication_check(boot_context);
+	// }
 
 skip_console_init:
 	check_tamper_event(lse_tamper_occured);
 
-#if !TRUSTED_BOARD_BOOT
-	if (stm32mp_check_closed_device() == STM32MP_CHIP_SEC_CLOSED) {
-		/* Closed chip mandates authentication */
-		ERROR("Secure chip: TRUSTED_BOARD_BOOT must be enabled\n");
-		panic();
-	}
-#endif
-
-#if !STM32MP_M33_TDCID
 	if (stm32_rng_init() != 0) {
 		panic();
 	}
-#endif
 
 	if (fixed_regulator_register() != 0) {
 		panic();
@@ -553,22 +452,7 @@ skip_console_init:
 
 	fconf_populate("TB_FW", STM32MP_DTB_BASE);
 
-#if STM32MP_USB_PROGRAMMER
-#if STM32MP21
-	stm32_rifsc_ip_configure(STM32MP21_RIMU_OTG_HS, STM32MP21_RIFSC_OTG_HS_ID,
-				 RIFSC_USB_BOOT_OTG_HS_RIMC_CONF);
-#endif /* STM32MP21 */
-#if STM32MP23
-	stm32_rifsc_ip_configure(STM32MP2_RIMU_USB3DR, STM32MP23_RIFSC_USB3DR_ID,
-				 RIFSC_USB_BOOT_USB3DR_RIMC_CONF);
-#endif /* STM32MP23 */
-#if STM32MP25
-	stm32_rifsc_ip_configure(STM32MP2_RIMU_USB3DR, STM32MP25_RIFSC_USB3DR_ID,
-				 RIFSC_USB_BOOT_USB3DR_RIMC_CONF);
-#endif /* STM32MP25 */
-#endif /* STM32MP_USB_PROGRAMMER */
 
-#if !STM32MP_M33_TDCID
 	/*
 	 * RISAB5 setup (dedicated for RETRAM)
 	 *
@@ -582,9 +466,7 @@ skip_console_init:
 	if (stm32mp2_pwr_init_io_domains() != 0) {
 		panic();
 	}
-#endif
 
-#if STM32MP_DDR_FIP_IO_STORAGE && !STM32MP_UART_PROGRAMMER && !STM32MP_USB_PROGRAMMER
 	/* Skip DDR FW ID = the first image to load for standby exit */
 	if (stm32mp_is_wakeup_from_standby()) {
 		bl_mem_params_node_t *bl_mem_params;
@@ -593,21 +475,14 @@ skip_console_init:
 		assert(bl_mem_params != NULL);
 		bl_mem_params->image_info.h.attr |= IMAGE_ATTRIB_SKIP_LOADING;
 	}
-#endif
 
 	stm32mp_io_setup();
 }
 
 static void prepare_encryption(void)
 {
-#if !STM32MP_M33_TDCID
 	uint8_t mkey[RISAF_KEY_SIZE_IN_BYTES];
 
-#if STM32MP_UART_PROGRAMMER || STM32MP_USB_PROGRAMMER
-	if (stm32_rng_read(mkey, RISAF_KEY_SIZE_IN_BYTES) != 0) {
-		panic();
-	}
-#else /* STM32MP_UART_PROGRAMMER || STM32MP_USB_PROGRAMMER */
 	if (stm32mp_is_wakeup_from_standby()) {
 		stm32mp_pm_get_enc_mkey_from_context(mkey);
 	} else {
@@ -618,26 +493,10 @@ static void prepare_encryption(void)
 
 		stm32mp_pm_save_enc_mkey_in_context(mkey);
 	}
-#endif /* STM32MP_UART_PROGRAMMER || STM32MP_USB_PROGRAMMER */
-
-#if STM32MP21
-	/* Check HWKEY validity before writing RISAF encryption key*/
-	if (!stm32_otp_is_hwkey_valid()) {
-		ERROR("Invalid HWKEY\n");
-		panic();
-	}
-#endif /* STM32MP21 */
 
 	if (stm32mp2_risaf_write_encryption_key(RISAF4_INST, mkey) != 0) {
 		panic();
 	}
-
-#if STM32MP21
-	if (stm32mp2_risaf_write_mce_key(RISAF4_INST, mkey) != 0) {
-		panic();
-	}
-#endif /* STM32MP21 */
-#endif /* !STM32MP_M33_TDCID */
 }
 
 /*******************************************************************************
