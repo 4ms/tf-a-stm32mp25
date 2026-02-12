@@ -699,7 +699,8 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 		/* Iterate through all the fw config IDs */
 		for (i = 0U; i < ARRAY_SIZE(image_ids); i++) {
 			bl_mem_params = get_bl_mem_params_node(image_ids[i]);
-			assert(bl_mem_params != NULL);
+			if (bl_mem_params == NULL)
+				continue;
 
 			config_info = FCONF_GET_PROPERTY(dyn_cfg, dtb, image_ids[i]);
 			if (config_info == NULL) {
