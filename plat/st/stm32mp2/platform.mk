@@ -18,6 +18,12 @@ endif
 
 include plat/st/common/common.mk
 
+ifeq ($(BAREMETAL_IMAGE_LOADER),1)
+BL2_CPPFLAGS += -DBAREMETAL_IMAGE_LOADER=1
+else
+BAREMETAL_IMAGE_LOADER	  :=	0
+endif
+
 CRASH_REPORTING			:=	1
 ENABLE_PIE			:=	0
 PROGRAMMABLE_RESET_ADDRESS	:=	1

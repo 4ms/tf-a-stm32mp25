@@ -16,11 +16,13 @@ toc_entry_t plat_def_toc_entries[] = {
 		.uuid = UUID_DDR_FW,
 		.cmdline_name = "ddr-fw"
 	},
+#if BAREMETAL_IMAGE_LOADER
 	{
 		.name = "BAREMETAL_FW",
 		.uuid = UUID_BM_FW,
 		.cmdline_name = "bm-fw"
 	},
+#endif
 	{
 		.name = "STM32MP CONFIG CERT",
 		.uuid = UUID_STM32MP_CONFIG_CERT,

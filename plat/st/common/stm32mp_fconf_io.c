@@ -98,13 +98,16 @@ struct plat_io_policy policies[MAX_NUMBER_IDS] = {
 #define DDR_FW_UUID_NUMBER	U(0)
 #endif
 
-#define  BAREMETAL_FW_UUID_NUMBER U(1)
+#if BAREMETAL_IMAGE_LOADER
+#define FCONF_ST_IO_UUID_NUMBER	(3)
+#else
 
 #define FCONF_ST_IO_UUID_NUMBER	(DEFAULT_UUID_NUMBER + \
 				 BL31_UUID_NUMBER + \
 				 TBBR_UUID_NUMBER + \
-				 DDR_FW_UUID_NUMBER + \
-				 BAREMETAL_FW_UUID_NUMBER)
+				 DDR_FW_UUID_NUMBER )
+#endif
+
 
 static io_uuid_spec_t fconf_stm32mp_uuids[FCONF_ST_IO_UUID_NUMBER];
 static OBJECT_POOL_ARRAY(fconf_stm32mp_uuids_pool, fconf_stm32mp_uuids);
@@ -120,6 +123,9 @@ static const struct policies_load_info load_info[FCONF_ST_IO_UUID_NUMBER] = {
 	{DDR_FW_ID, "ddr_fw_uuid"},
 #endif
 	{FW_CONFIG_ID, "fw_cfg_uuid"},
+#if BAREMETAL_IMAGE_LOADER
+	{BAREMETAL_FW_ID, "bm_fw_uuid"},
+#else
 #ifdef __aarch64__
 	{BL31_IMAGE_ID, "bl31_uuid"},
 	{SOC_FW_CONFIG_ID, "soc_fw_cfg_uuid"},
@@ -130,7 +136,7 @@ static const struct policies_load_info load_info[FCONF_ST_IO_UUID_NUMBER] = {
 	{BL33_IMAGE_ID, "bl33_uuid"},
 	{HW_CONFIG_ID, "hw_cfg_uuid"},
 	{TOS_FW_CONFIG_ID, "tos_fw_cfg_uuid"},
-	{BAREMETAL_FW_ID, "bm_fw_uuid"},
+#endif
 #if TRUSTED_BOARD_BOOT
 	{STM32MP_CONFIG_CERT_ID, "stm32mp_cfg_cert_uuid"},
 	{TRUSTED_KEY_CERT_ID, "t_key_cert_uuid"},
