@@ -748,6 +748,7 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 
 			case HW_CONFIG_ID:
 			case SOC_FW_CONFIG_ID:
+			case BAREMETAL_FW_ID:
 				break;
 
 			default:
