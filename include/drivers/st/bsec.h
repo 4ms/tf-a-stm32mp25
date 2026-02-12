@@ -49,6 +49,7 @@ uint32_t bsec_write_otp(uint32_t val, uint32_t otp);
 uint32_t bsec_program_otp(uint32_t val, uint32_t otp);
 
 uint32_t bsec_read_debug_conf(void);
+void bsec_enable_full_debug_conf(void);
 
 void bsec_write_scratch(uint32_t val);
 
