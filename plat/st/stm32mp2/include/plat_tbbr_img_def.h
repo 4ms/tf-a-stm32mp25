@@ -42,8 +42,9 @@
 
 #if STM32MP_DDR_FIP_IO_STORAGE
 #define DDR_FW_ID			U(26)
+#define BAREMETAL_FW_ID			U(27)
 /* Increase the MAX_NUMBER_IDS to match the authentication pool required */
-#define MAX_NUMBER_IDS			U(27)
+#define MAX_NUMBER_IDS			U(28)
 
 #else
 /* Increase the MAX_NUMBER_IDS to match the authentication pool required */

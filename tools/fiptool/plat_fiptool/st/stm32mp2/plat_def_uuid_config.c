@@ -17,6 +17,11 @@ toc_entry_t plat_def_toc_entries[] = {
 		.cmdline_name = "ddr-fw"
 	},
 	{
+		.name = "BAREMETAL_FW",
+		.uuid = UUID_BM_FW,
+		.cmdline_name = "bm-fw"
+	},
+	{
 		.name = "STM32MP CONFIG CERT",
 		.uuid = UUID_STM32MP_CONFIG_CERT,
 		.cmdline_name = "stm32mp-cfg-cert"
