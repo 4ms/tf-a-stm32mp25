@@ -65,7 +65,7 @@ static bl_mem_params_node_t bl2_mem_params_descs[] = {
 
 		SET_STATIC_PARAM_HEAD(ep_info, PARAM_EP,
 				      VERSION_2, entry_point_info_t,
-				      SECURE | EXECUTABLE | EP_FIRST_EXE),
+				      SECURE | EXECUTABLE ),
 
 		.ep_info.spsr = SPSR_64(MODE_EL3, MODE_SP_ELX, DISABLE_ALL_EXCEPTIONS),
 
@@ -149,6 +149,26 @@ static bl_mem_params_node_t bl2_mem_params_descs[] = {
 		SET_STATIC_PARAM_HEAD(image_info, PARAM_EP,
 				      VERSION_2, image_info_t,
 				      IMAGE_ATTRIB_SKIP_LOADING),
+
+		.next_handoff_image_id = INVALID_IMAGE_ID,
+	},
+
+	{
+		.image_id = BAREMETAL_FW_ID,
+
+		SET_STATIC_PARAM_HEAD(ep_info, PARAM_EP,
+				      VERSION_2, entry_point_info_t,
+				      SECURE | EXECUTABLE | EP_FIRST_EXE),
+
+		.ep_info.pc = 0x88000000,
+		.ep_info.spsr = SPSR_64(MODE_EL3, MODE_SP_ELX, DISABLE_ALL_EXCEPTIONS),
+
+		SET_STATIC_PARAM_HEAD(image_info, PARAM_EP,
+				      VERSION_2, image_info_t,
+				      0),
+
+		.image_info.image_base = 0x88000000,
+		.image_info.image_max_size = 0x0010000,
 
 		.next_handoff_image_id = INVALID_IMAGE_ID,
 	}
