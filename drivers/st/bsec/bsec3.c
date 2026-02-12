@@ -316,6 +316,15 @@ uint32_t bsec_read_debug_conf(void)
 	return mmio_read_32(BSEC_BASE + BSEC_DENR);
 }
 
+/*
+ * bsec_enable_full_debug_conf: enable Secure "Full debug" for CPU+MCUs
+ * See RM 6.3.10, Table 31
+ */
+void bsec_enable_full_debug_conf(void)
+{
+	mmio_write_32(BSEC_BASE + BSEC_DENR, 0xDEB60FFE);
+}
+
 static uint32_t bsec_lock_register_set(uint32_t offset, uint32_t mask)
 {
 	uint32_t value = mmio_read_32(BSEC_BASE + offset);
