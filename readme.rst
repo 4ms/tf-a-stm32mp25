@@ -23,10 +23,12 @@ export PATH=$PATH:/path/to/arm-gnu-toolchain-15.2.rel1-darwin-arm64-aarch64-none
 ```
 
 Checkout the repo:
+
 ```
 git checkout -b v2.10-stm32mp2-baremetal https://github.com/4ms/tf-a-stm32mp25.git
 cd tf-a-stm32mp25
 ```
+
 Note that the default branch is v2.10-stm32mp2-baremetal, make sure you use that.
 
 
@@ -112,6 +114,25 @@ make clean && ./build.sh && ./buildfiptool.sh && ./makefip.sh && ./flashsd.sh
 ```
 
 Followed by an unmount for the disk
+
+
+
+Notes on DTS
+------------
+The device tree binary (DTB) is embedded into the BL2 FSBL binary at a fixed location. This
+is done in the link script:
+    - stm32mp2.S tells the linker to put the contents of DTB_BIN_PATH (build/../stm32mp257f-ev1-bl2.dtb)
+      into the section named .dtb_image
+    - stm32mp2.ld.S puts .dtb_image in the .data section, at STM32MP_BL2_DTB_BASE (0x0E011000).
+      The max size is 0x6000, so it can't exceed 0x0E017000
+
+The DTB that's compiled is a the DTS given in the command-line build option DTB_FILE_NAME
+(stm32mp257f-ev1.dts in our case), with the contents of stm32mp25-bl2.dtsi appended.
+Both these files are in fdts/.
+
+There's also a fw-config DTB.
+TODO: document this
+
 
 
 Trusted Firmware-A
