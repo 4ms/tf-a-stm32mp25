@@ -1,17 +1,53 @@
-This has been forked from ST's TFA and modified to allow compilation on a macOS host.
+This has been forked from ST's TFA.
 
-To build for the stm32mp257f-ev1 board:
+Modifications:
+- allow compilation on a macOS host
+- add BAREMETAL_IMAGE_LOADER build flag:
+  - Builds BL2 and its DTB requirements
+  - BL2 performs some hardware init (PMIC, DDRRAM, ...) and then
+    loads a baremetal binary app from the FIP file, and excecutes it
+    in EL3 Secure mode.
+  - BL31 (TF-A Secure Monitor), BL32 (OP-TEE), BL33 (U-Boot) are not built or used
+
+
+To build for the stm32mp257f-ev1 board, first make sure the aarch64-none-elf-gcc toolchain
+is on your path:
 
 ```
-git checkout https://github.com/4ms/tf-a-stm32mp25.git
-cd tf-a-stm32mp25
-
 export PATH=$PATH:/path/to/arm-gnu-toolchain-12.3.rel1-darwin-arm64-aarch64-none-elf/bin
-
-make PLAT=stm32mp2 DTB_FILE_NAME=stm32mp257f-ev1.dtb STM32MP_SDMMC=1 SPD=opteed STM32MP_DDR4_TYPE=1 CROSS_COMPILE=aarch64-none-elf-
-
 ```
 
+Checkout the repo:
+```
+git checkout -b v2.10-stm32mp2-baremetal https://github.com/4ms/tf-a-stm32mp25.git
+cd tf-a-stm32mp25
+```
+Note that the default branch is v2.10-stm32mp2-baremetal, make sure you use that.
+
+
+Build:
+
+```
+make PLAT=stm32mp2 \
+    CROSS_COMPILE=aarch64-none-elf- \
+    DTB_FILE_NAME=stm32mp257f-ev1.dtb \
+    STM32MP_SDMMC=1 \
+    STM32MP_DDR4_TYPE=1 \
+    BAREMETAL_IMAGE_LOADER=1 \
+    LOG_LEVEL=40 \
+    bl2 dtbs stm32image fsbl
+```
+
+This command can also be run with:
+
+```
+./build.sh
+```
+
+This will build `bl2.bin` and `stm32mp257f-ev1-fw-config.dtb`
+To combine these with the pre-built DDR initialization firmware
+and your baremetal app binary, you need to make a FIP file.
+TF-A provides a FIP tool to do that.
 
 To build fiptool:
 
