@@ -5,10 +5,12 @@
 #
 
 # Compilation rules
-.PHONY: check_dtc_version stm32image clean_stm32image check_boot_device
+.PHONY: check_dtc_version stm32image clean_stm32image check_boot_device fsbl
 .SUFFIXES:
 
 all: check_dtc_version stm32image ${STM32_TF_STM32}
+
+fsbl: ${STM32_TF_STM32}
 
 distclean realclean clean: clean_stm32image
 
