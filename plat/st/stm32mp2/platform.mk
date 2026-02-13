@@ -158,7 +158,9 @@ BL2_DTSI			:=	stm32mp25-bl2.dtsi
 BL31_DTSI			:=	stm32mp25-bl31.dtsi
 endif
 FDT_SOURCES			:=	$(addprefix ${BUILD_PLAT}/fdts/, $(patsubst %.dtb,%-bl2.dts,$(DTB_FILE_NAME)))
+ifneq (${BAREMETAL_IMAGE_LOADER},1)
 FDT_SOURCES			+=	$(addprefix ${BUILD_PLAT}/fdts/, $(patsubst %.dtb,%-bl31.dts,$(DTB_FILE_NAME)))
+endif
 
 ifneq (,$(wildcard fdts/$(patsubst %.dtb,%.dts,$(DTB_FILE_NAME))))
 DT_SOURCE_PATH			:=	fdts
@@ -183,7 +185,9 @@ STM32MP_DDR_FW_PATH		?=	drivers/st/ddr/phy/firmware/bin/stm32mp2
 STM32MP_DDR_FW_NAME		:=	${DDR_TYPE}_pmu_train.bin
 STM32MP_DDR_FW			:=	${STM32MP_DDR_FW_PATH}/${STM32MP_DDR_FW_NAME}
 endif
+ifneq (${BAREMETAL_IMAGE_LOADER},1)
 FDT_SOURCES			+=	$(addprefix $(DT_SOURCE_PATH)/, $(patsubst %.dtb,%.dts,$(STM32MP_FW_CONFIG_NAME)))
+endif
 
 # Add the FW_CONFIG to FIP and specify the same to certtool
 $(eval $(call TOOL_ADD_PAYLOAD,${STM32MP_FW_CONFIG},--fw-config))

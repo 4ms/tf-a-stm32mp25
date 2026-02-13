@@ -42,6 +42,27 @@ static bl_mem_params_node_t bl2_mem_params_descs[] = {
 		.next_handoff_image_id = INVALID_IMAGE_ID,
 	},
 #endif
+#if BAREMETAL_IMAGE_LOADER
+	{
+		.image_id = BAREMETAL_FW_ID,
+
+		SET_STATIC_PARAM_HEAD(ep_info, PARAM_EP,
+				      VERSION_2, entry_point_info_t,
+				      SECURE | EXECUTABLE | EP_FIRST_EXE),
+
+		.ep_info.pc = 0x88000000,
+		.ep_info.spsr = SPSR_64(MODE_EL3, MODE_SP_ELX, DISABLE_ALL_EXCEPTIONS),
+
+		SET_STATIC_PARAM_HEAD(image_info, PARAM_EP,
+				      VERSION_2, image_info_t,
+				      IMAGE_ATTRIB_PLAT_SETUP),
+
+		.image_info.image_base = 0x88000000,
+		.image_info.image_max_size = 0x0010000,
+
+		.next_handoff_image_id = INVALID_IMAGE_ID,
+	}
+#else
 
 	/* Fill FW_CONFIG related information if it exists */
 	{
@@ -58,27 +79,7 @@ static bl_mem_params_node_t bl2_mem_params_descs[] = {
 
 		.next_handoff_image_id = INVALID_IMAGE_ID,
 	},
-#if BAREMETAL_IMAGE_LOADER
-	{
-		.image_id = BAREMETAL_FW_ID,
 
-		SET_STATIC_PARAM_HEAD(ep_info, PARAM_EP,
-				      VERSION_2, entry_point_info_t,
-				      SECURE | EXECUTABLE | EP_FIRST_EXE),
-
-		.ep_info.pc = 0x88000000,
-		.ep_info.spsr = SPSR_64(MODE_EL3, MODE_SP_ELX, DISABLE_ALL_EXCEPTIONS),
-
-		SET_STATIC_PARAM_HEAD(image_info, PARAM_EP,
-				      VERSION_2, image_info_t,
-				      0),
-
-		.image_info.image_base = 0x88000000,
-		.image_info.image_max_size = 0x0010000,
-
-		.next_handoff_image_id = INVALID_IMAGE_ID,
-	}
-#else
 	/* Fill BL31 related information */
 	{
 		.image_id = BL31_IMAGE_ID,

@@ -99,7 +99,7 @@ struct plat_io_policy policies[MAX_NUMBER_IDS] = {
 #endif
 
 #if BAREMETAL_IMAGE_LOADER
-#define FCONF_ST_IO_UUID_NUMBER	(3)
+#define FCONF_ST_IO_UUID_NUMBER	(2)
 #else
 
 #define FCONF_ST_IO_UUID_NUMBER	(DEFAULT_UUID_NUMBER + \
@@ -122,10 +122,10 @@ static const struct policies_load_info load_info[FCONF_ST_IO_UUID_NUMBER] = {
 #if STM32MP_DDR_FIP_IO_STORAGE
 	{DDR_FW_ID, "ddr_fw_uuid"},
 #endif
-	{FW_CONFIG_ID, "fw_cfg_uuid"},
 #if BAREMETAL_IMAGE_LOADER
 	{BAREMETAL_FW_ID, "bm_fw_uuid"},
 #else
+	{FW_CONFIG_ID, "fw_cfg_uuid"},
 #ifdef __aarch64__
 	{BL31_IMAGE_ID, "bl31_uuid"},
 	{SOC_FW_CONFIG_ID, "soc_fw_cfg_uuid"},
