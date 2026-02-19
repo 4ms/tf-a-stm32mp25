@@ -275,7 +275,7 @@
 /{
 	ddrram_1: ddrram-1@80000000 {
 		reg = <0x0 0x80000000 0x0 0x40000000>;
-		st,protreg = <RISAFPROT(RISAF_REG_ID(0),
+		st,protreg = <RISAFPROT(RISAF_REG_ID(1),
 		        /*     CIDCFGR.RDEN           CIDCFGR.WREN        CFGR.PRIVx  CFGR.SEC  CFGR.ENC    CFGR.BREN   */
 			RIF_CID0_BF|RIF_CID1_BF, RIF_CID0_BF|RIF_CID1_BF, RIF_UNUSED, RIF_SEC, RIF_ENC_DIS, RIF_BREN_EN)>;
 	};
