@@ -821,12 +821,7 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 	case BAREMETAL_FW_ID:
 		dsbsy();
 		isb();
-		// stm32mp_unmap_ddr();
-		// stm32mp_map_ddr_non_cacheable();
-		// err = mmap_add_dynamic_region(0x88000000, 0x88000000, 0x1000000, MT_MEMORY | MT_RW | MT_SECURE);
 		bsec_enable_full_debug_conf();
-		// disable_mmu_icache_el3();
-		// dsbsy();
 		// isb();
 		break;
 
