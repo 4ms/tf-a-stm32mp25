@@ -53,9 +53,15 @@ This command can also be run with:
 ./build.sh
 ```
 
-This will build `tf-a-stm32mp257f-ev1.stm32`, which is the FSBL (first stage bootloader). This file
-gets copied to partitions 1 and 2 on the SD card with dd (replace /dev/diskX1 with the first
-partition of your SD card, and likewise for /dev/diskX2)
+This will build `tf-a-stm32mp257f-ev1.stm32`, which is the FSBL (first stage bootloader).
+
+### Installing the FSBL on the SD card
+
+The FSBL file needs to be copied to partitions 1 and 2 on the SD card using dd.
+In the following commands, replace /dev/diskX1 and /dev/diskX2
+with the device path of your SD card's first and second partitions.
+On macOS, this should be like "/dev/disk4s1" and "/dev/disk4s2".
+On Linux it's typically something like "/dev/sda1" and "/dev/sda2".
 
 ```bash
 sudo dd if=build/stm32mp2/release/tf-a-stm32mp257f-ev1.stm32 of=/dev/diskX1
@@ -76,19 +82,21 @@ To build fiptool:
 
 ```bash
 cd tf-a-stm32mp25
-make PLAT=stm32mp2 fiptool
+make PLAT=stm32mp2 BAREMETAL_IMAGE_LOADER=1 fiptool
 ```
 
 On some macOS systems, you will need to do this:
 
 ```bash
 cd tf-a-stm32mp25
-make PLAT=stm32mp2 OPENSSL_DIR=/opt/homebrew/opt/openssl@1.1 HOSTCCFLAGS="-I/opt/homebrew/opt/openssl@1.1/include" fiptool
+make PLAT=stm32mp2 BAREMETAL_IMAGE_LOADER=1 \
+	OPENSSL_DIR=/opt/homebrew/opt/openssl@1.1 \
+	HOSTCCFLAGS="-I/opt/homebrew/opt/openssl@1.1/include" \
+	fiptool
 ```
 
 To support the above command, the file `make_helpers/defaults.mk` has been modified to allow
 overriding the default location of OPENSSL_DIR.
-
 
 Once the fiptool is built, run it to create your FIP file (change the path to your baremetal
 project):
@@ -100,9 +108,9 @@ tools/fiptool/fiptool --verbose create \
 	build/stm32mp2/release/fip.bin
 ```
 
-You need to edit the path to your application binary.
 Note that the ddr-fw binary comes pre-built in this repo, so you don't need to build it.
 
+## Installing on the SD card
 
 Now flash the fip file to partition 5 (adjust the device path):
 
@@ -119,8 +127,11 @@ Shortcuts:
 
 A complete, fresh build and flashing looks like this:
 ```
+export SDCARDDEV=/dev/XXXXX
 make clean && ./build.sh && ./buildfiptool.sh && ./makefip.sh && ./flashsd.sh
 ```
+
+...where SDCARDDEV is set to the device of the SD card.
 
 
 Notes on DTS
