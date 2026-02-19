@@ -3,13 +3,13 @@ The original readme is [here](readme-tfa.rst)
 
 Modifications:
 -------------
-- allow compilation on a macOS host
-- add BAREMETAL_IMAGE_LOADER build flag:
-  - Builds BL2 and its DTB requirements
+- Allow compilation on a macOS host
+- Add BAREMETAL_IMAGE_LOADER build flag:
+  - Builds BL2 with an embedded device tree DTB
   - BL2 performs some hardware init (PMIC, DDRRAM, ...) and then
-    loads a baremetal binary app from the FIP file, and excecutes it
+    loads a baremetal binary app from the FIP file, which it excecutes
     in EL3 Secure mode.
-  - BL31 (TF-A Secure Monitor), BL32 (OP-TEE), BL33 (U-Boot) are not built or used
+  - Does not build or run BL31 (TF-A Secure Monitor), BL32 (OP-TEE), or BL33 (U-Boot).
 
 
 Building:
@@ -117,6 +117,35 @@ Now flash the fip file to partition 5 (adjust the device path):
 ```bash
 sudo dd if=build/stm32mp2/release/fip.bin of=/dev/diskX5
 ```
+
+
+## Modifying the console output
+
+By default, the console output is on USART2, which is connected to the ST-LINK via the USB jack on
+the EV1 board. I found it more convenient to use USART6 via two pins on the 40-pin expansion header.
+(pin 6 = GND, pin 8 = USART6.TX, pin 10 = USART6.RX). This allowed me to use the SWD header rather than the
+ST-LINK interface (see below).
+
+## Using SWD/JTAG instead of ST-LINK
+
+The USB jack on the EV1 attaches to an STM32F7 chip which controls the STM32MP257 via SWD. It also
+forwards USART2 between the STM32MP257 and USB. The easiest way to get started is to connect this
+USB jack to your computer and then use openocd and gdb, which should detect it immediately. You
+also can open a console to the USB serial device that appears when connected.
+
+However, this approach is limited in that you cannot use your own debugger (JLINK or TRACE32, for
+example). There is a MIPI10 header that has a standard SWD pinout, but you have to change some
+jumpers in order to use it.
+
+In order to attach your own debugger, you have to disable the F7 by installing a jumper on JP3
+(which is right next to the  F7 chip).
+
+Then, move the jumper on JP4 to the top position and plug a 5V barrel power supply into the jack
+(CN20). Check the EV1 user manual for specifics, but the schematic mentions 5V 3A, and I was able to
+power the board with a 12V 1.5A supply.
+
+You cannot use the USB jack CN21 (marked "USB_PWR ST_LINK") for anything when the jumpers
+are set in these positions.
 
 
 Shortcuts:
