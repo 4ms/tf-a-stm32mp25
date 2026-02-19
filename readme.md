@@ -11,6 +11,19 @@ Modifications:
     in EL3 Secure mode.
   - Does not build or run BL31 (TF-A Secure Monitor), BL32 (OP-TEE), or BL33 (U-Boot).
 
+The BAREMETAL_IMAGE_LOADER build flag is optional -- you can compile without it and still load
+your application the normal way with U-Boot (in EL1 non-secure mode).
+
+When the BAREMETAL_IMAGE_LOADER flag is set, the following things are setup:
+- USART is configured (and used for console output)
+- PMIC via I2C7 is setup to power the core and DDR RAM
+- SDMMC1 and SDMMC2 (eMMC) are configured
+- DDR RAM is initialized
+- RISAF4 is setup to allow CA35 and the debugger to access the first 2GB
+- BSEC is told to allow full debugger access to all cores
+
+There are more things initialized (BSEC, TAMP), which I haven't fully investigated yet.
+
 
 Building:
 --------
@@ -126,6 +139,16 @@ the EV1 board. I found it more convenient to use USART6 via two pins on the 40-p
 (pin 6 = GND, pin 8 = USART6.TX, pin 10 = USART6.RX). This allowed me to use the SWD header rather than the
 ST-LINK interface (see below).
 
+To tell TF-A to use USART6, change the `serial0 = ` line in the `fdts/stm32mp257f-ev1.dts` file to
+this (lines 22-24):
+
+```dts
+	aliases {
+		serial0 = &usart6;
+	};
+```
+
+
 ## Using SWD/JTAG instead of ST-LINK
 
 The USB jack on the EV1 attaches to an STM32F7 chip which controls the STM32MP257 via SWD. It also
@@ -146,6 +169,9 @@ power the board with a 12V 1.5A supply.
 
 You cannot use the USB jack CN21 (marked "USB_PWR ST_LINK") for anything when the jumpers
 are set in these positions.
+
+To get console output via the USART, you need to tell TF-A to use a different USART. I found
+USART6 to be convenient -- see the previous section for instructions.
 
 
 Shortcuts:
