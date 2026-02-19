@@ -7,6 +7,7 @@
 /dts-v1/;
 
 #include <dt-bindings/clock/stm32mp25-clksrc.h>
+#include <dt-bindings/soc/rif.h>
 #include "stm32mp257.dtsi"
 #include "stm32mp25xf.dtsi"
 #include "stm32mp257f-ev1-ca35tdcid-rcc.dtsi"
@@ -269,3 +270,19 @@
 	pinctrl-0 = <&usart6_pins_a>;
 	status = "okay";
 };
+
+
+/{
+	ddrram_1: ddrram-1@80000000 {
+		reg = <0x0 0x80000000 0x0 0x40000000>;
+		st,protreg = <RISAFPROT(RISAF_REG_ID(0),
+		        /*     CIDCFGR.RDEN           CIDCFGR.WREN        CFGR.PRIVx  CFGR.SEC  CFGR.ENC    CFGR.BREN   */
+			RIF_CID0_BF|RIF_CID1_BF, RIF_CID0_BF|RIF_CID1_BF, RIF_UNUSED, RIF_SEC, RIF_ENC_DIS, RIF_BREN_EN)>;
+	};
+};
+
+
+&risaf4 {
+	memory-region= <&ddrram_1>;
+};
+
