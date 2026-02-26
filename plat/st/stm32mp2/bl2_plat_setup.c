@@ -818,12 +818,14 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 #endif /* PSA_FWU_SUPPORT */
 		break;
 
+#if BAREMETAL_IMAGE_LOADER
 	case BAREMETAL_FW_ID:
 		dsbsy();
 		isb();
 		bsec_enable_full_debug_conf();
 		// isb();
 		break;
+#endif
 
 	default:
 		/* Do nothing in default case */
