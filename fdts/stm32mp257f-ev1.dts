@@ -20,7 +20,11 @@
 	compatible = "st,stm32mp257f-ev1", "st,stm32mp257";
 
 	aliases {
+#if USE_UART==6
+		serial0 = &usart6;
+#else
 		serial0 = &usart2;
+#endif
 	};
 
 	chosen {
@@ -250,6 +254,7 @@
 	status = "okay";
 };
 
+#if USE_UART==6
 &pinctrl {
 	usart6_pins_a: usart6-0  {
 		pins1 {
@@ -270,8 +275,10 @@
 	pinctrl-0 = <&usart6_pins_a>;
 	status = "okay";
 };
+#endif
 
 
+#if defined(BAREMETAL_IMAGE_LOADER)
 &ddrram {
 	st,protreg = <RISAFPROT(RISAF_REG_ID(1),
 		/*     CIDCFGR.RDEN           CIDCFGR.WREN        CFGR.PRIVx  CFGR.SEC  CFGR.ENC    CFGR.BREN   */
@@ -281,4 +288,4 @@
 &risaf4 {
 	memory-region= <&ddrram>;
 };
-
+#endif
