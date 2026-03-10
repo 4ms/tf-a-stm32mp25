@@ -19,7 +19,7 @@ When the BAREMETAL_IMAGE_LOADER flag is set, the following things are setup:
 - PMIC via I2C7 is setup to power the core and DDR RAM
 - SDMMC1 and SDMMC2 (eMMC) are configured
 - DDR RAM is initialized
-- RISAF4 is setup to allow CA35 and the debugger to access the first 2GB
+- RISAF4 is setup to allow CA35 and the debugger to access the first 4GB
 - BSEC is told to allow full debugger access to all cores
 
 There are more things initialized (BSEC, TAMP), which I haven't fully investigated yet.
