@@ -13,14 +13,14 @@ To build fiptool:
 
 ```
 cd tf-a-stm32mp25
-make fiptool
+make PLAT=stm32mp2 fiptool
 ```
 
 On some macOS systems, you may need to do this:
 
 ```
 cd tf-a-stm32mp25
-OPENSSL_DIR=/opt/homebrew/opt/openssl@1.1 HOSTCCFLAGS="-I/opt/homebrew/opt/openssl@1.1/include" make fiptool
+make PLAT=stm32mp2 OPENSSL_DIR=/opt/homebrew/opt/openssl@1.1 HOSTCCFLAGS="-I/opt/homebrew/opt/openssl@1.1/include" fiptool
 ```
 
 The file `make_helpers/defaults.mk` has been modified to allow overriding the default location
