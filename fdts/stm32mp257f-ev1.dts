@@ -248,3 +248,24 @@
 	pinctrl-0 = <&usart2_pins_a>;
 	status = "okay";
 };
+
+&pinctrl {
+	usart6_pins_a: usart6-0  {
+		pins1 {
+			pinmux = <STM32_PINMUX('F', 13, AF3)>; /* USART6_TX */
+			bias-disable;
+			drive-push-pull;
+			slew-rate = <0>;
+		};
+		pins2 {
+			pinmux = <STM32_PINMUX('F', 14, AF3)>; /* USART6_RX */
+			bias-disable;
+		};
+	};
+};
+
+&usart6 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&usart6_pins_a>;
+	status = "okay";
+};
