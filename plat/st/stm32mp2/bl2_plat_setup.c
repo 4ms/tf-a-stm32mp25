@@ -205,8 +205,29 @@ static void notify_cpu2(void)
 #define PWR_CR1_VDDIO4SV	BIT(9)	/* supply valid -> de-isolate pads */
 /* NB: VDDIO4 is 3.3V (buck4); VRSEL (BIT 26) must stay CLEAR. */
 
-static void __unused stm32mp_gpio_heartbeat(void)
+void __unused stm32mp_gpio_heartbeat(int pulses)
 {
+	/* Enable GPIOA bank clocks */
+	mmio_setbits_32(RCC_BASE + RCC_GPIOACFGR_OFF, RCC_GPIOxEN);
+
+	/* PA5 = general-purpose output (MODER[11:10] = 0b01) */
+	mmio_clrsetbits_32(GPIOA_BASE + GPIO_MODER_OFF,
+			   U(0x3) << (5 * 2), U(0x1) << (5 * 2));
+	// /* PB8 = general-purpose output (MODER[17:16] = 0b01) */
+	// mmio_clrsetbits_32(GPIOB_BASE + GPIO_MODER_OFF,
+	// 		   U(0x3) << (8 * 2), U(0x1) << (8 * 2));
+
+	while (pulses--) {
+		mmio_write_32(GPIOA_BASE + GPIO_BSRR_OFF, BIT(5));
+		for (volatile uint32_t i = 0; i < 20000U; i++) {
+		}
+		mmio_write_32(GPIOA_BASE + GPIO_BSRR_OFF, BIT(5) << 16);
+		for (volatile uint32_t i = 0; i < 20000U; i++) {
+		}
+	}
+}
+
+static void __unused stm32mp_init_vddio4() {
 	/*
 	 * De-isolate VDDIO4 so PB8's pad buffer is driven. The pad is held
 	 * isolated after reset until software declares the supply valid (SV),
@@ -215,32 +236,8 @@ static void __unused stm32mp_gpio_heartbeat(void)
 	 */
 	mmio_setbits_32(PWR_BASE + PWR_CR1_OFF,
 			PWR_CR1_VDDIO4VMEN | PWR_CR1_VDDIO4SV);
-
-	/* Enable GPIOA and GPIOB bank clocks */
-	mmio_setbits_32(RCC_BASE + RCC_GPIOACFGR_OFF, RCC_GPIOxEN);
-	mmio_setbits_32(RCC_BASE + RCC_GPIOBCFGR_OFF, RCC_GPIOxEN);
-
-	/* PA5 = general-purpose output (MODER[11:10] = 0b01) */
-	mmio_clrsetbits_32(GPIOA_BASE + GPIO_MODER_OFF,
-			   U(0x3) << (5 * 2), U(0x1) << (5 * 2));
-	/* PB8 = general-purpose output (MODER[17:16] = 0b01) */
-	mmio_clrsetbits_32(GPIOB_BASE + GPIO_MODER_OFF,
-			   U(0x3) << (8 * 2), U(0x1) << (8 * 2));
-
-	int j = 20;
-	while (j--) {
-		/* Drive both pins high (BSRR set bits) */
-		mmio_write_32(GPIOA_BASE + GPIO_BSRR_OFF, BIT(5));
-		mmio_write_32(GPIOB_BASE + GPIO_BSRR_OFF, BIT(8));
-		for (volatile uint32_t i = 0; i < 200000U; i++) {
-		}
-		/* Drive both pins low (BSRR reset bits = set<<16) */
-		mmio_write_32(GPIOA_BASE + GPIO_BSRR_OFF, BIT(5) << 16);
-		mmio_write_32(GPIOB_BASE + GPIO_BSRR_OFF, BIT(8) << 16);
-		for (volatile uint32_t i = 0; i < 200000U; i++) {
-		}
-	}
 }
+
 
 void bl2_el3_early_platform_setup(u_register_t arg0 __unused,
 				  u_register_t arg1 __unused,
@@ -248,9 +245,10 @@ void bl2_el3_early_platform_setup(u_register_t arg0 __unused,
 				  u_register_t arg3 __unused)
 {
 	bsec_enable_full_debug_conf();
+	stm32mp_init_vddio4();
 
-	/* DIAGNOSTIC: prove BL2 reached C. Comment out once confirmed. */
-	stm32mp_gpio_heartbeat();
+	stm32mp_gpio_heartbeat(1);
+
 
 	stm32mp_setup_early_console();
 
@@ -498,8 +496,10 @@ void bl2_el3_plat_arch_setup(void)
 			BL_CODE_END - BL_CODE_BASE,
 			MT_CODE | MT_SECURE);
 
+	ERROR("config_mmu...\n");
 	configure_mmu();
 
+	ERROR("dt_open_and_check...\n");
 	if (dt_open_and_check(STM32MP_DTB_BASE) < 0) {
 		panic();
 	}
@@ -516,9 +516,15 @@ void bl2_el3_plat_arch_setup(void)
 	ddr_sub_system_clk_init();
 #endif
 
+	plat_crash_console_init();
+	plat_crash_console_putc('1');
 	if (stm32mp2_clk_init() < 0) {
+		plat_crash_console_putc('9');
+		stm32mp_gpio_heartbeat(3);
 		panic();
 	}
+
+	stm32mp_gpio_heartbeat(30);
 
 #if STM32MP_DDR_FIP_IO_STORAGE || TRUSTED_BOARD_BOOT
 #if !STM32MP_M33_TDCID
