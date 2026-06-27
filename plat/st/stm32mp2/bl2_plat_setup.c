@@ -183,11 +183,59 @@ static void notify_cpu2(void)
 }
 #endif
 
+/*
+ * Diagnostic "alive" heartbeat: directly toggle GPIO pins as a square wave to
+ * prove BL2 is executing, independent of any UART/console config. Mirrors the
+ * register-poke sequence proven in plat_crash_console_init().
+ *   - PA4: GPIOA bank, the bank USART2 TX used and proved on the EV kit.
+ *   - PB8: GPIOB bank, the USART1 TX pin on the custom board.
+ * Toggling both lets a scope distinguish "BL2 dead" (both silent) from a
+ * GPIOB-specific issue (only PA4 moves).
+ * This loops forever - move the call later in boot to bisect where BL2 dies.
+ */
+#define RCC_GPIOACFGR_OFF	U(0x52C)
+#define RCC_GPIOBCFGR_OFF	U(0x530)
+#define RCC_GPIOxEN		BIT(1)
+#define GPIO_MODER_OFF		U(0x00)
+#define GPIO_BSRR_OFF		U(0x18)
+
+static void __unused stm32mp_gpio_heartbeat(void)
+{
+	/* Enable GPIOA and GPIOB bank clocks */
+	mmio_setbits_32(RCC_BASE + RCC_GPIOACFGR_OFF, RCC_GPIOxEN);
+	mmio_setbits_32(RCC_BASE + RCC_GPIOBCFGR_OFF, RCC_GPIOxEN);
+
+	/* PA5 = general-purpose output (MODER[11:10] = 0b01) */
+	mmio_clrsetbits_32(GPIOA_BASE + GPIO_MODER_OFF,
+			   U(0x3) << (5 * 2), U(0x1) << (5 * 2));
+	/* PB8 = general-purpose output (MODER[17:16] = 0b01) */
+	mmio_clrsetbits_32(GPIOB_BASE + GPIO_MODER_OFF,
+			   U(0x3) << (8 * 2), U(0x1) << (8 * 2));
+
+	while (true) {
+		/* Drive both pins high (BSRR set bits) */
+		mmio_write_32(GPIOA_BASE + GPIO_BSRR_OFF, BIT(5));
+		mmio_write_32(GPIOB_BASE + GPIO_BSRR_OFF, BIT(8));
+		for (volatile uint32_t i = 0; i < 200000U; i++) {
+		}
+		/* Drive both pins low (BSRR reset bits = set<<16) */
+		mmio_write_32(GPIOA_BASE + GPIO_BSRR_OFF, BIT(5) << 16);
+		mmio_write_32(GPIOB_BASE + GPIO_BSRR_OFF, BIT(8) << 16);
+		for (volatile uint32_t i = 0; i < 200000U; i++) {
+		}
+	}
+}
+
 void bl2_el3_early_platform_setup(u_register_t arg0 __unused,
 				  u_register_t arg1 __unused,
 				  u_register_t arg2 __unused,
 				  u_register_t arg3 __unused)
 {
+	bsec_enable_full_debug_conf();
+
+	/* DIAGNOSTIC: prove BL2 reached C. Comment out once confirmed. */
+	stm32mp_gpio_heartbeat();
+
 	stm32mp_setup_early_console();
 
 #if STM32MP_M33_TDCID
