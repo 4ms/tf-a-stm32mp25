@@ -199,8 +199,23 @@ static void notify_cpu2(void)
 #define GPIO_MODER_OFF		U(0x00)
 #define GPIO_BSRR_OFF		U(0x18)
 
+/* PWR controller - de-isolate the VDDIO4 IO domain that powers GPIOB/PB8 */
+#define PWR_CR1_OFF		U(0x00)
+#define PWR_CR1_VDDIO4VMEN	BIT(1)	/* voltage monitor enable */
+#define PWR_CR1_VDDIO4SV	BIT(9)	/* supply valid -> de-isolate pads */
+/* NB: VDDIO4 is 3.3V (buck4); VRSEL (BIT 26) must stay CLEAR. */
+
 static void __unused stm32mp_gpio_heartbeat(void)
 {
+	/*
+	 * De-isolate VDDIO4 so PB8's pad buffer is driven. The pad is held
+	 * isolated after reset until software declares the supply valid (SV),
+	 * even though the PMIC rail is already up. No RDY poll (hang-safe: the
+	 * supply is known good), no VRSEL (3.3V rail).
+	 */
+	mmio_setbits_32(PWR_BASE + PWR_CR1_OFF,
+			PWR_CR1_VDDIO4VMEN | PWR_CR1_VDDIO4SV);
+
 	/* Enable GPIOA and GPIOB bank clocks */
 	mmio_setbits_32(RCC_BASE + RCC_GPIOACFGR_OFF, RCC_GPIOxEN);
 	mmio_setbits_32(RCC_BASE + RCC_GPIOBCFGR_OFF, RCC_GPIOxEN);
@@ -212,7 +227,8 @@ static void __unused stm32mp_gpio_heartbeat(void)
 	mmio_clrsetbits_32(GPIOB_BASE + GPIO_MODER_OFF,
 			   U(0x3) << (8 * 2), U(0x1) << (8 * 2));
 
-	while (true) {
+	int j = 20;
+	while (j--) {
 		/* Drive both pins high (BSRR set bits) */
 		mmio_write_32(GPIOA_BASE + GPIO_BSRR_OFF, BIT(5));
 		mmio_write_32(GPIOB_BASE + GPIO_BSRR_OFF, BIT(8));
