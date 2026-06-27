@@ -323,6 +323,13 @@ uint32_t bsec_read_debug_conf(void)
 void bsec_enable_full_debug_conf(void)
 {
 	mmio_write_32(BSEC_BASE + BSEC_DENR, 0xDEB60FFE);
+
+	mmio_setbits_32(RCC_BASE + 0x520, BIT(8));   /* RCC_DBGCFGR.DBGEN */
+	(void)mmio_read_32(RCC_BASE + 0x520);        /* readback = ordering barrier */
+
+	mmio_write_32(DBGMCU_BASE + 0x004, 0x00000014); /* keep CA35 awake */
+	mmio_write_32(DBGMCU_BASE + 0x004, 0x00000017); /* final DBGMCU_CR */
+
 }
 
 static uint32_t bsec_lock_register_set(uint32_t offset, uint32_t mask)
