@@ -22,8 +22,8 @@
 	aliases {
 #if USE_UART==6
 		serial0 = &usart6;
-#elseif USE_UART==1
-        serial0 = &usart1;
+#elif USE_UART==1
+		serial0 = &usart1;
 #else
 		serial0 = &usart2;
 #endif
@@ -271,6 +271,17 @@
 		};
 	};
 
+};
+
+&usart6 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&usart6_pins_a>;
+	status = "okay";
+};
+#endif
+
+#if USE_UART==1
+&pinctrl {
 	usart1_pins_a: usart1-0  {
 		pins1 {
 			pinmux = <STM32_PINMUX('B', 8, AF6)>; /* USART1_TX */
@@ -285,9 +296,9 @@
 	};
 };
 
-&usart6 {
+&usart1 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&usart6_pins_a>;
+	pinctrl-0 = <&usart1_pins_a>;
 	status = "okay";
 };
 #endif
@@ -305,8 +316,3 @@
 };
 #endif
 
-&usart1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&usart1_pins_a>;
-	status = "okay";
-};
