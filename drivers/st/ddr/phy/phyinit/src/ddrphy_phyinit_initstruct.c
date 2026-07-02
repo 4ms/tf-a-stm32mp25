@@ -29,7 +29,7 @@ void ddrphy_phyinit_initstruct(struct stm32mp_ddr_config *config, struct pmu_smb
 					 * Set reserved00[6:0] = 0 (Reserved; must be set to 0)
 					 */
 
-	uint8_t hdtctrl = 0x05U;	/* DEBUG: detailed per-byte training trace (was 0xFF) */
+	uint8_t hdtctrl = 0xFFU;	/* DEBUG: detailed per-byte training trace (was 0xFF) */
 #if STM32MP_DDR3_TYPE || STM32MP_DDR4_TYPE
 	uint8_t cspresent = 0x01U;	/*
 					 * Indicates presence of DRAM at each chip select for PHY.
