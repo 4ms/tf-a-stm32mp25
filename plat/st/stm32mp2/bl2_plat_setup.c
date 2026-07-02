@@ -205,6 +205,7 @@ static void notify_cpu2(void)
 #define PWR_CR1_VDDIO4SV	BIT(9)	/* supply valid -> de-isolate pads */
 /* NB: VDDIO4 is 3.3V (buck4); VRSEL (BIT 26) must stay CLEAR. */
 
+#ifdef SEND_GPIO_A5_HEARTBEAT
 void __unused stm32mp_gpio_heartbeat(int pulses)
 {
 	/* Enable GPIOA bank clocks */
@@ -226,6 +227,7 @@ void __unused stm32mp_gpio_heartbeat(int pulses)
 		}
 	}
 }
+#endif
 
 static void __unused stm32mp_init_vddio4() {
 	/*
@@ -247,8 +249,9 @@ void bl2_el3_early_platform_setup(u_register_t arg0 __unused,
 	bsec_enable_full_debug_conf();
 	stm32mp_init_vddio4();
 
+#ifdef SEND_GPIO_A5_HEARTBEAT
 	stm32mp_gpio_heartbeat(1);
-
+#endif
 
 	stm32mp_setup_early_console();
 
@@ -496,10 +499,8 @@ void bl2_el3_plat_arch_setup(void)
 			BL_CODE_END - BL_CODE_BASE,
 			MT_CODE | MT_SECURE);
 
-	ERROR("config_mmu...\n");
 	configure_mmu();
 
-	ERROR("dt_open_and_check...\n");
 	if (dt_open_and_check(STM32MP_DTB_BASE) < 0) {
 		panic();
 	}
@@ -516,15 +517,9 @@ void bl2_el3_plat_arch_setup(void)
 	ddr_sub_system_clk_init();
 #endif
 
-	plat_crash_console_init();
-	plat_crash_console_putc('1');
 	if (stm32mp2_clk_init() < 0) {
-		plat_crash_console_putc('9');
-		stm32mp_gpio_heartbeat(3);
 		panic();
 	}
-
-	stm32mp_gpio_heartbeat(30);
 
 #if STM32MP_DDR_FIP_IO_STORAGE || TRUSTED_BOARD_BOOT
 #if !STM32MP_M33_TDCID

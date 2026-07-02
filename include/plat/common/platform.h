@@ -293,7 +293,9 @@ static inline void bl2_plat_mboot_finish(void)
 void bl2_el3_early_platform_setup(u_register_t arg0, u_register_t arg1,
 				  u_register_t arg2, u_register_t arg3);
 void bl2_el3_plat_arch_setup(void);
+#ifdef SEND_GPIO_A5_HEARTBEAT
 void stm32mp_gpio_heartbeat(int pulses);
+#endif
 
 /*******************************************************************************
  * Optional BL2 at EL3 functions (may be overridden)
