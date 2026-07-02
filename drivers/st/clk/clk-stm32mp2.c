@@ -819,18 +819,18 @@ static void clk_oscillator_set_drive(struct stm32_clk_priv *priv, int id,
 	}
 }
 
-// static int clk_oscillator_wait_ready(struct stm32_clk_priv *priv, int id,
-// 				     bool ready_on)
-// {
-// 	struct clk_oscillator_data *osc_data = clk_oscillator_get_data(priv, id);
+static int clk_oscillator_wait_ready(struct stm32_clk_priv *priv, int id,
+				     bool ready_on)
+{
+	struct clk_oscillator_data *osc_data = clk_oscillator_get_data(priv, id);
 
-// 	return _clk_stm32_gate_wait_ready(priv, osc_data->gate_rdy_id, ready_on);
-// }
+	return _clk_stm32_gate_wait_ready(priv, osc_data->gate_rdy_id, ready_on);
+}
 
-// static int clk_oscillator_wait_ready_on(struct stm32_clk_priv *priv, int id)
-// {
-// 	return clk_oscillator_wait_ready(priv, id, true);
-// }
+static int clk_oscillator_wait_ready_on(struct stm32_clk_priv *priv, int id)
+{
+	return clk_oscillator_wait_ready(priv, id, true);
+}
 #endif /* !STM32MP_M33_TDCID */
 #endif /* IMAGE_BL2 */
 
@@ -2391,9 +2391,9 @@ static int stm32_clk_oscillators_wait_lse_ready(struct stm32_clk_priv *priv)
 {
 	int ret = 0;
 
-	// if (_clk_stm32_get_rate(priv, _CK_LSE) != 0U) {
-	// 	ret = clk_oscillator_wait_ready_on(priv, _CK_LSE);
-	// }
+	if (_clk_stm32_get_rate(priv, _CK_LSE) != 0U) {
+		ret = clk_oscillator_wait_ready_on(priv, _CK_LSE);
+	}
 
 	return ret;
 }

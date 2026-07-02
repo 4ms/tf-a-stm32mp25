@@ -19,7 +19,7 @@
 };
 
 &clk_lse {
-	clock-frequency = <32768>;
+	clock-frequency = <0>;
 };
 
 &clk_lsi {
