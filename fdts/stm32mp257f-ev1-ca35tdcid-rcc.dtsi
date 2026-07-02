@@ -70,8 +70,13 @@
 	};
 
 	pll2: st,pll-2 {
-		st,pll = <&pll2_cfg_320Mhz>;
+		st,pll = <&pll2_cfg_400Mhz>;
 
+		/* DDR @ 800MHz: PLL2 = 40MHz HSE x20 / 2 = 400MHz (2x DFI clock) */
+		pll2_cfg_400Mhz: pll2-cfg-400Mhz {
+			cfg = <20 1 1 2>;
+			src = <MUX_CFG(MUX_MUXSEL6, MUXSEL_HSE)>;
+		};
 		/* DDR @ 640MHz: PLL2 = 40MHz HSE x24 / 3 = 320MHz (2x DFI clock) */
 		pll2_cfg_320Mhz: pll2-cfg-320Mhz {
 			cfg = <24 1 1 3>;
