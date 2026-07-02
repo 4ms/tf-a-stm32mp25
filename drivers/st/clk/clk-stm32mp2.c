@@ -846,6 +846,17 @@ static bool clk_stm32_osc_gate_is_enabled(struct stm32_clk_priv *priv, int id)
 {
 	struct clk_oscillator_data *osc_data = clk_oscillator_get_data(priv, id);
 
+	/*
+	 * An oscillator with no frequency set in DT (e.g. LSE not populated on
+	 * the board) is deliberately skipped by clk_stm32_osc_gate_enable().
+	 * Report it as "enabled" so that clk_stm32_enable_call_ops() does not
+	 * panic when a consumer (mux parent walk, critical clock enable, ...)
+	 * pulls it in. Its rate remains 0, which consumers can check.
+	 */
+	if (osc_data->frequency == 0UL) {
+		return true;
+	}
+
 	return _clk_stm32_gate_is_enabled(priv, osc_data->gate_id);
 
 }
