@@ -11,11 +11,11 @@
 #include "stm32mp257.dtsi"
 #include "stm32mp25xf.dtsi"
 #include "stm32mp257f-ev1-ca35tdcid-rcc.dtsi"
-/* #include "stm32mp25-ddr4-2x16Gbits-2x16bits-1200MHz.dtsi" */
-/* #include "stm32mp25-mx-640MHz.dtsi" */
-/* #include "stm32mp25-mx-800MHz.dtsi" */
-/* #include "stm32mp25-mx-1000MHz.dtsi" */
+#if BOARD==2
 #include "stm32mp25-mx-1200MHz.dtsi"
+#else
+#include "stm32mp25-ddr4-2x16Gbits-2x16bits-1200MHz.dtsi"
+#endif
 #include "stm32mp25-pinctrl.dtsi"
 #include "stm32mp25xxai-pinctrl.dtsi"
 
