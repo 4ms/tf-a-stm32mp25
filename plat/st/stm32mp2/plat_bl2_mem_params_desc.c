@@ -58,7 +58,7 @@ static bl_mem_params_node_t bl2_mem_params_descs[] = {
 				      IMAGE_ATTRIB_PLAT_SETUP),
 
 		.image_info.image_base = 0x88000000,
-		.image_info.image_max_size = 0x0010000,
+		.image_info.image_max_size = 0x1000000,
 
 		.next_handoff_image_id = INVALID_IMAGE_ID,
 	}
