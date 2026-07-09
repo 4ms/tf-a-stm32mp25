@@ -41,6 +41,7 @@
 #include <platform_def.h>
 #include <stm32mp_common.h>
 #include <stm32mp_dt.h>
+#include <stm32mp_io_storage.h>
 #include <stm32mp2_context.h>
 
 #define BOOT_CTX_ADDR	0x0e000020UL
@@ -885,6 +886,14 @@ int bl2_plat_handle_post_image_load(unsigned int image_id)
 
 #if BAREMETAL_IMAGE_LOADER
 	case BAREMETAL_FW_ID:
+		/* The descriptor is SKIP_LOADING: the app is not in the FIP.
+		 * Load it from the "app" GPT partition instead, which sets
+		 * image_base/image_size and ep_info.pc from the uimg header. */
+		err = stm32mp_load_baremetal_app(bl_mem_params);
+		if (err != 0) {
+			ERROR("Failed to load the baremetal app (%d)\n", err);
+			panic();
+		}
 		dsbsy();
 		isb();
 		bsec_enable_full_debug_conf();

@@ -53,9 +53,14 @@ static bl_mem_params_node_t bl2_mem_params_descs[] = {
 		.ep_info.pc = 0x88000000,
 		.ep_info.spsr = SPSR_64(MODE_EL3, MODE_SP_ELX, DISABLE_ALL_EXCEPTIONS),
 
+		/* SKIP_LOADING: the app is not loaded from the FIP by the
+		 * generic loader; bl2_plat_handle_post_image_load() loads it
+		 * from the "app" GPT partition (see stm32mp_load_baremetal_app)
+		 * and overrides image_base/pc from the app's uimg header. */
 		SET_STATIC_PARAM_HEAD(image_info, PARAM_EP,
 				      VERSION_2, image_info_t,
-				      IMAGE_ATTRIB_PLAT_SETUP),
+				      IMAGE_ATTRIB_PLAT_SETUP |
+				      IMAGE_ATTRIB_SKIP_LOADING),
 
 		.image_info.image_base = 0x88000000,
 		.image_info.image_max_size = 0x1000000,

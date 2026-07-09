@@ -99,6 +99,11 @@ extern io_block_spec_t image_block_spec;
 
 /* Function declarations */
 int open_fip(const uintptr_t spec);
+#if BAREMETAL_IMAGE_LOADER
+#include <common/desc_image_load.h>
+/* Load the baremetal app uimg from the GPT partition named "app" */
+int stm32mp_load_baremetal_app(bl_mem_params_node_t *bl_mem_params);
+#endif
 #ifndef DECRYPTION_SUPPORT_none
 int open_enc_fip(const uintptr_t spec);
 #endif
