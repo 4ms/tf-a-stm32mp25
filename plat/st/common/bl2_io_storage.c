@@ -663,12 +663,22 @@ int stm32mp_load_baremetal_app(bl_mem_params_node_t *bl_mem_params)
 	mmc_block_dev_spec.buffer.length = UL(0x100000);
 #endif
 
-	app_block_spec.offset = entry->start + sizeof(hdr);
-	app_block_spec.length = size;
+	/*
+	 * Read the payload, which starts sizeof(hdr) bytes into the partition.
+	 * The spec offset must stay block-aligned: io_block computes its
+	 * intra-block skip from the seek position only, and silently returns
+	 * shifted data if the spec base itself is unaligned. So open the spec
+	 * at the partition start and seek past the header instead.
+	 */
+	app_block_spec.offset = entry->start;
+	app_block_spec.length = sizeof(hdr) + size;
 
 	ret = io_open(storage_dev_handle, (uintptr_t)&app_block_spec, &handle);
 	if (ret == 0) {
-		ret = io_read(handle, (uintptr_t)load, size, &bytes_read);
+		ret = io_seek(handle, IO_SEEK_SET, sizeof(hdr));
+		if (ret == 0) {
+			ret = io_read(handle, (uintptr_t)load, size, &bytes_read);
+		}
 		io_close(handle);
 		if ((ret == 0) && (bytes_read != size)) {
 			ret = -EIO;
