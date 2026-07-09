@@ -60,17 +60,9 @@ Build:
 This script is just a shortcut for this command:
 
 ```bash
-make PLAT=stm32mp2 \
-    CROSS_COMPILE=aarch64-none-elf- \
-    DTB_FILE_NAME=stm32mp257f-ev1.dtb \
-    STM32MP_SDMMC=1 \
-    STM32MP_DDR4_TYPE=1 \
-    BAREMETAL_IMAGE_LOADER=1 \
-    LOG_LEVEL=40 \
-    BOARD=EV1 USE_UART=2 \
-    dtbs fsbl
+make PLAT=stm32mp2 CROSS_COMPILE=aarch64-none-elf- DTB_FILE_NAME=stm32mp257f-ev1.dtb STM32MP_SDMMC=1 STM32MP_DDR4_TYPE=1 \
+    BAREMETAL_IMAGE_LOADER=1 LOG_LEVEL=40 BOARD=EV1 USE_UART=2 dtbs fsbl
 ```
-
 
 The BOARD=... and USE_UART=... options can be changed to select a different hardware target and
 console UART (see Configuring below).
@@ -104,13 +96,13 @@ To build fiptool:
 
 ```bash
 cd tf-a-stm32mp25
+
+./buildfiptool.sh
+
+# This is a shortcut for this on Linux:
 make PLAT=stm32mp2 BAREMETAL_IMAGE_LOADER=1 fiptool
-```
 
-On some macOS systems, you will need to do this:
-
-```bash
-cd tf-a-stm32mp25
+# And is a short cut for this on macOS:
 make PLAT=stm32mp2 BAREMETAL_IMAGE_LOADER=1 \
 	OPENSSL_DIR=/opt/homebrew/opt/openssl@1.1 \
 	HOSTCCFLAGS="-I/opt/homebrew/opt/openssl@1.1/include" \
@@ -123,6 +115,9 @@ overriding the default location of OPENSSL_DIR.
 Once the fiptool is built, run it to create the FIP file:
 
 ```bash
+./makefip.sh
+
+# This is a shortcut for this:
 tools/fiptool/fiptool --verbose create \
 	--ddr-fw drivers/st/ddr/phy/firmware/bin/stm32mp2/ddr4_pmu_train.bin \
 	build/stm32mp2/release/fip.bin
@@ -139,21 +134,27 @@ sudo dd if=build/stm32mp2/release/fip.bin of=/dev/diskX5
 ```
 
 
-## Modifying the console output
+## Configuring the build (UART and BOARD)
 
 By default, the console output is on USART2, which is connected to the ST-LINK via the USB jack on
 the EV1 board. I found it more convenient to use USART6 via two pins on the 40-pin expansion header.
 (pin 6 = GND, pin 8 = USART6.TX, pin 10 = USART6.RX). This allowed me to use the SWD header rather than the
-ST-LINK interface (see below).
+ST-LINK interface (see below). On a custom board I made, I wanted to use USART1 (PB8 and PB10).
 
-To tell TF-A to use USART6, change the `serial0 = ` line in the `fdts/stm32mp257f-ev1.dts` file to
-this (lines 22-24):
+Any of these options can be chosen by specifying `USE_UART=n` in the `make` command, where n is 1,
+2, or 6.
 
-```dts
-	aliases {
-		serial0 = &usart6;
-	};
+
+```bash
+# Example: Use UART6 on the GPIO expander header of the EV1:
+make PLAT=stm32mp2 ... USE_UART=6 dtbs fsbl
 ```
+
+If you look at the ./build.sh script, you'll see there's also an argument `BOARD=EV1`.
+The `BOARD=...` option was something I set up to support a custom PCB with a different DDR4 layout
+(which is selected by `BOARD=devboard`). I don't expect anyone else to need to use this, but if you
+make your own custom board, you can copy how I did the `devboard` to install your own DDR4
+configuration.
 
 
 ## Using SWD/JTAG instead of ST-LINK
@@ -183,8 +184,6 @@ USART6 to be convenient -- see the previous section for instructions.
 
 Shortcuts:
 ----------
-- You can build the fip tool on macOS with `./buildfiptool.sh`
-- You can make the fip file with `./makefip.sh`. Be sure to change the path to your baremetal app
 - You can dd both the FSBL and the FIP with `./flashsd.sh`
 
 A complete, fresh build and flashing looks like this:
