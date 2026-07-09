@@ -12,12 +12,10 @@ Modifications:
   - The app is a .uimg file (U-Boot legacy image: a 64-byte header + raw
     binary) on the GPT partition named "app". BL2 validates the header's
     magic and CRC32s, loads the payload to the header's load address, and
-    jumps to the header's entry point. This means rebuilding an app only
-    requires dd-ing its .uimg to the "app" partition -- the FIP (which holds
-    only the DDR training firmware) is written once and never changes.
+    jumps to the header's entry point.
   - Does not build or run BL31 (TF-A Secure Monitor), BL32 (OP-TEE), or BL33 (U-Boot).
 
-The BAREMETAL_IMAGE_LOADER build flag is optional -- you can compile without it and still load
+The BAREMETAL_IMAGE_LOADER build flag is optional -- you can compile without it and in theory still load
 your application the normal way with U-Boot (in EL1 non-secure mode).
 
 When the BAREMETAL_IMAGE_LOADER flag is set, the following things are setup:
@@ -56,6 +54,12 @@ Note that the default branch is v2.10-stm32mp2-baremetal, make sure you use that
 Build:
 
 ```bash
+./build.sh
+```
+
+This script is just a shortcut for this command:
+
+```bash
 make PLAT=stm32mp2 \
     CROSS_COMPILE=aarch64-none-elf- \
     DTB_FILE_NAME=stm32mp257f-ev1.dtb \
@@ -63,14 +67,13 @@ make PLAT=stm32mp2 \
     STM32MP_DDR4_TYPE=1 \
     BAREMETAL_IMAGE_LOADER=1 \
     LOG_LEVEL=40 \
+    BOARD=EV1 USE_UART=2 \
     dtbs fsbl
 ```
 
-This command can also be run with:
 
-```bash
-./build.sh
-```
+The BOARD=... and USE_UART=... options can be changed to select a different hardware target and
+console UART (see Configuring below).
 
 This will build `tf-a-stm32mp257f-ev1.stm32`, which is the FSBL (first stage bootloader).
 
