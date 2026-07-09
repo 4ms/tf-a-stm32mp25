@@ -7,8 +7,14 @@ Modifications:
 - Add BAREMETAL_IMAGE_LOADER build flag:
   - Builds BL2 with an embedded device tree DTB
   - BL2 performs some hardware init (PMIC, DDRRAM, ...) and then
-    loads a baremetal binary app from the FIP file, which it excecutes
+    loads a baremetal app from the SD card, which it executes
     in EL3 Secure mode.
+  - The app is a .uimg file (U-Boot legacy image: a 64-byte header + raw
+    binary) on the GPT partition named "app". BL2 validates the header's
+    magic and CRC32s, loads the payload to the header's load address, and
+    jumps to the header's entry point. This means rebuilding an app only
+    requires dd-ing its .uimg to the "app" partition -- the FIP (which holds
+    only the DDR training firmware) is written once and never changes.
   - Does not build or run BL31 (TF-A Secure Monitor), BL32 (OP-TEE), or BL33 (U-Boot).
 
 The BAREMETAL_IMAGE_LOADER build flag is optional -- you can compile without it and still load
@@ -83,11 +89,11 @@ sudo dd if=build/stm32mp2/release/tf-a-stm32mp257f-ev1.stm32 of=/dev/diskX2
 
 ### Build the FIP file
 
-The FSBL requires external an external binary file in order to initialize the DDR RAM.
-It also needs your application binary so it can load it.
+The FSBL requires an external binary file in order to initialize the DDR RAM.
 
-These binary files are joined together into a FIP file.
-The FIP file lives on partition 5 of the SD card.
+This binary goes into a FIP file, which lives on partition 5 of the SD card.
+The FIP only needs to be written once: your application is NOT in the FIP --
+it lives on its own "app" partition (see the stm32mp2-baremetal README).
 
 TF-A includes a tool called fiptool which can be used to create a FIP file.
 
@@ -111,13 +117,11 @@ make PLAT=stm32mp2 BAREMETAL_IMAGE_LOADER=1 \
 To support the above command, the file `make_helpers/defaults.mk` has been modified to allow
 overriding the default location of OPENSSL_DIR.
 
-Once the fiptool is built, run it to create your FIP file (change the path to your baremetal
-project):
+Once the fiptool is built, run it to create the FIP file:
 
 ```bash
 tools/fiptool/fiptool --verbose create \
 	--ddr-fw drivers/st/ddr/phy/firmware/bin/stm32mp2/ddr4_pmu_train.bin \
-	--bm-fw ../stm32mp2-baremetal/minimal_boot/build/main.bin \
 	build/stm32mp2/release/fip.bin
 ```
 

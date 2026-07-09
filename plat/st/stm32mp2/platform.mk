@@ -12,8 +12,11 @@ ifeq (${STM32MP_M33_TDCID},1)
 # FIP partitions (2)
 STM32_EXTRA_PARTS		:=	12
 else
-# metadata (2) and fsbl-m (2) and the FIP partitions (default is 2).
-STM32_EXTRA_PARTS		:=	6
+# metadata (2) and fsbl-m (2) and the FIP partitions (default is 2), plus
+# room for the baremetal "app" partition and the other partitions that
+# precede it on the SD card (u-boot-env, bootfs): the GPT parser only keeps
+# the first PLAT_PARTITION_MAX_ENTRIES entries.
+STM32_EXTRA_PARTS		:=	10
 endif
 
 include plat/st/common/common.mk
@@ -21,6 +24,8 @@ include plat/st/common/common.mk
 ifeq ($(BAREMETAL_IMAGE_LOADER),1)
 BL2_CPPFLAGS += -DBAREMETAL_IMAGE_LOADER=1
 DTC_CPPFLAGS += -DBAREMETAL_IMAGE_LOADER=1
+# Note: the baremetal app loader (bl2_io_storage.c) verifies uimg CRC32s
+# using the tf_crc32 that BL2 already gets from lib/zlib/tf_gunzip.c.
 else
 BAREMETAL_IMAGE_LOADER	  :=	0
 endif
