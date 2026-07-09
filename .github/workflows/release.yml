@@ -1,0 +1,62 @@
+name: Build and release FSBL + FIP
+
+# Manual-only: builds the FSBL (.stm32) and the FIP (fip.bin) with the
+# default commands (./build.sh and ./makefip.sh), then creates a tagged
+# GitHub release with both files attached.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to create (e.g. v1.0.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write # create the tag and the release
+
+env:
+  TOOLCHAIN_VERSION: 14.3.rel1
+
+jobs:
+  build-release:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y device-tree-compiler libssl-dev
+
+      - name: Install aarch64-none-elf toolchain
+        run: |
+          curl -sL -o /tmp/toolchain.tar.xz \
+            "https://developer.arm.com/-/media/Files/downloads/gnu/${TOOLCHAIN_VERSION}/binrel/arm-gnu-toolchain-${TOOLCHAIN_VERSION}-x86_64-aarch64-none-elf.tar.xz"
+          tar -xf /tmp/toolchain.tar.xz -C "$HOME"
+          echo "$HOME/arm-gnu-toolchain-${TOOLCHAIN_VERSION}-x86_64-aarch64-none-elf/bin" >> "$GITHUB_PATH"
+
+      - name: Build FSBL (.stm32)
+        run: ./build.sh
+
+      - name: Build fiptool
+        run: ./buildfiptool.sh
+
+      - name: Build FIP
+        run: ./makefip.sh
+
+      - name: Collect artifacts
+        run: |
+          ls -l build/stm32mp2/release/tf-a-stm32mp257f-ev1.stm32 build/stm32mp2/release/fip.bin
+          tools/fiptool/fiptool info build/stm32mp2/release/fip.bin
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: ${{ inputs.tag }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            build/stm32mp2/release/tf-a-stm32mp257f-ev1.stm32
+            build/stm32mp2/release/fip.bin
