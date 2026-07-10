@@ -615,6 +615,27 @@ skip_console_init:
 
 	if (dt_pmic_status() > 0) {
 		initialize_pmic();
+
+#if BAREMETAL_IMAGE_LOADER
+		/*
+		 * Baremetal apps have no OS to bring up regulators. Enable the
+		 * GPU rail here (at its regulator-min-microvolt, 0.80V), since
+		 * nothing else in BL2 consumes it. Marking it always-on in the
+		 * device tree is not enough: that only prevents disabling.
+		 */
+		{
+			struct rdev *vddgpu = regulator_get_by_name("buck3");
+
+			if (vddgpu != NULL) {
+				if ((regulator_set_min_voltage(vddgpu) != 0) ||
+				    (regulator_enable(vddgpu) != 0)) {
+					WARN("VDDGPU (buck3) enable failed\n");
+				} else {
+					INFO("VDDGPU (buck3) enabled\n");
+				}
+			}
+		}
+#endif
 	}
 
 	fconf_populate("TB_FW", STM32MP_DTB_BASE);
