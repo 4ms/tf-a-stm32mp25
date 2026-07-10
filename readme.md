@@ -1,6 +1,7 @@
 This has been forked from ST's TFA.
 The original readme is [here](readme-tfa.rst)
 
+
 Modifications:
 -------------
 - Allow compilation on a macOS host
@@ -27,6 +28,62 @@ When the BAREMETAL_IMAGE_LOADER flag is set, the following things are setup:
 - BSEC is told to allow full debugger access to all cores
 
 There are more things initialized (BSEC, TAMP), which I haven't fully investigated yet.
+
+
+# Quick Start (Using the release files)
+
+1. Partition an SD card: (Change `diskX` to your device name. Warning! this will erase all data on the device!)
+
+```bash
+./partition_sdcard.sh /dev/diskX
+```
+
+2. Download the latest releases of the `tf-a-stm32mp257f-ev1.stm32` and `fip.bin` files from the
+[Releases](https://github.com/4ms/tf-a-stm32mp25/releases)
+
+3. Write the two files to the SD card:
+
+```bash
+sudo dd if=build/stm32mp2/release/tf-a-stm32mp257f-ev1.stm32 of=/dev/diskX1
+sudo dd if=build/stm32mp2/release/tf-a-stm32mp257f-ev1.stm32 of=/dev/diskX2
+sudo dd if=build/stm32mp2/release/fip.bin of=/dev/diskX5
+```
+
+4. Insert the card into the EV1's SD card slot, set the BOOT switches to SD boot (down down down up -- see the EV1 docs),
+and power it up. Attach a USB-C cable to your computer and open a console to the tty device that
+shows up when you attach the cable. Press the reset button and you should see something like this:
+
+```
+NOTICE:  CPU: STM32MP257FAI Rev.?
+NOTICE:  Model: STMicroelectronics STM32MP257F-EV1 Evaluation Board
+NOTICE:  Board: MB1936 Var1.0 Rev.C-01
+INFO:    Reset reason: Power-on reset (por_rstn) (0x2035)
+INFO:    PMIC2 version = 0x11
+INFO:    PMIC2 product ID = 0x20
+INFO:    FCONF: Reading TB_FW firmware configuration file from: 0xe011000
+INFO:    FCONF: Reading firmware configuration information for: stm32mp_fuse
+INFO:    FCONF: Reading firmware configuration information for: stm32mp_io
+INFO:    Using SDMMC
+INFO:      Instance 1
+INFO:    Boot used partition fsbl1
+NOTICE:  BL2: v2.10-stm32mp2-r2.0(release):baremetal-v0.1(ba0a1568)
+NOTICE:  BL2: Built : 23:44:40, Jul  9 2026
+INFO:    BL2: Loading image id 26
+INFO:    Loading image id=26 at address 0xe041000
+INFO:    Image id=26 loaded: 0xe041000 - 0xe048524
+INFO:    BL2: Doing platform setup
+INFO:    RAM: DDR4 2x16Gbits 2x16bits 1200MHz
+INFO:    Memory size = 0x100000000 (4096 MB)
+INFO:    BL2: Skip loading image id 27
+ERROR:   Could NOT find the 'app' partition!
+ERROR:   Failed to load the baremetal app (-2)
+```
+
+Next step is to load an app! Go the [stm32mp2-baremetal](https://github.com/4ms/stm32mp2-baremetal)
+repo to build and load an example project.
+
+
+# Building from source
 
 
 Building:
