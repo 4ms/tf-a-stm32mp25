@@ -2,12 +2,12 @@ This has been forked from ST's TFA.
 The original readme is [here](readme-tfa.rst)
 
 
-Modifications:
+Modifications to stock TF-A
 -------------
 - Allow compilation on a macOS host
 - Add BAREMETAL_IMAGE_LOADER build flag:
   - Builds BL2 with an embedded device tree DTB
-  - BL2 performs some hardware init (PMIC, DDRRAM, ...) and then
+  - BL2 performs some hardware init (PMIC, DDR, ...) and then
     loads a baremetal app from the SD card, which it executes
     in EL3 Secure mode.
   - The app is a .uimg file (U-Boot legacy image: a 64-byte header + raw
