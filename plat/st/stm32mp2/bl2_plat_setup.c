@@ -627,7 +627,7 @@ skip_console_init:
 			struct rdev *vddgpu = regulator_get_by_name("buck3");
 
 			if (vddgpu != NULL) {
-				if ((regulator_set_min_voltage(vddgpu) != 0) ||
+				if ((regulator_set_voltage(vddgpu, vddgpu->max_mv) != 0) ||
 				    (regulator_enable(vddgpu) != 0)) {
 					WARN("VDDGPU (buck3) enable failed\n");
 				} else {
